@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:html';
+import 'package:http/http.dart';
+import 'dart:convert';
+import 'dart:io';
 
 class MyForm extends StatefulWidget {
   @override
@@ -79,13 +81,12 @@ class MyFormState extends State {
                   textColor: Colors.white,
                 ),
                 new FlatButton(
-                    onPressed: () {
-                      Scaffold.of(context).showSnackBar(SnackBar(
-                        content: Text('Виконано запит'),
-                        backgroundColor: Colors.green,
-                      ));
-                    },
-                    child: Text('Send'))
+                  onPressed: () {
+                    _makePostRequest();
+                  },
+                  child: Text('Send'),
+                  color: Colors.blueGrey,
+                )
               ],
             )));
   }
@@ -106,16 +107,42 @@ class MyFormState extends State {
     prefs.setString("serverDB", serverDBController.text);
   }
 
-  _requset() {
-//    var data = { 'title' : 'My first post' };
-    HttpRequest.request('https://jsonplaceholder.typicode.com/posts',
-            method: 'POST',
-            sendData: json.encode(data),
-            requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'})
-        .then((resp) {
-      print(resp.responseUrl);
-      print(resp.responseText);
-    });
+  _makePostRequest() async {
+    // set up POST request arguments
+    String url = 'http://' +
+        serverIPController.text +
+        '/' +
+        serverDBController.text +
+        '/hs/m/time';
+
+    final username = serverUserController.text;
+    final password = serverPasswordController.text;
+    final credentials = '$username:$password';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+    };
+
+//      String json = '{"title": "Hello", "body": "body text", "userId": 1}';
+
+    // make POST request
+//      Response response = await post(url, headers: headers, body: json);
+    Response response = await post(url, headers: headers);
+    // check the status code for the result
+    int statusCode = response.statusCode;
+    Scaffold.of(context).showSnackBar(SnackBar(
+      content: Text(statusCode.toString()),
+      backgroundColor: Colors.green,
+    ));
+    // this API passes back the id of the new item added to the body
+    String body = response.body;
+    // {
+    //   "title": "Hello",
+    //   "body": "body text",
+    //   "userId": 1,
+    //   "id": 101
+    // }
   }
 }
 
