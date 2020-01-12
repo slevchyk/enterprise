@@ -1,74 +1,17 @@
-import 'package:enterprise/pages/page_main.dart' as prefix0;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart';
 import 'dart:convert';
 import 'dart:io';
-import 'package:enterprise/pages/page_main.dart';
-import 'package:enterprise/pages/page_news.dart';
-import 'package:enterprise/pages/page_profile.dart';
-import 'package:enterprise/pages/page_settings.dart';
 
-void main() => runApp(App());
-
-class App extends StatefulWidget {
-  AppState createState() => AppState();
+class PageSettings extends StatefulWidget {
+//  @override
+//  State<StatefulWidget> createState() => PageSettingsState();
+  PageSettingsState createState() => PageSettingsState();
 }
 
-class AppState extends State<App> {
-  int _currentIndex = 0;
-
-  Widget callPage(int currentIndex) {
-    switch (currentIndex) {
-      case 0:
-        return PageMain();
-      case 1:
-        return PageNews();
-      case 2:
-        return PageProfile();
-      case 3:
-        return PageSettings();
-        break;
-      default:
-        return PageMain();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: new Scaffold(
-            appBar: new AppBar(title: new Text('Enterprise')),
-            body: callPage(_currentIndex),
-            bottomNavigationBar: BottomNavigationBar(
-              currentIndex: _currentIndex,
-              type: BottomNavigationBarType.fixed,
-              onTap: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              items: [
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.home), title: Text('головна')),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.rss_feed), title: Text('новини')),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.person), title: Text('профіль')),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.settings), title: Text('налаштування'))
-              ],
-            )));
-  }
-}
-
-class AppBody extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() => AppBodyState();
-}
-
-class AppBodyState extends State {
+class PageSettingsState extends State<PageSettings> {
   final _formKey = GlobalKey<FormState>();
   final serverIPController = TextEditingController();
   final serverUserController = TextEditingController();
@@ -80,12 +23,14 @@ class AppBodyState extends State {
     WidgetsBinding.instance.addPostFrameCallback((_) => _read());
   }
 
+  @override
   Widget build(BuildContext context) {
     return Container(
         padding: EdgeInsets.all(10.0),
         child: new Form(
             key: _formKey,
             child: new Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 new Text(
                   'server IP:',
@@ -94,25 +39,25 @@ class AppBodyState extends State {
                 ),
                 new TextFormField(
                     validator: (value) {
-                      if (value.isEmpty) return 'не вказаний server IP';
+                      if (value.isEmpty) return 'не вказаний: IP';
                     },
                     controller: serverIPController),
                 new Text(
-                  'Server User:',
+                  'server User:',
                   style: TextStyle(fontSize: 20.0),
                 ),
                 new TextFormField(
                     validator: (value) {
-                      if (value.isEmpty) return 'не вказаний server User';
+                      if (value.isEmpty) return 'не вказаний: User';
                     },
                     controller: serverUserController),
                 new Text(
-                  'Server Password:',
+                  'server Password:',
                   style: TextStyle(fontSize: 20.0),
                 ),
                 new TextFormField(
                     validator: (value) {
-                      if (value.isEmpty) return 'не вказаний server Password';
+                      if (value.isEmpty) return 'не вказаний: Password';
                     },
                     controller: serverPasswordController,
                     obscureText: true),
@@ -122,7 +67,7 @@ class AppBodyState extends State {
                 ),
                 new TextFormField(
                   validator: (value) {
-                    if (value.isEmpty) return 'не вказана server Database';
+                    if (value.isEmpty) return 'не вказана: Database';
                   },
                   controller: serverDBController,
                 ),
