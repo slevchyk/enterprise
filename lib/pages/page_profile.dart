@@ -5,8 +5,12 @@ class PageProfile extends StatefulWidget {
 }
 
 class PageProfileState extends State<PageProfile> {
+  final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
+  final _middleNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   Widget _clearIconButton(TextEditingController textController) {
     if (textController.text.isEmpty)
@@ -26,6 +30,7 @@ class PageProfileState extends State<PageProfile> {
     return Container(
       padding: EdgeInsets.all(10.0),
       child: Form(
+        key: _formKey,
         child: Column(
           children: <Widget>[
             TextFormField(
@@ -57,7 +62,71 @@ class PageProfileState extends State<PageProfile> {
               onChanged: (value) {
                 setState(() {});
               },
-            )
+            ),
+            TextFormField(
+              controller: _middleNameController,
+              decoration: InputDecoration(
+                icon: Icon(Icons.person),
+                suffixIcon: _clearIconButton(_middleNameController),
+                hintText: 'по-батькові',
+                labelText: 'По-батькові *',
+              ),
+              validator: (value) {
+                if (value.isEmpty) return 'ви не вказали по-батькові';
+              },
+              onChanged: (value) {
+                setState(() {});
+              },
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            TextFormField(
+              controller: _emailController,
+              decoration: InputDecoration(
+                icon: Icon(Icons.email),
+                suffixIcon: _clearIconButton(_emailController),
+                hintText: 'ваш email',
+                labelText: 'Email *',
+              ),
+              validator: (value) {
+                if (value.isEmpty) return 'ви не вказали email';
+              },
+              onChanged: (value) {
+                setState(() {});
+              },
+              keyboardType: TextInputType.emailAddress,
+            ),
+            TextFormField(
+              controller: _phoneController,
+              decoration: InputDecoration(
+                icon: Icon(Icons.phone),
+                suffixIcon: _clearIconButton(_phoneController),
+                hintText: 'номер ваого мобільного телефону',
+                labelText: 'Телефон *',
+              ),
+              validator: (value) {
+                if (value.isEmpty) return 'ви не вказали номер телефону';
+              },
+              onChanged: (value) {
+                setState(() {});
+              },
+              keyboardType: TextInputType.phone,
+            ),
+            new SizedBox(height: 20.0),
+            new RaisedButton(
+              onPressed: () {
+                if (_formKey.currentState.validate()) {
+                  Scaffold.of(context).showSnackBar(SnackBar(
+                    content: Text('Налаштування збережено'),
+                    backgroundColor: Colors.green,
+                  ));
+                }
+              },
+              child: Text('Save'),
+              color: Colors.blue,
+              textColor: Colors.white,
+            ),
           ],
         ),
       ),
