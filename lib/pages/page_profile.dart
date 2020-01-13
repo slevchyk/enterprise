@@ -1,3 +1,4 @@
+import 'package:enterprise/main.dart';
 import 'package:flutter/material.dart';
 
 class PageProfile extends StatefulWidget {
@@ -9,8 +10,9 @@ class PageProfileState extends State<PageProfile> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _middleNameController = TextEditingController();
-  final _emailController = TextEditingController();
+  final _itnController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
 
   Widget _clearIconButton(TextEditingController textController) {
     if (textController.text.isEmpty)
@@ -27,109 +29,124 @@ class PageProfileState extends State<PageProfile> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(10.0),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: <Widget>[
-            TextFormField(
-              controller: _firstNameController,
-              decoration: InputDecoration(
-                icon: Icon(Icons.person),
-                suffixIcon: _clearIconButton(_firstNameController),
-                hintText: 'ваше ім\'я',
-                labelText: 'Ім\'я *',
-              ),
-              validator: (value) {
-                if (value.isEmpty) return 'ви не вказали ім\'я';
-              },
-              onChanged: (value) {
-                setState(() {});
-              },
+    return Scaffold(
+      body: ListView(
+        padding: EdgeInsets.all(10.0),
+        children: <Widget>[
+          Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Основне:',
+                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+                ),
+                TextFormField(
+                  controller: _firstNameController,
+                  decoration: InputDecoration(
+                    icon: Icon(Icons.person),
+                    suffixIcon: _clearIconButton(_firstNameController),
+                    hintText: 'ваше ім\'я',
+                    labelText: 'Ім\'я *',
+                  ),
+                  validator: (value) {
+                    if (value.isEmpty) return 'ви не вказали ім\'я';
+                  },
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                ),
+                TextFormField(
+                  controller: _lastNameController,
+                  decoration: InputDecoration(
+                    icon: SizedBox(
+                      width: 24.0,
+                    ),
+                    suffixIcon: _clearIconButton(_lastNameController),
+                    hintText: 'ваше прізвище',
+                    labelText: 'Прізвище *',
+                  ),
+                  validator: (value) {
+                    if (value.isEmpty) return 'ви не вказали прізвище';
+                  },
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                ),
+                TextFormField(
+                  controller: _middleNameController,
+                  decoration: InputDecoration(
+                    icon: SizedBox(
+                      width: 24.0,
+                    ),
+                    suffixIcon: _clearIconButton(_middleNameController),
+                    hintText: 'по-батькові',
+                    labelText: 'По-батькові *',
+                  ),
+                  validator: (value) {
+                    if (value.isEmpty) return 'ви не вказали по-батькові';
+                  },
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                TextFormField(),
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: InputDecoration(
+                    icon: Icon(Icons.phone),
+                    suffixIcon: _clearIconButton(_phoneController),
+                    hintText: 'номер ваого мобільного телефону',
+                    labelText: 'Телефон *',
+                  ),
+                  validator: (value) {
+                    if (value.isEmpty) return 'ви не вказали номер телефону';
+                  },
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                  keyboardType: TextInputType.phone,
+                ),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    icon: Icon(Icons.email),
+                    suffixIcon: _clearIconButton(_emailController),
+                    hintText: 'ваш email',
+                    labelText: 'Email *',
+                  ),
+                  validator: (value) {
+                    if (value.isEmpty) return 'ви не вказали email';
+                  },
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                SizedBox(height: 20.0),
+                RaisedButton(
+                  onPressed: () {
+                    if (_formKey.currentState.validate()) {
+                      Scaffold.of(context).showSnackBar(SnackBar(
+                        content: Text('Налаштування збережено'),
+                        backgroundColor: Colors.green,
+                      ));
+                    }
+                  },
+                  child: Text('Save'),
+                  color: Colors.blue,
+                  textColor: Colors.white,
+                ),
+              ],
             ),
-            TextFormField(
-              controller: _lastNameController,
-              decoration: InputDecoration(
-                icon: Icon(Icons.person),
-                suffixIcon: _clearIconButton(_lastNameController),
-                hintText: 'ваше прізвище',
-                labelText: 'Прізвище *',
-              ),
-              validator: (value) {
-                if (value.isEmpty) return 'ви не вказали прізвище';
-              },
-              onChanged: (value) {
-                setState(() {});
-              },
-            ),
-            TextFormField(
-              controller: _middleNameController,
-              decoration: InputDecoration(
-                icon: Icon(Icons.person),
-                suffixIcon: _clearIconButton(_middleNameController),
-                hintText: 'по-батькові',
-                labelText: 'По-батькові *',
-              ),
-              validator: (value) {
-                if (value.isEmpty) return 'ви не вказали по-батькові';
-              },
-              onChanged: (value) {
-                setState(() {});
-              },
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            TextFormField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                icon: Icon(Icons.email),
-                suffixIcon: _clearIconButton(_emailController),
-                hintText: 'ваш email',
-                labelText: 'Email *',
-              ),
-              validator: (value) {
-                if (value.isEmpty) return 'ви не вказали email';
-              },
-              onChanged: (value) {
-                setState(() {});
-              },
-              keyboardType: TextInputType.emailAddress,
-            ),
-            TextFormField(
-              controller: _phoneController,
-              decoration: InputDecoration(
-                icon: Icon(Icons.phone),
-                suffixIcon: _clearIconButton(_phoneController),
-                hintText: 'номер ваого мобільного телефону',
-                labelText: 'Телефон *',
-              ),
-              validator: (value) {
-                if (value.isEmpty) return 'ви не вказали номер телефону';
-              },
-              onChanged: (value) {
-                setState(() {});
-              },
-              keyboardType: TextInputType.phone,
-            ),
-            new SizedBox(height: 20.0),
-            new RaisedButton(
-              onPressed: () {
-                if (_formKey.currentState.validate()) {
-                  Scaffold.of(context).showSnackBar(SnackBar(
-                    content: Text('Налаштування збережено'),
-                    backgroundColor: Colors.green,
-                  ));
-                }
-              },
-              child: Text('Save'),
-              color: Colors.blue,
-              textColor: Colors.white,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
+      bottomNavigationBar: MainBottomNavigationBar("/profile"),
     );
   }
 }

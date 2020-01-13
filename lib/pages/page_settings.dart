@@ -1,3 +1,4 @@
+import 'package:enterprise/main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,8 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 class PageSettings extends StatefulWidget {
-//  @override
-//  State<StatefulWidget> createState() => PageSettingsState();
   PageSettingsState createState() => PageSettingsState();
 }
 
@@ -20,6 +19,8 @@ class PageSettingsState extends State<PageSettings> {
   final _serverPasswordController = TextEditingController();
   final _serverDBController = TextEditingController();
 
+  bool _readOnly = true;
+
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _readSettings());
@@ -27,122 +28,141 @@ class PageSettingsState extends State<PageSettings> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.all(10.0),
-      children: <Widget>[
-        Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  'Account:',
-                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
-                ),
-                TextFormField(
-                  controller: _userIDController,
-                  decoration: InputDecoration(
-                      labelText: "ID",
-                      hintText: "1C user ID",
-                      icon: Icon(Icons.person)),
-                ),
-                TextFormField(
-                  controller: _userPINController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                      labelText: "PIN",
-                      hintText: "1C user PIN",
+    return Scaffold(
+      appBar: ,
+      body: ListView(
+        padding: EdgeInsets.all(10.0),
+        children: <Widget>[
+          Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'Account:',
+                    style:
+                        TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+                  ),
+                  TextFormField(
+                    controller: _userIDController,
+                    readOnly: _readOnly,
+                    decoration: InputDecoration(
+                        labelText: "ID",
+                        hintText: "1C user ID",
+                        icon: Icon(Icons.person)),
+                  ),
+                  TextFormField(
+                    controller: _userPINController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                        labelText: "PIN",
+                        hintText: "1C user PIN",
+                        icon: SizedBox(
+                          width: 24.0,
+                        )),
+                  ),
+                  SizedBox(
+                    height: 20.0,
+                  ),
+                  Text(
+                    'Connection:',
+                    style:
+                        TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+                  ),
+                  TextFormField(
+                    controller: _serverIPController,
+                    decoration: InputDecoration(
+                        labelText: "IP",
+                        hintText: "1C server IP",
+                        icon: Icon(Icons.computer)),
+                    validator: (value) {
+                      if (value.isEmpty) return 'не вказаний: IP';
+                    },
+                  ),
+                  TextFormField(
+                    controller: _serverDBController,
+                    decoration: InputDecoration(
+                      labelText: "database",
+                      hintText: "1C server database",
                       icon: SizedBox(
                         width: 24.0,
-                      )),
-                ),
-                SizedBox(
-                  height: 20.0,
-                ),
-                Text(
-                  'Connection:',
-                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
-                ),
-                TextFormField(
-                  controller: _serverIPController,
-                  decoration: InputDecoration(
-                      labelText: "IP",
-                      hintText: "1C server IP",
-                      icon: Icon(Icons.computer)),
-                  validator: (value) {
-                    if (value.isEmpty) return 'не вказаний: IP';
-                  },
-                ),
-                TextFormField(
-                  controller: _serverDBController,
-                  decoration: InputDecoration(
-                    labelText: "database",
-                    hintText: "1C server database",
-                    icon: SizedBox(
-                      width: 24.0,
+                      ),
                     ),
+                    validator: (value) {
+                      if (value.isEmpty) return 'не вказана: Database';
+                    },
                   ),
-                  validator: (value) {
-                    if (value.isEmpty) return 'не вказана: Database';
-                  },
-                ),
-                TextFormField(
-                  controller: _serverUserController,
-                  decoration: InputDecoration(
-                      labelText: "user",
-                      hintText: "1C server user",
+                  TextFormField(
+                    controller: _serverUserController,
+                    decoration: InputDecoration(
+                        labelText: "user",
+                        hintText: "1C server user",
+                        icon: SizedBox(
+                          width: 24.0,
+                        )),
+                    validator: (value) {
+                      if (value.isEmpty) return 'не вказаний: User';
+                    },
+                  ),
+                  TextFormField(
+                    controller: _serverPasswordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: "password",
+                      hintText: "1C server password",
                       icon: SizedBox(
                         width: 24.0,
-                      )),
-                  validator: (value) {
-                    if (value.isEmpty) return 'не вказаний: User';
-                  },
-                ),
-                TextFormField(
-                  controller: _serverPasswordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: "password",
-                    hintText: "1C server password",
-                    icon: SizedBox(
-                      width: 24.0,
+                      ),
                     ),
+                    validator: (value) {
+                      if (value.isEmpty) return 'не вказаний: Password';
+                    },
                   ),
-                  validator: (value) {
-                    if (value.isEmpty) return 'не вказаний: Password';
-                  },
-                ),
-                SizedBox(height: 20.0),
-                RaisedButton(
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Text(
-                      'Save',
-                      textAlign: TextAlign.center,
+                  SizedBox(height: 20.0),
+                  RaisedButton(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        'Save',
+                        textAlign: TextAlign.center,
+                      ),
                     ),
+                    color: Colors.blue,
+                    textColor: Colors.white,
+                    onPressed: () {
+                      if (_formKey.currentState.validate()) {
+                        _saveSettings();
+                        setState(() {
+                          _readOnly = true;
+                        });
+                        Scaffold.of(context).showSnackBar(SnackBar(
+                          content: Text('Налаштування збережено'),
+                          backgroundColor: Colors.green,
+                        ));
+                      }
+                    },
                   ),
-                  color: Colors.blue,
-                  textColor: Colors.white,
-                  onPressed: () {
-                    if (_formKey.currentState.validate()) {
-                      _saveSettings();
-                      Scaffold.of(context).showSnackBar(SnackBar(
-                        content: Text('Налаштування збережено'),
-                        backgroundColor: Colors.green,
-                      ));
-                    }
-                  },
-                ),
-                FlatButton(
-                  onPressed: () {
-                    _makePostRequest();
-                  },
-                  child: Text('Send'),
-                  color: Colors.blueGrey,
-                )
-              ],
-            ))
-      ],
+                  FlatButton(
+                    onPressed: () {
+                      _makePostRequest();
+                    },
+                    child: Text('Send'),
+                    color: Colors.blueGrey,
+                  ),
+                  FlatButton(
+                    onPressed: () {
+                      setState(() {
+                        _readOnly = !_readOnly;
+                      });
+                    },
+                    child: Text('Edit'),
+                    color: Colors.blueGrey,
+                  )
+                ],
+              ))
+        ],
+      ),
+      bottomNavigationBar: MainBottomNavigationBar("/settings"),
     );
   }
 
