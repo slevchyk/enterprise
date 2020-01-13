@@ -13,78 +13,127 @@ class PageSettings extends StatefulWidget {
 
 class PageSettingsState extends State<PageSettings> {
   final _formKey = GlobalKey<FormState>();
-  final serverIPController = TextEditingController();
-  final serverUserController = TextEditingController();
-  final serverPasswordController = TextEditingController();
-  final serverDBController = TextEditingController();
+  final _userIDController = TextEditingController();
+  final _userPINController = TextEditingController();
+  final _serverIPController = TextEditingController();
+  final _serverUserController = TextEditingController();
+  final _serverPasswordController = TextEditingController();
+  final _serverDBController = TextEditingController();
 
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _read());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _readSettings());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        padding: EdgeInsets.all(10.0),
-        child: new Form(
+    return ListView(
+      padding: EdgeInsets.all(10.0),
+      children: <Widget>[
+        Form(
             key: _formKey,
-            child: new Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                new Text(
-                  'server IP:',
-                  style: TextStyle(fontSize: 20.0),
-                  textAlign: TextAlign.left,
+                Text(
+                  'Account:',
+                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
                 ),
-                new TextFormField(
-                    validator: (value) {
-                      if (value.isEmpty) return 'не вказаний: IP';
-                    },
-                    controller: serverIPController),
-                new Text(
-                  'server User:',
-                  style: TextStyle(fontSize: 20.0),
+                TextFormField(
+                  controller: _userIDController,
+                  decoration: InputDecoration(
+                      labelText: "ID",
+                      hintText: "1C user ID",
+                      icon: Icon(Icons.person)),
                 ),
-                new TextFormField(
-                    validator: (value) {
-                      if (value.isEmpty) return 'не вказаний: User';
-                    },
-                    controller: serverUserController),
-                new Text(
-                  'server Password:',
-                  style: TextStyle(fontSize: 20.0),
+                TextFormField(
+                  controller: _userPINController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                      labelText: "PIN",
+                      hintText: "1C user PIN",
+                      icon: SizedBox(
+                        width: 24.0,
+                      )),
                 ),
-                new TextFormField(
-                    validator: (value) {
-                      if (value.isEmpty) return 'не вказаний: Password';
-                    },
-                    controller: serverPasswordController,
-                    obscureText: true),
-                new Text(
-                  'server Database:',
-                  style: TextStyle(fontSize: 20.0),
+                SizedBox(
+                  height: 20.0,
                 ),
-                new TextFormField(
+                Text(
+                  'Connection:',
+                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+                ),
+                TextFormField(
+                  controller: _serverIPController,
+                  decoration: InputDecoration(
+                      labelText: "IP",
+                      hintText: "1C server IP",
+                      icon: Icon(Icons.computer)),
+                  validator: (value) {
+                    if (value.isEmpty) return 'не вказаний: IP';
+                  },
+                ),
+                TextFormField(
+                  controller: _serverDBController,
+                  decoration: InputDecoration(
+                    labelText: "database",
+                    hintText: "1C server database",
+                    icon: SizedBox(
+                      width: 24.0,
+                    ),
+                  ),
                   validator: (value) {
                     if (value.isEmpty) return 'не вказана: Database';
                   },
-                  controller: serverDBController,
                 ),
-                new SizedBox(height: 20.0),
-                new RaisedButton(
-                  onPressed: () {
-                    if (_formKey.currentState.validate()) _save();
-                    Scaffold.of(context).showSnackBar(SnackBar(
-                      content: Text('Налаштування збережено'),
-                      backgroundColor: Colors.green,
-                    ));
+                TextFormField(
+                  controller: _serverUserController,
+                  decoration: InputDecoration(
+                      labelText: "user",
+                      hintText: "1C server user",
+                      icon: SizedBox(
+                        width: 24.0,
+                      )),
+                  validator: (value) {
+                    if (value.isEmpty) return 'не вказаний: User';
                   },
-                  child: Text('Save'),
+                ),
+                TextFormField(
+                  controller: _serverPasswordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: "password",
+                    hintText: "1C server password",
+                    icon: SizedBox(
+                      width: 24.0,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value.isEmpty) return 'не вказаний: Password';
+                  },
+                ),
+                SizedBox(height: 20.0),
+                RaisedButton(
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      'Save',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                   color: Colors.blue,
                   textColor: Colors.white,
+                  onPressed: () {
+                    if (_formKey.currentState.validate()) {
+                      _saveSettings();
+                      Scaffold.of(context).showSnackBar(SnackBar(
+                        content: Text('Налаштування збережено'),
+                        backgroundColor: Colors.green,
+                      ));
+                    }
+                  },
                 ),
-                new FlatButton(
+                FlatButton(
                   onPressed: () {
                     _makePostRequest();
                   },
@@ -92,35 +141,49 @@ class PageSettingsState extends State<PageSettings> {
                   color: Colors.blueGrey,
                 )
               ],
-            )));
+            ))
+      ],
+    );
   }
 
-  _read() async {
+  _readSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    serverIPController.text = prefs.getString("serverIP") ?? "";
-    serverUserController.text = prefs.getString("serverUser") ?? "";
-    serverPasswordController.text = prefs.getString("serverPassword") ?? "";
-    serverDBController.text = prefs.getString("serverDB") ?? "";
+
+    //account
+    _userIDController.text = prefs.getString("userID") ?? "";
+    _userPINController.text = prefs.getString("userPIN") ?? "";
+
+    //connection
+    _serverIPController.text = prefs.getString("serverIP") ?? "";
+    _serverUserController.text = prefs.getString("serverUser") ?? "";
+    _serverPasswordController.text = prefs.getString("serverPassword") ?? "";
+    _serverDBController.text = prefs.getString("serverDB") ?? "";
   }
 
-  _save() async {
+  _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString("serverIP", serverIPController.text);
-    prefs.setString("serverUser", serverUserController.text);
-    prefs.setString("serverPassword", serverPasswordController.text);
-    prefs.setString("serverDB", serverDBController.text);
+
+    //account
+    prefs.setString("userID", _userIDController.text);
+    prefs.setString("userPIN", _userPINController.text);
+
+    //connection
+    prefs.setString("serverIP", _serverIPController.text);
+    prefs.setString("serverUser", _serverUserController.text);
+    prefs.setString("serverPassword", _serverPasswordController.text);
+    prefs.setString("serverDB", _serverDBController.text);
   }
 
   _makePostRequest() async {
     // set up POST request arguments
     String url = 'http://' +
-        serverIPController.text +
+        _serverIPController.text +
         '/' +
-        serverDBController.text +
+        _serverDBController.text +
         '/hs/m/time';
 
-    final username = serverUserController.text;
-    final password = serverPasswordController.text;
+    final username = _serverUserController.text;
+    final password = _serverPasswordController.text;
     final credentials = '$username:$password';
     final stringToBase64 = utf8.fuse(base64);
     final encodedCredentials = stringToBase64.encode(credentials);
