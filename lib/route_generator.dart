@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/page_main.dart';
-import 'package:enterprise/pages/page_chanel.dart';
 import 'package:enterprise/pages/page_profile.dart';
 import 'package:enterprise/pages/page_settings.dart';
-//import 'package:routing_prep/main.dart';
+import 'package:enterprise/pages/page_about.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -13,12 +12,12 @@ class RouteGenerator {
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(builder: (_) => PageMain());
-      case '/chanel':
-        return MaterialPageRoute(builder: (_) => PageChanel());
       case '/profile':
         return MaterialPageRoute(builder: (_) => PageProfile());
       case '/settings':
         return MaterialPageRoute(builder: (_) => PageSettings());
+      case '/about':
+        return MaterialPageRoute(builder: (_) => PageAbout());
       // Validation of correct data type
 //        if (args is String) {
 //          return MaterialPageRoute(

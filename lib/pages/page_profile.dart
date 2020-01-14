@@ -30,6 +30,9 @@ class PageProfileState extends State<PageProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Профіль'),
+      ),
       body: ListView(
         padding: EdgeInsets.all(10.0),
         children: <Widget>[
@@ -94,7 +97,19 @@ class PageProfileState extends State<PageProfile> {
                 SizedBox(
                   height: 10,
                 ),
-                TextFormField(),
+                TextFormField(
+                  controller: _itnController,
+                  decoration: InputDecoration(
+                    icon: SizedBox(
+                      width: 24.0,
+                    ),
+                    labelText: 'ІПН',
+                    hintText: 'ваш ІПН (якщо немає, то серія і номер паспорта',
+                  ),
+                  validator: (value) {
+                    if (value.isEmpty) return 'ви не вказали ІПН/Паспорт';
+                  },
+                ),
                 TextFormField(
                   controller: _phoneController,
                   decoration: InputDecoration(
@@ -146,7 +161,10 @@ class PageProfileState extends State<PageProfile> {
           ),
         ],
       ),
-      bottomNavigationBar: MainBottomNavigationBar("/profile"),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.update),
+        onPressed: () async {},
+      ),
     );
   }
 }

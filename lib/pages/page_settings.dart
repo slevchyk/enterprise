@@ -26,10 +26,44 @@ class PageSettingsState extends State<PageSettings> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _readSettings());
   }
 
+//  Choice _selectedChoice = choices[0]; // The app's "state".
+
+  void _select(Choice choice) {
+    switch (choice.title) {
+      case "Edit":
+        setState(() {
+          _readOnly = !_readOnly;
+        });
+
+        break;
+      case "Save":
+        if (_formKey.currentState.validate()) {
+          _formKey.currentState.save();
+        }
+        ;
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: ,
+      appBar: AppBar(
+        title: Text('Налаштування'),
+        actions: <Widget>[
+          PopupMenuButton<Choice>(
+            onSelected: _select,
+            itemBuilder: (BuildContext context) {
+              return choices.map((Choice choice) {
+                return PopupMenuItem<Choice>(
+                  value: choice,
+                  child: Text(choice.title),
+                );
+              }).toList();
+            },
+          ),
+        ],
+      ),
       body: ListView(
         padding: EdgeInsets.all(10.0),
         children: <Widget>[
@@ -162,7 +196,6 @@ class PageSettingsState extends State<PageSettings> {
               ))
         ],
       ),
-      bottomNavigationBar: MainBottomNavigationBar("/settings"),
     );
   }
 
@@ -232,3 +265,21 @@ class PageSettingsState extends State<PageSettings> {
     // }
   }
 }
+
+class Choice {
+  const Choice({this.title, this.icon});
+
+  final String title;
+  final IconData icon;
+}
+
+const List<Choice> choices = const <Choice>[
+  const Choice(
+    title: 'Edit',
+    icon: Icons.edit,
+  ),
+  const Choice(
+    title: 'Save',
+    icon: Icons.save,
+  ),
+];
