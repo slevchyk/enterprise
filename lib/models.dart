@@ -5,6 +5,11 @@ Profile profileFromJson(String str) {
   return Profile.fromMap(jsonData);
 }
 
+Profile profileFromJsonApi(String str) {
+  final jsonData = json.decode(str);
+  return Profile.fromMap(jsonData["application"]);
+}
+
 String profiletToJson(Profile data) {
   final dyn = data.toMap();
   return json.encode(dyn);
@@ -19,6 +24,7 @@ class Profile {
   String itn;
   String email;
   String photo;
+  String photoData;
   bool blocked;
 
   Profile({
@@ -30,6 +36,7 @@ class Profile {
     this.itn,
     this.email,
     this.photo,
+    this.photoData,
     this.blocked,
   });
 
@@ -42,6 +49,7 @@ class Profile {
         itn: json["itn"],
         email: json["email"],
         photo: json["photo"],
+        photoData: json["photo_data"],
         blocked: json["blocked"] == 1,
       );
 
@@ -54,6 +62,7 @@ class Profile {
         "itn": itn,
         "email": email,
         "photo": photo,
+        "photo_data": photoData,
         "blocked": blocked,
       };
 }

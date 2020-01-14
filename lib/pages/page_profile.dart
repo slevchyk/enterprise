@@ -1,5 +1,15 @@
-import 'package:enterprise/main.dart';
+import 'package:enterprise/contatns.dart';
+import 'package:enterprise/db.dart';
+import 'package:enterprise/models.dart';
+import 'package:enterprise/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:path/path.dart';
 
 class PageProfile extends StatefulWidget {
   PageProfileState createState() => PageProfileState();
@@ -25,6 +35,77 @@ class PageProfileState extends State<PageProfile> {
               textController.clear();
             });
           });
+  }
+
+  void downloadProfile(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final String ip = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String user = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String password = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+    final String db = prefs.getString(KEY_SERVER_DATABASE) ?? "";
+
+    final String url = 'http://' +
+        ip +
+        '/' +
+        db +
+        '/hs/m/profile?infocard=' +
+        id +
+        '&photo=true';
+
+    final credentials = '$user:$password';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+    };
+
+    Response response = await get(url, headers: headers);
+
+    int statusCode = response.statusCode;
+
+    if (statusCode != 200) {
+//      Scaffold.of(context).showSnackBar(SnackBar(
+//        content: Text('Не вдалось отримати дані профілю'),
+//        backgroundColor: Colors.redAccent,
+//      ));
+      return;
+    }
+
+    String body = utf8.decode(response.bodyBytes);
+//    String body = response.body;
+
+    Profile profile = profileFromJsonApi(body);
+
+    if (profile.photo != '') {
+//      Image photo = Utility.ImageFromBase64String(profile.photoData);
+      final documentDirectory = await getApplicationDocumentsDirectory();
+      File file = new File(join(documentDirectory.path, profile.photo));
+
+      var strPhoto = profile.photoData;
+      strPhoto = strPhoto.replaceAll("\r", "");
+      strPhoto = strPhoto.replaceAll("\n", "");
+
+      final _bytePhoto = base64Decode(strPhoto);
+      file.writeAsBytes(_bytePhoto);
+    }
+
+    DBProvider.db.newProfile(profile);
+
+    setState(() {
+      _firstNameController.text = profile.firstName;
+      _lastNameController.text = profile.lastName;
+      _middleNameController.text = profile.middleName;
+      _itnController.text = profile.itn;
+      _phoneController.text = profile.phone;
+      _emailController.text = profile.email;
+    });
+
+//    Scaffold.of(context).showSnackBar(SnackBar(
+//      content: Text('Оновлена'),
+//      backgroundColor: Colors.green,
+//    ));
   }
 
   @override
@@ -163,7 +244,9 @@ class PageProfileState extends State<PageProfile> {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.update),
-        onPressed: () async {},
+        onPressed: () {
+          downloadProfile('АА112233');
+        },
       ),
     );
   }
