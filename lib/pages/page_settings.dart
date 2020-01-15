@@ -1,6 +1,8 @@
 import 'dart:io';
 
 //import 'package:flutter/cupertino.dart';
+import 'package:enterprise/contatns.dart';
+import 'package:enterprise/db.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart';
@@ -191,7 +193,21 @@ class PageSettingsState extends State<PageSettings> {
                     },
                     child: Text('Edit'),
                     color: Colors.blueGrey,
-                  )
+                  ),
+                  FlatButton(
+                    onPressed: () {
+                      _clearDB();
+                    },
+                    child: Text('clear db'),
+                    color: Colors.blueGrey,
+                  ),
+                  FlatButton(
+                    onPressed: () {
+                      _deleteDB();
+                    },
+                    child: Text('delete db'),
+                    color: Colors.blueGrey,
+                  ),
                 ],
               ))
         ],
@@ -203,28 +219,28 @@ class PageSettingsState extends State<PageSettings> {
     final prefs = await SharedPreferences.getInstance();
 
     //account
-    _userIDController.text = prefs.getString("userID") ?? "";
-    _userPINController.text = prefs.getString("userPIN") ?? "";
+    _userIDController.text = prefs.getString(KEY_USER_ID) ?? "";
+    _userPINController.text = prefs.getString(KEY_USER_PIN) ?? "";
 
     //connection
-    _serverIPController.text = prefs.getString("serverIP") ?? "";
-    _serverUserController.text = prefs.getString("serverUser") ?? "";
-    _serverPasswordController.text = prefs.getString("serverPassword") ?? "";
-    _serverDBController.text = prefs.getString("serverDB") ?? "";
+    _serverIPController.text = prefs.getString(KEY_SERVER_IP) ?? "";
+    _serverDBController.text = prefs.getString(KEY_SERVER_DATABASE) ?? "";
+    _serverUserController.text = prefs.getString(KEY_SERVER_USER) ?? "";
+    _serverPasswordController.text = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
   }
 
   _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
 
     //account
-    prefs.setString("userID", _userIDController.text);
-    prefs.setString("userPIN", _userPINController.text);
+    prefs.setString(KEY_USER_ID, _userIDController.text);
+    prefs.setString(KEY_USER_PIN, _userPINController.text);
 
     //connection
-    prefs.setString("serverIP", _serverIPController.text);
-    prefs.setString("serverUser", _serverUserController.text);
-    prefs.setString("serverPassword", _serverPasswordController.text);
-    prefs.setString("serverDB", _serverDBController.text);
+    prefs.setString(KEY_SERVER_IP, _serverIPController.text);
+    prefs.setString(KEY_SERVER_DATABASE, _serverDBController.text);
+    prefs.setString(KEY_SERVER_USER, _serverUserController.text);
+    prefs.setString(KEY_SERVER_PASSWORD, _serverPasswordController.text);
   }
 
   _makePostRequest() async {
@@ -244,25 +260,23 @@ class PageSettingsState extends State<PageSettings> {
       HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
     };
 
-//      String json = '{"title": "Hello", "body": "body text", "userId": 1}';
-
     // make POST request
-//      Response response = await post(url, headers: headers, body: json);
     Response response = await post(url, headers: headers);
+
     // check the status code for the result
     int statusCode = response.statusCode;
     Scaffold.of(context).showSnackBar(SnackBar(
       content: Text(statusCode.toString()),
       backgroundColor: Colors.green,
     ));
-    // this API passes back the id of the new item added to the body
-    String body = response.body;
-    // {
-    //   "title": "Hello",
-    //   "body": "body text",
-    //   "userId": 1,
-    //   "id": 101
-    // }
+  }
+
+  _clearDB() async {
+    DBProvider.db.deleteProfileAll();
+  }
+
+  _deleteDB() async {
+    DBProvider.db.deleteDB();
   }
 }
 

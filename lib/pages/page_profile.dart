@@ -37,77 +37,6 @@ class PageProfileState extends State<PageProfile> {
           });
   }
 
-  void downloadProfile(String id) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final String ip = prefs.getString(KEY_SERVER_IP) ?? "";
-    final String user = prefs.getString(KEY_SERVER_USER) ?? "";
-    final String password = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
-    final String db = prefs.getString(KEY_SERVER_DATABASE) ?? "";
-
-    final String url = 'http://' +
-        ip +
-        '/' +
-        db +
-        '/hs/m/profile?infocard=' +
-        id +
-        '&photo=true';
-
-    final credentials = '$user:$password';
-    final stringToBase64 = utf8.fuse(base64);
-    final encodedCredentials = stringToBase64.encode(credentials);
-
-    Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
-    };
-
-    Response response = await get(url, headers: headers);
-
-    int statusCode = response.statusCode;
-
-    if (statusCode != 200) {
-//      Scaffold.of(context).showSnackBar(SnackBar(
-//        content: Text('Не вдалось отримати дані профілю'),
-//        backgroundColor: Colors.redAccent,
-//      ));
-      return;
-    }
-
-    String body = utf8.decode(response.bodyBytes);
-//    String body = response.body;
-
-    Profile profile = profileFromJsonApi(body);
-
-    if (profile.photo != '') {
-//      Image photo = Utility.ImageFromBase64String(profile.photoData);
-      final documentDirectory = await getApplicationDocumentsDirectory();
-      File file = new File(join(documentDirectory.path, profile.photo));
-
-      var strPhoto = profile.photoData;
-      strPhoto = strPhoto.replaceAll("\r", "");
-      strPhoto = strPhoto.replaceAll("\n", "");
-
-      final _bytePhoto = base64Decode(strPhoto);
-      file.writeAsBytes(_bytePhoto);
-    }
-
-    DBProvider.db.newProfile(profile);
-
-    setState(() {
-      _firstNameController.text = profile.firstName;
-      _lastNameController.text = profile.lastName;
-      _middleNameController.text = profile.middleName;
-      _itnController.text = profile.itn;
-      _phoneController.text = profile.phone;
-      _emailController.text = profile.email;
-    });
-
-//    Scaffold.of(context).showSnackBar(SnackBar(
-//      content: Text('Оновлена'),
-//      backgroundColor: Colors.green,
-//    ));
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -245,9 +174,79 @@ class PageProfileState extends State<PageProfile> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.update),
         onPressed: () {
-          downloadProfile('АА112233');
+          _downloadProfile();
         },
       ),
     );
+  }
+
+  void _downloadProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final String _ip = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String _user = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _password = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+    final String _db = prefs.getString(KEY_SERVER_DATABASE) ?? "";
+
+    final String _userID = prefs.get(KEY_USER_ID);
+
+    final String url =
+        'http://$_ip/$_db/hs/m/profile?infocard=$_userID&photo=true';
+
+    final credentials = '$_user:$_password';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+    };
+
+    Response response = await get(url, headers: headers);
+
+    int statusCode = response.statusCode;
+
+    if (statusCode != 200) {
+//      Scaffold.of(this.context).showSnackBar(SnackBar(
+//        content: Text('Не вдалось отримати дані профілю'),
+//        backgroundColor: Colors.redAccent,
+//      ));
+      return;
+    }
+
+    String body = utf8.decode(response.bodyBytes);
+
+    Profile profile = profileFromJsonApi(body);
+
+    if (profile.photo != '') {
+//      Image photo = Utility.ImageFromBase64String(profile.photoData);
+      final documentDirectory = await getApplicationDocumentsDirectory();
+      File file = new File(join(documentDirectory.path, profile.photo));
+
+      var strPhoto = profile.photoData;
+      strPhoto = strPhoto.replaceAll("\r", "");
+      strPhoto = strPhoto.replaceAll("\n", "");
+
+      final _bytePhoto = base64Decode(strPhoto);
+      file.writeAsBytes(_bytePhoto);
+
+      profile.photo = file.path;
+      prefs.setString(KEY_USER_PICTURE, file.path);
+    }
+
+    await DBProvider.db.newProfile(profile);
+
+    setState(() {
+      _firstNameController.text = profile.firstName;
+      _lastNameController.text = profile.lastName;
+      _middleNameController.text = profile.middleName;
+      _itnController.text = profile.itn;
+      _phoneController.text = profile.phone;
+      _emailController.text = profile.email;
+    });
+
+//    Scaffold.of(this.context).showSnackBar(SnackBar(
+//      content: Text('Оновлена'),
+//      backgroundColor: Colors.green,
+//    ));
   }
 }

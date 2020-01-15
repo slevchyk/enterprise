@@ -40,6 +40,12 @@ class DBProvider {
     });
   }
 
+  deleteDB() async {
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentsDirectory.path, "main.db");
+    return await deleteDatabase(path);
+  }
+
   newProfile(Profile newProfile) async {
     final db = await database;
     //get the biggest id in the table
@@ -65,7 +71,7 @@ class DBProvider {
 
   block(Profile profile) async {
     final db = await database;
-    Profile blocked = getProfile(profile.id);
+    Profile blocked = getProfile(profile.itn);
     blocked.blocked = true;
     var res = await db.update("Profile", blocked.toMap(),
         where: "id = ?", whereArgs: [profile.id]);
@@ -74,7 +80,7 @@ class DBProvider {
 
   unblock(Profile profile) async {
     final db = await database;
-    Profile blocked = getProfile(profile.id);
+    Profile blocked = getProfile(profile.itn);
     blocked.blocked = false;
     var res = await db.update("Profile", blocked.toMap(),
         where: "id = ?", whereArgs: [profile.id]);
@@ -88,9 +94,9 @@ class DBProvider {
     return res;
   }
 
-  getProfile(int id) async {
+  getProfile(String id) async {
     final db = await database;
-    var res = await db.query("Profile", where: "id = ?", whereArgs: [id]);
+    var res = await db.query("Profile", where: "itn = ?", whereArgs: [id]);
     return res.isNotEmpty ? Profile.fromMap(res.first) : null;
   }
 
@@ -118,7 +124,7 @@ class DBProvider {
     return db.delete("Profile", where: "id = ?", whereArgs: [id]);
   }
 
-  deleteAll() async {
+  deleteProfileAll() async {
     final db = await database;
     db.rawDelete("Delete * from Profile");
   }

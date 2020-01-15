@@ -21,7 +21,7 @@ dev_dependencies:
     sdk: flutter
 
 assets:
-  - data/
+  - assets/
 
 flutter:
 

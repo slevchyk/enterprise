@@ -1,12 +1,55 @@
+import 'package:enterprise/db.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/body_main_chanel.dart';
 import 'package:enterprise/pages/body_main_mainl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../contatns.dart';
+import '../models.dart';
 
 class PageMain extends StatefulWidget {
   PageMainState createState() => PageMainState();
 }
 
 class PageMainState extends State<PageMain> {
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _getSettings());
+  }
+
+  bool isLoadingProfile = true;
+  String userID;
+  Profile profile;
+
+  _getSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String _userID = prefs.getString(KEY_USER_ID) ?? "";
+    Profile _profile;
+
+    if (_userID != "") {
+      _profile = await DBProvider.db.getProfile(_userID);
+    }
+
+    setState(() {
+      userID = _userID;
+      profile = _profile;
+      isLoadingProfile = false;
+    });
+  }
+
+  Widget getUserpic() {
+    if (isLoadingProfile || profile == null || profile.photo == '') {
+      return CircleAvatar(
+        child: Text('фото'),
+      );
+    } else {
+      return CircleAvatar(
+        child: Image.asset(profile.photo),
+      );
+    }
+  }
+
   int _currentIndex = 0;
 
   Widget getBody(index) {
@@ -28,11 +71,12 @@ class PageMainState extends State<PageMain> {
         child: Column(
           children: <Widget>[
             UserAccountsDrawerHeader(
-              accountName: Text('Ім\'я'),
-              accountEmail: Text('Пошта'),
-              currentAccountPicture: CircleAvatar(
-                child: Text("ПІБ")
-              ),
+              accountName: isLoadingProfile
+                  ? Text('Ім\'я')
+                  : Text(profile.firstName + ' ' + profile.lastName),
+              accountEmail:
+                  isLoadingProfile ? Text('email') : Text(profile.email),
+              currentAccountPicture: getUserpic(),
             ),
             ListTile(
               leading: Icon(Icons.home),
