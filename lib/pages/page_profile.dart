@@ -268,14 +268,16 @@ class PageProfileState extends State<PageProfile> {
 
     await DBProvider.db.newProfile(profile);
 
-    setState(() {
-      _firstNameController.text = profile.firstName;
-      _lastNameController.text = profile.lastName;
-      _middleNameController.text = profile.middleName;
-      _itnController.text = profile.itn;
-      _phoneController.text = profile.phone;
-      _emailController.text = profile.email;
-    });
+    if (profile != null) {
+      setState(() {
+        _firstNameController.text = profile.firstName;
+        _lastNameController.text = profile.lastName;
+        _middleNameController.text = profile.middleName;
+        _itnController.text = profile.itn;
+        _phoneController.text = profile.phone;
+        _emailController.text = profile.email;
+      });
+    }
 
 //    Scaffold.of(this.context).showSnackBar(SnackBar(
 //      content: Text('Оновлена'),

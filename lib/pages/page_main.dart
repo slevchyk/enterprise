@@ -71,10 +71,10 @@ class PageMainState extends State<PageMain> {
         child: Column(
           children: <Widget>[
             UserAccountsDrawerHeader(
-              accountName: isLoadingProfile && profile != null
+              accountName: isLoadingProfile || profile == null
                   ? Text('Ім\'я')
                   : Text(profile.firstName + ' ' + profile.lastName),
-              accountEmail: isLoadingProfile && profile != null
+              accountEmail: isLoadingProfile || profile == null
                   ? Text('email')
                   : Text(profile.email),
               currentAccountPicture: getUserpic(),
