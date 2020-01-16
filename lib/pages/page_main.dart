@@ -71,11 +71,12 @@ class PageMainState extends State<PageMain> {
         child: Column(
           children: <Widget>[
             UserAccountsDrawerHeader(
-              accountName: isLoadingProfile
+              accountName: isLoadingProfile && profile != null
                   ? Text('Ім\'я')
                   : Text(profile.firstName + ' ' + profile.lastName),
-              accountEmail:
-                  isLoadingProfile ? Text('email') : Text(profile.email),
+              accountEmail: isLoadingProfile && profile != null
+                  ? Text('email')
+                  : Text(profile.email),
               currentAccountPicture: getUserpic(),
             ),
             ListTile(

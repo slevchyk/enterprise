@@ -26,6 +26,7 @@ class Profile {
   String photo;
   String photoData;
   bool blocked;
+  Passport passport;
 
   Profile({
     this.id,
@@ -38,6 +39,7 @@ class Profile {
     this.photo,
     this.photoData,
     this.blocked,
+    this.passport,
   });
 
   factory Profile.fromMap(Map<String, dynamic> json) => new Profile(
@@ -51,6 +53,7 @@ class Profile {
         photo: json["photo"],
         photoData: json["photo_data"],
         blocked: json["blocked"] == 1,
+        passport: Passport.fromMap(json["passport"],)
       );
 
   Map<String, dynamic> toMap() => {
@@ -64,5 +67,36 @@ class Profile {
         "photo": photo,
         "photo_data": photoData,
         "blocked": blocked,
+        "passport": passport.toMap(),
+              };
+}
+
+class Passport {
+ 
+	String series;
+  String number;
+	String issued;
+	String date;
+
+  Passport({
+    this.series,
+    this.number,
+    this.issued,
+    this.date,    
+  });
+
+  factory Passport.fromMap(Map<String, dynamic> json) => new Passport(
+        series: json["series"],
+        number: json["number"],
+        issued: json["issued"],
+        date: json["date"],        
+      );
+
+  Map<String, dynamic> toMap() => {
+        "series": series,
+        "number": number,
+        "issued": issued,
+        "date": date,        
       };
+
 }

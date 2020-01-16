@@ -16,6 +16,11 @@ class PageProfile extends StatefulWidget {
 }
 
 class PageProfileState extends State<PageProfile> {
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _getSettings());
+  }
+
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -23,6 +28,34 @@ class PageProfileState extends State<PageProfile> {
   final _itnController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
+
+  bool isLoadingProfile = true;
+  Profile profile;
+
+  _getSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String _userID = prefs.getString(KEY_USER_ID) ?? "";
+    Profile _profile;
+
+    if (_userID != "") {
+      _profile = await DBProvider.db.getProfile(_userID);
+    }
+
+    setState(() {
+      if (_profile != null) {
+        _firstNameController.text = _profile.firstName;
+        _lastNameController.text = _profile.lastName;
+        _middleNameController.text = _profile.middleName;
+        _itnController.text = _profile.itn;
+        _phoneController.text = _profile.phone;
+        _emailController.text = _profile.email;
+      }
+
+      profile = _profile;
+      isLoadingProfile = false;
+    });
+  }
 
   Widget _clearIconButton(TextEditingController textController) {
     if (textController.text.isEmpty)

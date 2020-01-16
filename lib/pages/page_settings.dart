@@ -42,7 +42,7 @@ class PageSettingsState extends State<PageSettings> {
         if (_formKey.currentState.validate()) {
           _formKey.currentState.save();
         }
-        ;
+        {}
         break;
     }
   }
