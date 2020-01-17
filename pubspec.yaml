@@ -15,6 +15,8 @@ dependencies:
   http: ^0.12.0+2
   sqflite: any
   path_provider: any
+  font_awesome_flutter: any
+  date_format: ^1.0.8
 
 dev_dependencies:
   flutter_test:

@@ -35,7 +35,11 @@ class DBProvider {
           "itn TEXT,"
           "email TEXT,"
           "photo TEXT,"
-          "blocked BIT"
+          "blocked BIT,"
+          "passport_series TEXT,"
+          "passport_number TEXT,"
+          "passport_issued TEXT,"
+          "passport_date TEXT"
           ")");
     });
   }
@@ -51,10 +55,13 @@ class DBProvider {
     //get the biggest id in the table
     var table = await db.rawQuery("SELECT MAX(id)+1 as id FROM Profile");
     int id = table.first["id"];
+    if (id == null) {
+      id = 1;
+    }
     //insert to the table using the new id
     var raw = await db.rawInsert(
-        "INSERT Into Profile (id, first_name, last_name, middle_name, phone, itn, email, photo, blocked)"
-        " VALUES (?,?,?,?,?,?,?,?,?)",
+        "INSERT Into Profile (id, first_name, last_name, middle_name, phone, itn, email, photo, blocked, passport_series, passport_number, passport_issued, passport_date)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
         [
           id,
           newProfile.firstName,
@@ -64,7 +71,11 @@ class DBProvider {
           newProfile.itn,
           newProfile.email,
           newProfile.photo,
-          newProfile.blocked
+          newProfile.blocked,
+          newProfile.passport.series,
+          newProfile.passport.number,
+          newProfile.passport.issued,
+          newProfile.passport.date,
         ]);
     return raw;
   }
@@ -97,7 +108,7 @@ class DBProvider {
   getProfile(String id) async {
     final db = await database;
     var res = await db.query("Profile", where: "itn = ?", whereArgs: [id]);
-    return res.isNotEmpty ? Profile.fromMap(res.first) : null;
+    return res.isNotEmpty ? Profile.fromDB(res.first) : null;
   }
 
   Future<List<Profile>> getBlockedProfiles() async {

@@ -43,6 +43,21 @@ class Profile {
   });
 
   factory Profile.fromMap(Map<String, dynamic> json) => new Profile(
+      id: json["id"],
+      firstName: json["first_name"],
+      lastName: json["last_name"],
+      middleName: json["middle_name"],
+      phone: json["phone"],
+      itn: json["itn"],
+      email: json["email"],
+      photo: json["photo"],
+      photoData: json["photo_data"],
+      blocked: json["blocked"] == 1,
+      passport: Passport.fromMap(
+        json["passport"],
+      ));
+
+  factory Profile.fromDB(Map<String, dynamic> json) => new Profile(
         id: json["id"],
         firstName: json["first_name"],
         lastName: json["last_name"],
@@ -53,7 +68,7 @@ class Profile {
         photo: json["photo"],
         photoData: json["photo_data"],
         blocked: json["blocked"] == 1,
-        passport: Passport.fromMap(json["passport"],)
+        passport: Passport.fromDB(json),
       );
 
   Map<String, dynamic> toMap() => {
@@ -68,35 +83,40 @@ class Profile {
         "photo_data": photoData,
         "blocked": blocked,
         "passport": passport.toMap(),
-              };
+      };
 }
 
 class Passport {
- 
-	String series;
+  String series;
   String number;
-	String issued;
-	String date;
+  String issued;
+  String date;
 
   Passport({
     this.series,
     this.number,
     this.issued,
-    this.date,    
+    this.date,
   });
 
   factory Passport.fromMap(Map<String, dynamic> json) => new Passport(
         series: json["series"],
         number: json["number"],
         issued: json["issued"],
-        date: json["date"],        
+        date: json["date"],
+      );
+
+  factory Passport.fromDB(Map<String, dynamic> json) => new Passport(
+        series: json["passport_series"],
+        number: json["passport_number"],
+        issued: json["passport_issued"],
+        date: json["passport_date"],
       );
 
   Map<String, dynamic> toMap() => {
         "series": series,
         "number": number,
         "issued": issued,
-        "date": date,        
+        "date": date,
       };
-
 }
