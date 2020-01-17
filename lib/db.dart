@@ -39,7 +39,17 @@ class DBProvider {
           "passport_series TEXT,"
           "passport_number TEXT,"
           "passport_issued TEXT,"
-          "passport_date TEXT"
+          "passport_date TEXT,"
+          "civil_status TEXT,"
+          "children TEXT,"
+          "education TEXT,"
+          "specialty TEXT,"
+          "additional_education TEXT,"
+          "last_work_place TEXT,"
+          "skills TEXT,"
+          "languages TEXT,"
+          "disability BIT,"
+          "pensioner BIT"
           ")");
     });
   }
@@ -60,8 +70,32 @@ class DBProvider {
     }
     //insert to the table using the new id
     var raw = await db.rawInsert(
-        "INSERT Into Profile (id, first_name, last_name, middle_name, phone, itn, email, photo, blocked, passport_series, passport_number, passport_issued, passport_date)"
-        " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        'INSERT Into Profile ('
+        'id, '
+        'first_name,'
+        'last_name,'
+        'middle_name,'
+        'phone,'
+        'itn,'
+        'email,'
+        'photo,'
+        'blocked,'
+        'passport_series,'
+        'passport_number,'
+        'passport_issued,'
+        'passport_date,'
+        'civil_status,'
+        'children,'
+        'education,'
+        'specialty,'
+        'additional_education,'
+        'last_work_place,'
+        'skills,'
+        'languages,'
+        'disability,'
+        'pensioner'
+        ')'
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
           id,
           newProfile.firstName,
@@ -76,6 +110,16 @@ class DBProvider {
           newProfile.passport.number,
           newProfile.passport.issued,
           newProfile.passport.date,
+          newProfile.civilStatus,
+          newProfile.education,
+          newProfile.specialty,
+          newProfile.additionalEducation,
+          newProfile.lastWorkPlace,
+          newProfile.skills,
+          newProfile.languages,
+          newProfile.languages,
+          newProfile.disability,
+          newProfile.pensioner
         ]);
     return raw;
   }

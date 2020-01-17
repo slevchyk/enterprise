@@ -27,35 +27,63 @@ class Profile {
   String photoData;
   bool blocked;
   Passport passport;
+  String civilStatus;
+  String children;
+  String education;
+  String specialty;
+  String additionalEducation;
+  String lastWorkPlace;
+  String skills;
+  String languages;
+  bool disability;
+  bool pensioner;
 
-  Profile({
-    this.id,
-    this.firstName,
-    this.lastName,
-    this.middleName,
-    this.phone,
-    this.itn,
-    this.email,
-    this.photo,
-    this.photoData,
-    this.blocked,
-    this.passport,
-  });
+  Profile(
+      {this.id,
+      this.firstName,
+      this.lastName,
+      this.middleName,
+      this.phone,
+      this.itn,
+      this.email,
+      this.photo,
+      this.photoData,
+      this.blocked,
+      this.passport,
+      this.civilStatus,
+      this.children,
+      this.education,
+      this.specialty,
+      this.additionalEducation,
+      this.lastWorkPlace,
+      this.skills,
+      this.languages,
+      this.disability,
+      this.pensioner});
 
   factory Profile.fromMap(Map<String, dynamic> json) => new Profile(
-      id: json["id"],
-      firstName: json["first_name"],
-      lastName: json["last_name"],
-      middleName: json["middle_name"],
-      phone: json["phone"],
-      itn: json["itn"],
-      email: json["email"],
-      photo: json["photo"],
-      photoData: json["photo_data"],
-      blocked: json["blocked"] == 1,
-      passport: Passport.fromMap(
-        json["passport"],
-      ));
+        id: json["id"],
+        firstName: json["first_name"],
+        lastName: json["last_name"],
+        middleName: json["middle_name"],
+        phone: json["phone"],
+        itn: json["itn"],
+        email: json["email"],
+        photo: json["photo"],
+        photoData: json["photo_data"],
+        blocked: json["blocked"] == 1,
+        passport: Passport.fromMap(json["passport"]),
+        civilStatus: json["civil_status"],
+        children: json["children"],
+        education: json['education'],
+        specialty: json['specialty'],
+        additionalEducation: json['additional_education'],
+        lastWorkPlace: json["last_work_place"],
+        skills: json["skills"],
+        languages: json["languages"],
+        disability: json["disability"],
+        pensioner: json["pensioner"],
+      );
 
   factory Profile.fromDB(Map<String, dynamic> json) => new Profile(
         id: json["id"],
@@ -69,6 +97,16 @@ class Profile {
         photoData: json["photo_data"],
         blocked: json["blocked"] == 1,
         passport: Passport.fromDB(json),
+        civilStatus: json["civil_status"],
+        children: json["children"],
+        education: json['education'],
+        specialty: json['specialty'],
+        additionalEducation: json['additional_education'],
+        lastWorkPlace: json["last_work_place"],
+        skills: json["skills"],
+        languages: json["languages"],
+        disability: json["disability"],
+        pensioner: json["pensioner"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -83,6 +121,16 @@ class Profile {
         "photo_data": photoData,
         "blocked": blocked,
         "passport": passport.toMap(),
+        "civil_status": civilStatus,
+        "children": children,
+        "ducation": education,
+        "specialty": specialty,
+        "additional_education": additionalEducation,
+        "last_work_place": lastWorkPlace,
+        "skills": skills,
+        "languages": languages,
+        "disability": disability,
+        "pensioner": pensioner,
       };
 }
 
