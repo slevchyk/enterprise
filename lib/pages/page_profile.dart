@@ -29,10 +29,12 @@ class PageProfileState extends State<PageProfile> {
   final _itnController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
-  final _passportSeries = TextEditingController();
-  final _passportNumber = TextEditingController();
-  final _passportIssued = TextEditingController();
-  final _passportDate = TextEditingController();
+  final _passportSeriesController = TextEditingController();
+  final _passportNumberController = TextEditingController();
+  final _passportIssuedController = TextEditingController();
+  final _passportDateController = TextEditingController();
+  final _civilStatusController = TextEditingController();
+  final _childrenController = TextEditingController();
 
   bool isLoadingProfile = true;
   Profile profile;
@@ -44,10 +46,12 @@ class PageProfileState extends State<PageProfile> {
     _itnController.text = _pfl.itn;
     _phoneController.text = _pfl.phone;
     _emailController.text = _pfl.email;
-    _passportSeries.text = _pfl.passport.series;
-    _passportNumber.text = _pfl.passport.number;
-    _passportIssued.text = _pfl.passport.issued;
-    _passportDate.text = _pfl.passport.date;
+    _passportSeriesController.text = _pfl.passport.series;
+    _passportNumberController.text = _pfl.passport.number;
+    _passportIssuedController.text = _pfl.passport.issued;
+    _passportDateController.text = _pfl.passport.date;
+    _civilStatusController.text = _pfl.civilStatus;
+    _childrenController.text = _pfl.children;
   }
 
   _getSettings() async {
@@ -70,7 +74,7 @@ class PageProfileState extends State<PageProfile> {
     });
   }
 
-  _downloadProfile() async {
+  _downloadProfile(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
 
     final String _ip = prefs.getString(KEY_SERVER_IP) ?? "";
@@ -96,10 +100,10 @@ class PageProfileState extends State<PageProfile> {
     int statusCode = response.statusCode;
 
     if (statusCode != 200) {
-//      Scaffold.of(this.context).showSnackBar(SnackBar(
-//        content: Text('Не вдалось отримати дані профілю'),
-//        backgroundColor: Colors.redAccent,
-//      ));
+      Scaffold.of(context).showSnackBar(SnackBar(
+        content: Text('Не вдалось отримати дані профілю'),
+        backgroundColor: Colors.redAccent,
+      ));
       return;
     }
 
@@ -130,10 +134,10 @@ class PageProfileState extends State<PageProfile> {
       });
     }
 
-//    Scaffold.of(this.context).showSnackBar(SnackBar(
-//      content: Text('Оновлена'),
-//      backgroundColor: Colors.green,
-//    ));
+    Scaffold.of(context).showSnackBar(SnackBar(
+      content: Text('Оновлена'),
+      backgroundColor: Colors.green,
+    ));
   }
 
   Widget _clearIconButton(TextEditingController textController) {
@@ -161,6 +165,28 @@ class PageProfileState extends State<PageProfile> {
       setState(() {
         textController.text = formatDate(picked, [yyyy, '-', mm, '-', dd]);
       });
+  }
+
+  Map<String, String> _civilStatuses = {
+    CS_SINGLE: "Не одружений",
+    CS_MERRIED: "Одружений",
+    CS_DIVORCED: "Розлучений",
+    CS_WIDOWED: "Вдівець",
+    CS_OTHER: "Інше",
+  };
+
+  List<DropdownMenuItem<String>> _getCivilStatuses() {
+    List<DropdownMenuItem<String>> _list = [];
+    _civilStatuses.forEach((k, v) {
+      _list.add(
+        DropdownMenuItem<String>(
+          value: k,
+          child: Text(v),
+        ),
+      );
+    });
+
+    return _list;
   }
 
   @override
@@ -254,6 +280,9 @@ class PageProfileState extends State<PageProfile> {
                     hintText: 'номер вашого мобільного телефону',
                     labelText: 'Телефон *',
                   ),
+                  inputFormatters: [
+                    WhitelistingTextInputFormatter(RegExp("[+0-9]"))
+                  ],
                   validator: (value) {
                     if (value.isEmpty) return 'ви не вказали номер телефону';
                   },
@@ -284,7 +313,7 @@ class PageProfileState extends State<PageProfile> {
                   style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
                 ),
                 TextFormField(
-                  controller: _passportSeries,
+                  controller: _passportSeriesController,
                   decoration: InputDecoration(
                     icon: Icon(FontAwesomeIcons.passport),
                     hintText: "перші дві літери паспорта",
@@ -295,7 +324,7 @@ class PageProfileState extends State<PageProfile> {
                   },
                 ),
                 TextFormField(
-                  controller: _passportNumber,
+                  controller: _passportNumberController,
                   decoration: InputDecoration(
                     icon: SizedBox(
                       width: 24.0,
@@ -308,7 +337,7 @@ class PageProfileState extends State<PageProfile> {
                   },
                 ),
                 TextFormField(
-                  controller: _passportIssued,
+                  controller: _passportIssuedController,
                   decoration: InputDecoration(
                     icon: SizedBox(
                       width: 24.0,
@@ -323,11 +352,11 @@ class PageProfileState extends State<PageProfile> {
                 ),
                 InkWell(
                   onTap: () {
-                    _selectDate(context, _passportDate);
+                    _selectDate(context, _passportDateController);
                   },
                   child: IgnorePointer(
                     child: new TextFormField(
-                      controller: _passportDate,
+                      controller: _passportDateController,
                       decoration: new InputDecoration(
                         icon: SizedBox(
                           width: 24.0,
@@ -335,10 +364,44 @@ class PageProfileState extends State<PageProfile> {
                         hintText: 'дата коли виданий паспорт',
                         labelText: 'Коли виданий',
                       ),
-                      maxLength: 10,
+                      // maxLength: 10,
                       // validator: validateDob,
                     ),
                   ),
+                ),
+                FormField<String>(
+                  builder: (FormFieldState<String> state) {
+                    return InputDecorator(
+                      decoration: InputDecoration(
+                        icon: Icon(FontAwesomeIcons.userFriends),
+                        hintText: 'оберіть із спику',
+                        labelText: 'Сімейний стан',
+                      ),
+                      isEmpty: false,
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _civilStatusController.text.isEmpty
+                              ? CS_OTHER
+                              : _civilStatusController.text,
+                          isDense: true,
+                          onChanged: (String newValue) {
+                            setState(() {
+                              _civilStatusController.text = newValue;
+//                              state.didChange(newValue);
+                            });
+                          },
+                          items: _getCivilStatuses(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                TextFormField(
+                  controller: _childrenController,
+                  decoration: InputDecoration(
+                      icon: Icon(FontAwesomeIcons.baby),
+                      hintText: '12.03.2012, 23.09.2015',
+                      labelText: 'Дати народження через кому, якшо є'),
                 ),
                 SizedBox(height: 20.0),
                 RaisedButton(
@@ -362,7 +425,7 @@ class PageProfileState extends State<PageProfile> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.update),
         onPressed: () {
-          _downloadProfile();
+          _downloadProfile(context);
         },
       ),
     );
