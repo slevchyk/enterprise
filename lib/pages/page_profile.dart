@@ -35,6 +35,7 @@ class PageProfileState extends State<PageProfile> {
   final _passportDateController = TextEditingController();
   final _civilStatusController = TextEditingController();
   final _childrenController = TextEditingController();
+  final _educationController = TextEditingController();
 
   bool isLoadingProfile = true;
   Profile profile;
@@ -52,6 +53,7 @@ class PageProfileState extends State<PageProfile> {
     _passportDateController.text = _pfl.passport.date;
     _civilStatusController.text = _pfl.civilStatus;
     _childrenController.text = _pfl.children;
+    _educationController.text = _pfl.education;
   }
 
   _getSettings() async {
