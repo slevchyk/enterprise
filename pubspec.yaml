@@ -17,6 +17,7 @@ dependencies:
   path_provider: any
   font_awesome_flutter: any
   date_format: ^1.0.8
+  flutter_speed_dial:
 
 dev_dependencies:
   flutter_test:

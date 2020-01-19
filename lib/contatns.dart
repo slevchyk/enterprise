@@ -10,8 +10,13 @@ const String KEY_USER_PIN = "keyUserPin";
 const String KEY_USER_PICTURE = "keyUserPicture";
 
 const String CS_SINGLE = 'Single';
-const String CS_MERRIED = 'Married';
+const String CIVIL_STATUS_MERIED = 'Maried';
 const String CS_DIVORCED = 'Divorced';
 const String CS_WIDOWED = 'Widowed';
 const String CS_OTHER = 'Other';
 
+const String TIMING_STATUS_START = 'Start';
+const String TIMING_STATUS_WORK = 'Work';
+const String TIMING_STATUS_DINER = 'Diner';
+const String TIMING_STATUS_BREAK = 'Break';
+const String TIMING_STATUS_STOP = 'Stop';
