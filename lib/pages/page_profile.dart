@@ -219,6 +219,7 @@ class PageProfileState extends State<PageProfile> {
                   ),
                   validator: (value) {
                     if (value.isEmpty) return 'ви не вказали ім\'я';
+                    return null;
                   },
                   onChanged: (value) {
                     setState(() {});
@@ -236,6 +237,7 @@ class PageProfileState extends State<PageProfile> {
                   ),
                   validator: (value) {
                     if (value.isEmpty) return 'ви не вказали прізвище';
+                    return null;
                   },
                   onChanged: (value) {
                     setState(() {});
@@ -253,6 +255,7 @@ class PageProfileState extends State<PageProfile> {
                   ),
                   validator: (value) {
                     if (value.isEmpty) return 'ви не вказали по-батькові';
+                    return null;
                   },
                   onChanged: (value) {
                     setState(() {});
@@ -272,6 +275,7 @@ class PageProfileState extends State<PageProfile> {
                   ),
                   validator: (value) {
                     if (value.isEmpty) return 'ви не вказали ІПН/Паспорт';
+                    return null;
                   },
                 ),
                 TextFormField(
@@ -287,6 +291,7 @@ class PageProfileState extends State<PageProfile> {
                   ],
                   validator: (value) {
                     if (value.isEmpty) return 'ви не вказали номер телефону';
+                    return null;
                   },
                   onChanged: (value) {
                     setState(() {});
@@ -303,6 +308,7 @@ class PageProfileState extends State<PageProfile> {
                   ),
                   validator: (value) {
                     if (value.isEmpty) return 'ви не вказали email';
+                    return null;
                   },
                   onChanged: (value) {
                     setState(() {});
@@ -323,6 +329,7 @@ class PageProfileState extends State<PageProfile> {
                   ),
                   validator: (value) {
                     if (value.isEmpty) return 'ви не вказали серію паспорта';
+                    return null;
                   },
                 ),
                 TextFormField(
@@ -336,6 +343,7 @@ class PageProfileState extends State<PageProfile> {
                   ),
                   validator: (value) {
                     if (value.isEmpty) return 'ви не вказали номер паспорта';
+                    return null;
                   },
                 ),
                 TextFormField(
@@ -350,6 +358,7 @@ class PageProfileState extends State<PageProfile> {
                   validator: (value) {
                     if (value.isEmpty)
                       return 'ви не вказали ким виданий паспорт';
+                    return null;
                   },
                 ),
                 InkWell(
@@ -366,8 +375,12 @@ class PageProfileState extends State<PageProfile> {
                         hintText: 'дата коли виданий паспорт',
                         labelText: 'Коли виданий',
                       ),
+                      validator: (value) {
+                        if (value.isEmpty)
+                          return 'ви не вказали ким виданий паспорт';
+                        return null;
+                      },
                       // maxLength: 10,
-                      // validator: validateDob,
                     ),
                   ),
                 ),
@@ -378,6 +391,7 @@ class PageProfileState extends State<PageProfile> {
                         icon: Icon(FontAwesomeIcons.userFriends),
                         hintText: 'оберіть із спику',
                         labelText: 'Сімейний стан',
+                        helperText: 'оберіть однк із значень із спику',
                       ),
                       isEmpty: false,
                       child: DropdownButtonHideUnderline(
@@ -403,7 +417,8 @@ class PageProfileState extends State<PageProfile> {
                   decoration: InputDecoration(
                       icon: Icon(FontAwesomeIcons.baby),
                       hintText: '12.03.2012, 23.09.2015',
-                      labelText: 'Дати народження через кому, якшо є'),
+                      labelText: 'Дати народження дітей',
+                      helperText: 'запонвювати якшо є діти'),
                 ),
                 SizedBox(height: 20.0),
                 RaisedButton(
