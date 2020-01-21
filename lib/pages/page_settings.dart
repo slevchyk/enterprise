@@ -113,6 +113,7 @@ class PageSettingsState extends State<PageSettings> {
                         icon: Icon(Icons.computer)),
                     validator: (value) {
                       if (value.isEmpty) return 'не вказаний: IP';
+                      return null;
                     },
                   ),
                   TextFormField(
@@ -126,6 +127,7 @@ class PageSettingsState extends State<PageSettings> {
                     ),
                     validator: (value) {
                       if (value.isEmpty) return 'не вказана: Database';
+                      return null;
                     },
                   ),
                   TextFormField(
@@ -138,6 +140,7 @@ class PageSettingsState extends State<PageSettings> {
                         )),
                     validator: (value) {
                       if (value.isEmpty) return 'не вказаний: User';
+                      return null;
                     },
                   ),
                   TextFormField(
@@ -152,6 +155,7 @@ class PageSettingsState extends State<PageSettings> {
                     ),
                     validator: (value) {
                       if (value.isEmpty) return 'не вказаний: Password';
+                      return null;
                     },
                   ),
                   SizedBox(height: 20.0),
@@ -272,7 +276,7 @@ class PageSettingsState extends State<PageSettings> {
   }
 
   _clearDB() async {
-    DBProvider.db.deleteProfileAll();
+    DBProvider.db.deleteAllProfiles();
   }
 
   _deleteDB() async {

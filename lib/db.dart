@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:enterprise/contatns.dart';
 import 'package:enterprise/models.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -35,8 +36,30 @@ class DBProvider {
           "itn TEXT,"
           "email TEXT,"
           "photo TEXT,"
-          "blocked BIT"
+          "blocked BIT,"
+          "passport_series TEXT,"
+          "passport_number TEXT,"
+          "passport_issued TEXT,"
+          "passport_date TEXT,"
+          "civil_status TEXT,"
+          "children TEXT,"
+          "education TEXT,"
+          "specialty TEXT,"
+          "additional_education TEXT,"
+          "last_work_place TEXT,"
+          "skills TEXT,"
+          "languages TEXT,"
+          "disability BIT,"
+          "pensioner BIT"
           ")");
+      await db.execute('CREATE TABLE timing ('
+          'id INTEGER PRIMARY KEY,'
+          'user_id TEXT,'
+          'date TEXT,'
+          'operation TEXT,'
+          'start_time TEXT,'
+          'end_time TEXT'
+          ')');
     });
   }
 
@@ -51,10 +74,37 @@ class DBProvider {
     //get the biggest id in the table
     var table = await db.rawQuery("SELECT MAX(id)+1 as id FROM Profile");
     int id = table.first["id"];
+//    if (id == null) {
+//      id = 1;
+//    }
     //insert to the table using the new id
     var raw = await db.rawInsert(
-        "INSERT Into Profile (id, first_name, last_name, middle_name, phone, itn, email, photo, blocked)"
-        " VALUES (?,?,?,?,?,?,?,?,?)",
+        'INSERT Into Profile ('
+        'id, '
+        'first_name,'
+        'last_name,'
+        'middle_name,'
+        'phone,'
+        'itn,'
+        'email,'
+        'photo,'
+        'blocked,'
+        'passport_series,'
+        'passport_number,'
+        'passport_issued,'
+        'passport_date,'
+        'civil_status,'
+        'children,'
+        'education,'
+        'specialty,'
+        'additional_education,'
+        'last_work_place,'
+        'skills,'
+        'languages,'
+        'disability,'
+        'pensioner'
+        ')'
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
           id,
           newProfile.firstName,
@@ -64,12 +114,26 @@ class DBProvider {
           newProfile.itn,
           newProfile.email,
           newProfile.photo,
-          newProfile.blocked
+          newProfile.blocked,
+          newProfile.passport.series,
+          newProfile.passport.number,
+          newProfile.passport.issued,
+          newProfile.passport.date,
+          newProfile.civilStatus,
+          newProfile.education,
+          newProfile.specialty,
+          newProfile.additionalEducation,
+          newProfile.lastWorkPlace,
+          newProfile.skills,
+          newProfile.languages,
+          newProfile.languages,
+          newProfile.disability,
+          newProfile.pensioner
         ]);
     return raw;
   }
 
-  block(Profile profile) async {
+  blockProfile(Profile profile) async {
     final db = await database;
     Profile blocked = getProfile(profile.itn);
     blocked.blocked = true;
@@ -78,7 +142,7 @@ class DBProvider {
     return res;
   }
 
-  unblock(Profile profile) async {
+  unblockProfile(Profile profile) async {
     final db = await database;
     Profile blocked = getProfile(profile.itn);
     blocked.blocked = false;
@@ -97,7 +161,7 @@ class DBProvider {
   getProfile(String id) async {
     final db = await database;
     var res = await db.query("Profile", where: "itn = ?", whereArgs: [id]);
-    return res.isNotEmpty ? Profile.fromMap(res.first) : null;
+    return res.isNotEmpty ? Profile.fromDB(res.first) : null;
   }
 
   Future<List<Profile>> getBlockedProfiles() async {
@@ -124,8 +188,82 @@ class DBProvider {
     return db.delete("Profile", where: "id = ?", whereArgs: [id]);
   }
 
-  deleteProfileAll() async {
+  deleteAllProfiles() async {
     final db = await database;
     db.rawDelete("Delete * from Profile");
+  }
+
+  newTiming(Timing timing) async {
+    final db = await database;
+    //get the biggest id in the table
+    var table = await db.rawQuery("SELECT MAX(id)+1 as id FROM timing");
+    int id = table.first["id"];
+    //insert to the table using the new id
+    var raw = await db.rawInsert(
+        'INSERT Into timing ('
+        'id,'
+        'user_id,'
+        'date,'
+        'operation,'
+        'start_time,'
+        'end_time'
+        ')'
+        'VALUES (?,?,?,?,?,?)',
+        [
+          id,
+          timing.userID,
+          timing.date,
+          timing.operation,
+          timing.startTime,
+          "",
+        ]);
+    return raw;
+  }
+
+  getTiming(int id) async {
+    final db = await database;
+    var res = await db.query("timing", where: "id = ?", whereArgs: [id]);
+    return res.isNotEmpty ? Profile.fromDB(res.first) : null;
+  }
+
+  Future<List<Timing>> getUserTiming(String date, String userID) async {
+    final db = await database;
+    var res = await db.query("timing",
+        where: "date = ? and user_id = ?", whereArgs: [date, userID]);
+
+    List<Timing> list =
+        res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  Future<List<Timing>> getOpenTimingOperation(
+      String date, String userID) async {
+    final db = await database;
+    var res = await db.query("timing",
+        where: "user_id=? and date=? and operation<>? and end_time=?",
+        whereArgs: [userID, date, TIMING_STATUS_WORKDAY, ""]);
+
+    List<Timing> list =
+        res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  getOpenTiming(String date, String userID) async {
+    final db = await database;
+    var res = await db.query("timing",
+        where: "date = ? user_id = ? and operation = ? and end_time=?",
+        whereArgs: [date, userID, TIMING_STATUS_WORKDAY, ""]);
+
+    List<Timing> list =
+        res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  endOperation(Timing timing) async {
+    final db = await database;
+    timing.endTime = DateTime.now().toIso8601String();
+    var res = await db.update("timing", timing.toMap(),
+        where: "id = ?", whereArgs: [timing.id]);
+    return res;
   }
 }
