@@ -72,12 +72,12 @@ class _TimingMainState extends State<TimingMain> {
           operation: timingStatus,
           startTime: now.toIso8601String());
 
-      DBProvider.db.newTiming(timing);
+      await DBProvider.db.newTiming(timing);
     } else if (timingStatus == '') {
       List<Timing> listTiming = await DBProvider.db.getOpenTiming(date, userID);
 
       for (var timing in listTiming) {
-        DBProvider.db.endOperation(timing);
+        await DBProvider.db.endOperation(timing);
       }
     } else if (timingStatus == TIMING_STATUS_JOB ||
         timingStatus == TIMING_STATUS_DINER ||
@@ -86,7 +86,7 @@ class _TimingMainState extends State<TimingMain> {
           await DBProvider.db.getOpenTimingOperation(date, userID);
 
       for (var timing in listTiming) {
-        DBProvider.db.endOperation(timing);
+        await DBProvider.db.endOperation(timing);
       }
 
       Timing timing = Timing(
@@ -95,15 +95,17 @@ class _TimingMainState extends State<TimingMain> {
           operation: timingStatus,
           startTime: now.toIso8601String());
 
-      DBProvider.db.newTiming(timing);
+      await DBProvider.db.newTiming(timing);
     } else if (timingStatus == TIMING_STATUS_STOP) {
       List<Timing> listTiming =
           await DBProvider.db.getOpenTimingOperation(date, userID);
 
       for (var timing in listTiming) {
-        DBProvider.db.endOperation(timing);
+        await DBProvider.db.endOperation(timing);
       }
     }
+
+    statuses = getStatuses();
   }
 
   Future<List<Timing>> statuses;
@@ -214,9 +216,7 @@ class _TimingMainState extends State<TimingMain> {
       ),
       floatingActionButton: TimingFAB(currentTimeStatus, (String value) {
         if (currentTimeStatus != value) {
-//          statuses = getStatuses();
           handleStatus(value);
-          statuses = getStatuses();
           setState(() {
             currentTimeStatus = value;
           });

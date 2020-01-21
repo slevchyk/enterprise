@@ -222,6 +222,7 @@ class Chanel {
     this.news,
     this.date,
   });
+
   factory Chanel.fromMap(Map<String, dynamic> json) => new Chanel(
         id: json["id"],
         title: json["title"],
