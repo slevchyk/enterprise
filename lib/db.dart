@@ -229,7 +229,7 @@ class DBProvider {
   getTiming(int id) async {
     final db = await database;
     var res = await db.query("timing", where: "id = ?", whereArgs: [id]);
-    return res.isNotEmpty ? Profile.fromDB(res.first) : null;
+    return res.isNotEmpty ? Timing.fromMap(res.first) : null;
   }
 
   Future<List<Timing>> getUserTiming(String date, String userID) async {
@@ -283,7 +283,7 @@ class DBProvider {
     final db = await database;
     var raw = await db.rawInsert(
         'INSERT Into chanel ('
-        'id,'
+        'id411,'
         'title,'
         'date,'
         'news'
@@ -296,6 +296,19 @@ class DBProvider {
           chanel.news,
         ]);
     return raw;
+  }
+
+  getChanel(int id) async {
+    final db = await database;
+    var res = await db.query("chanel", where: "id = ?", whereArgs: [id]);
+    return res.isNotEmpty ? Chanel.fromMap(res.first) : null;
+  }
+
+  updateChanel(Chanel chanel) async {
+    final db = await database;
+    var res = await db.update("chanel", chanel.toMap(),
+        where: "id = ?", whereArgs: [chanel.id]);
+    return res;
   }
 
   Future<List<Chanel>> getUserChanel(String userID) async {

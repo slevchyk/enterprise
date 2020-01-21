@@ -229,4 +229,11 @@ class Chanel {
         news: json["news"],
         date: json["date"],
       );
+
+  Map<String, dynamic> toMap() => {
+        "id": id,
+        "title": title,
+        "news": news,
+        "date": date,
+      };
 }
