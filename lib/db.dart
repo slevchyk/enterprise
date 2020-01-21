@@ -234,8 +234,11 @@ class DBProvider {
 
   Future<List<Timing>> getUserTiming(String date, String userID) async {
     final db = await database;
-    var res = await db.query("timing",
-        where: "date = ? and user_id = ?", whereArgs: [date, userID]);
+    var res = await db.query(
+      "timing",
+      where: "date=? and user_id=?",
+      whereArgs: [date, userID],
+    );
 
     List<Timing> list =
         res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
@@ -254,11 +257,24 @@ class DBProvider {
     return list;
   }
 
-  getOpenTiming(String date, String userID) async {
+  Future<String> getCurrentTiming(String userID) async {
+    final db = await database;
+    var res = await db.query(
+      "timing",
+      where: "id = ?",
+      whereArgs: [userID],
+      orderBy: "start_time DESC",
+    );
+
+    Timing _timing = res.isNotEmpty ? Timing.fromMap(res.first) : null;
+    return _timing != null ? _timing.operation : "";
+  }
+
+  Future<List<Timing>> getOpenTiming(String date, String userID) async {
     final db = await database;
     var res = await db.query("timing",
-        where: "date = ? user_id = ? and operation = ? and end_time=?",
-        whereArgs: [date, userID, TIMING_STATUS_WORKDAY, ""]);
+        where: "user_id=? and date=? and operation=? and end_time=?",
+        whereArgs: [userID, date, TIMING_STATUS_WORKDAY, ""]);
 
     List<Timing> list =
         res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];

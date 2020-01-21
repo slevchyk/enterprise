@@ -56,6 +56,29 @@ class TimingMain extends StatefulWidget {
 
 class _TimingMainState extends State<TimingMain> {
   String currentTimeStatus = '';
+  String userID;
+  Future<List<Timing>> statuses;
+
+  void initState() {
+    statuses = getStatuses();
+  }
+
+  Future<List<Timing>> getStatuses() async {
+    final now = DateTime.now();
+    final date = new DateTime(now.year, now.month, now.day).toIso8601String();
+
+    final prefs = await SharedPreferences.getInstance();
+    String userID = prefs.getString(KEY_USER_ID) ?? "";
+
+    if (currentTimeStatus.isEmpty) {
+      String _currentTimeStatus = prefs.getString("dd") ?? "";
+      setState(() {
+        currentTimeStatus = _currentTimeStatus;
+      });
+    }
+
+    return await DBProvider.db.getUserTiming(date, userID);
+  }
 
   handleStatus(String timingStatus) async {
     final now = DateTime.now();
@@ -74,8 +97,13 @@ class _TimingMainState extends State<TimingMain> {
 
       await DBProvider.db.newTiming(timing);
     } else if (timingStatus == '') {
-      List<Timing> listTiming = await DBProvider.db.getOpenTiming(date, userID);
+      List<Timing> listTiming =
+          await DBProvider.db.getOpenTimingOperation(date, userID);
+      for (var timing in listTiming) {
+        await DBProvider.db.endOperation(timing);
+      }
 
+      listTiming = await DBProvider.db.getOpenTiming(date, userID);
       for (var timing in listTiming) {
         await DBProvider.db.endOperation(timing);
       }
@@ -106,22 +134,25 @@ class _TimingMainState extends State<TimingMain> {
     }
 
     statuses = getStatuses();
+
+    prefs.setString("dd", timingStatus);
+    setState(() {
+      currentTimeStatus = timingStatus;
+    });
   }
 
-  Future<List<Timing>> statuses;
+  Map<String, String> mapOperation = {
+    TIMING_STATUS_WORKDAY: "Робочий день",
+    TIMING_STATUS_JOB: "Робота",
+    TIMING_STATUS_DINER: "Обід",
+    TIMING_STATUS_BREAK: "Перерва",
+  };
 
-  void initState() {
-    statuses = getStatuses();
-  }
+  String formatISO8601DataToTime(String strDataTime) {
+    if (strDataTime.isEmpty) return "";
 
-  Future<List<Timing>> getStatuses() async {
-    final now = DateTime.now();
-    final date = new DateTime(now.year, now.month, now.day).toIso8601String();
-
-    final prefs = await SharedPreferences.getInstance();
-
-    String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return DBProvider.db.getUserTiming(date, userID);
+    DateTime _dateTime = DateTime.parse(strDataTime);
+    return formatDate(_dateTime, [hh, ':', nn, ':', ss]);
   }
 
   Widget rowIcon(String operation) {
@@ -141,13 +172,6 @@ class _TimingMainState extends State<TimingMain> {
     }
   }
 
-  String formatISO8601DataToTime(String strDataTime) {
-    if (strDataTime.isEmpty) return "";
-
-    DateTime _dateTime = DateTime.parse(strDataTime);
-    return formatDate(_dateTime, [hh, ':', nn, ':', ss]);
-  }
-
   Widget dataTable(listTiming) {
     List<DataRow> dataRows = [];
 
@@ -157,9 +181,9 @@ class _TimingMainState extends State<TimingMain> {
           children: <Widget>[
             rowIcon(timing.operation),
             SizedBox(
-              width: 5.0,
+              width: 10.0,
             ),
-            Text(timing.operation),
+            Text(mapOperation[timing.operation]),
           ],
         )),
         DataCell(Text(formatISO8601DataToTime(timing.startTime))),
@@ -215,9 +239,6 @@ class _TimingMainState extends State<TimingMain> {
       floatingActionButton: TimingFAB(currentTimeStatus, (String value) {
         if (currentTimeStatus != value) {
           handleStatus(value);
-//          setState(() {
-//            currentTimeStatus = value;
-//          });
         }
       }),
     );

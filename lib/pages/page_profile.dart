@@ -171,7 +171,7 @@ class PageProfileState extends State<PageProfile> {
 
   Map<String, String> _civilStatuses = {
     CS_SINGLE: "Не одружений",
-    CIVIL_STATUS_MERIED: "Одружений",
+    CIVIL_STATUS_MERRIED: "Одружений",
     CS_DIVORCED: "Розлучений",
     CS_WIDOWED: "Вдівець",
     CS_OTHER: "Інше",

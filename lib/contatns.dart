@@ -10,7 +10,7 @@ const String KEY_USER_PIN = "keyUserPin";
 const String KEY_USER_PICTURE = "keyUserPicture";
 
 const String CS_SINGLE = 'Single';
-const String CIVIL_STATUS_MERIED = 'Maried';
+const String CIVIL_STATUS_MERRIED = 'Married';
 const String CS_DIVORCED = 'Divorced';
 const String CS_WIDOWED = 'Widowed';
 const String CS_OTHER = 'Other';
