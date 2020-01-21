@@ -60,6 +60,12 @@ class DBProvider {
           'start_time TEXT,'
           'end_time TEXT'
           ')');
+      await db.execute('CREATE TABLE chanel ('
+          'id INTEGER PRIMARY KEY,'
+          'title TEXT,'
+          'news TEXT,'
+          'date TEXT'
+          ')');
     });
   }
 
@@ -265,5 +271,34 @@ class DBProvider {
     var res = await db.update("timing", timing.toMap(),
         where: "id = ?", whereArgs: [timing.id]);
     return res;
+  }
+
+  newChanel(Chanel chanel) async {
+    final db = await database;
+    var raw = await db.rawInsert(
+        'INSERT Into chanel ('
+        'id,'
+        'title,'
+        'date,'
+        'news'
+        ')'
+        'VALUES (?,?,?,?)',
+        [
+          chanel.id,
+          chanel.title,
+          chanel.date,
+          chanel.news,
+        ]);
+    return raw;
+  }
+
+  Future<List<Chanel>> getUserChanel(String userID) async {
+    final db = await database;
+    var res =
+        await db.query("chanel", where: "user_id = ?", whereArgs: [userID]);
+
+    List<Chanel> list =
+        res.isNotEmpty ? res.map((c) => Chanel.fromMap(c)).toList() : [];
+    return list;
   }
 }

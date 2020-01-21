@@ -205,8 +205,27 @@ class Timing {
         "start_time": startTime,
         "end_time": endTime,
       };
-
 //  static Future<List<Timing>> getUserTiming(String date, String userID) async {
 //    return DBProvider.db.getUserTiming(date, userID);
 //  }
+}
+
+class Chanel {
+  int id;
+  String title;
+  String news;
+  String date;
+
+  Chanel({
+    this.id,
+    this.title,
+    this.news,
+    this.date,
+  });
+  factory Chanel.fromMap(Map<String, dynamic> json) => new Chanel(
+        id: json["id"],
+        title: json["title"],
+        news: json["news"],
+        date: json["date"],
+      );
 }
