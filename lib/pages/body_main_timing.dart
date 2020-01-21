@@ -137,11 +137,13 @@ class _TimingMainState extends State<TimingMain> {
           width: 24.0,
         );
     }
+  }
 
-    String formatISO8601DataToTime(String strDataTime) {
-      DateTime _dateTime = DateTime.parse(strDataTime);
-      return formatDate(_dateTime, formats)
-    }
+  String formatISO8601DataToTime(String strDataTime) {
+    if (strDataTime.isEmpty) return "";
+
+    DateTime _dateTime = DateTime.parse(strDataTime);
+    return formatDate(_dateTime, [hh, ':', nn, ':', ss]);
   }
 
   Widget dataTable(listTiming) {
@@ -158,24 +160,27 @@ class _TimingMainState extends State<TimingMain> {
             Text(timing.operation),
           ],
         )),
-        DataCell(Text(timing.startTime)),
-        DataCell(Text(timing.endTime)),
+        DataCell(Text(formatISO8601DataToTime(timing.startTime))),
+        DataCell(Text(formatISO8601DataToTime(timing.endTime))),
       ]));
     }
 
-    return DataTable(
-      columns: [
-        DataColumn(
-          label: Text('Статус'),
-        ),
-        DataColumn(
-          label: Text('Початок'),
-        ),
-        DataColumn(
-          label: Text('Кінець'),
-        )
-      ],
-      rows: dataRows,
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child: DataTable(
+        columns: [
+          DataColumn(
+            label: Text('Статус'),
+          ),
+          DataColumn(
+            label: Text('Початок'),
+          ),
+          DataColumn(
+            label: Text('Кінець'),
+          )
+        ],
+        rows: dataRows,
+      ),
     );
   }
 
