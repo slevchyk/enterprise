@@ -1,8 +1,10 @@
+import 'package:date_format/date_format.dart';
 import 'package:enterprise/contatns.dart';
+import 'package:enterprise/db.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models.dart';
 
@@ -55,20 +57,161 @@ class TimingMain extends StatefulWidget {
 class _TimingMainState extends State<TimingMain> {
   String currentTimeStatus = '';
 
+  handleStatus(String timingStatus) async {
+    final now = DateTime.now();
+    final date = new DateTime(now.year, now.month, now.day).toIso8601String();
+
+    final prefs = await SharedPreferences.getInstance();
+
+    String userID = prefs.getString(KEY_USER_ID) ?? "";
+
+    if (timingStatus == TIMING_STATUS_WORKDAY) {
+      Timing timing = Timing(
+          date: date,
+          userID: userID,
+          operation: timingStatus,
+          startTime: now.toIso8601String());
+
+      DBProvider.db.newTiming(timing);
+    } else if (timingStatus == '') {
+      List<Timing> listTiming = await DBProvider.db.getOpenTiming(date, userID);
+
+      for (var timing in listTiming) {
+        DBProvider.db.endOperation(timing);
+      }
+    } else if (timingStatus == TIMING_STATUS_JOB ||
+        timingStatus == TIMING_STATUS_DINER ||
+        timingStatus == TIMING_STATUS_BREAK) {
+      List<Timing> listTiming =
+          await DBProvider.db.getOpenTimingOperation(date, userID);
+
+      for (var timing in listTiming) {
+        DBProvider.db.endOperation(timing);
+      }
+
+      Timing timing = Timing(
+          date: date,
+          userID: userID,
+          operation: timingStatus,
+          startTime: now.toIso8601String());
+
+      DBProvider.db.newTiming(timing);
+    } else if (timingStatus == TIMING_STATUS_STOP) {
+      List<Timing> listTiming =
+          await DBProvider.db.getOpenTimingOperation(date, userID);
+
+      for (var timing in listTiming) {
+        DBProvider.db.endOperation(timing);
+      }
+    }
+  }
+
+  Future<List<Timing>> statuses;
+
+  void initState() {
+    statuses = getStatuses();
+  }
+
+  Future<List<Timing>> getStatuses() async {
+    final now = DateTime.now();
+    final date = new DateTime(now.year, now.month, now.day).toIso8601String();
+
+    final prefs = await SharedPreferences.getInstance();
+
+    String userID = prefs.getString(KEY_USER_ID) ?? "";
+    return DBProvider.db.getUserTiming(date, userID);
+  }
+
+  Widget rowIcon(String operation) {
+    switch (operation) {
+      case TIMING_STATUS_WORKDAY:
+        return Icon(Icons.work);
+      case TIMING_STATUS_JOB:
+        return Icon(Icons.add);
+      case TIMING_STATUS_DINER:
+        return Icon(Icons.fastfood);
+      case TIMING_STATUS_BREAK:
+        return Icon(Icons.toys);
+      default:
+        return SizedBox(
+          width: 24.0,
+        );
+    }
+
+    String formatISO8601DataToTime(String strDataTime) {
+      DateTime _dateTime = DateTime.parse(strDataTime);
+      return formatDate(_dateTime, formats)
+    }
+  }
+
+  Widget dataTable(listTiming) {
+    List<DataRow> dataRows = [];
+
+    for (var timing in listTiming) {
+      dataRows.add(DataRow(cells: <DataCell>[
+        DataCell(Row(
+          children: <Widget>[
+            rowIcon(timing.operation),
+            SizedBox(
+              width: 5.0,
+            ),
+            Text(timing.operation),
+          ],
+        )),
+        DataCell(Text(timing.startTime)),
+        DataCell(Text(timing.endTime)),
+      ]));
+    }
+
+    return DataTable(
+      columns: [
+        DataColumn(
+          label: Text('Статус'),
+        ),
+        DataColumn(
+          label: Text('Початок'),
+        ),
+        DataColumn(
+          label: Text('Кінець'),
+        )
+      ],
+      rows: dataRows,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: Colors.blueGrey,
+//        color: Colors.blueGrey,
         child: Center(
-          child: Text(
-            'Сьогодні',
-            style: TextStyle(fontSize: 50),
-          ),
+          child: FutureBuilder(
+              future: statuses,
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                switch (snapshot.connectionState) {
+                  case ConnectionState.none:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  case ConnectionState.waiting:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  case ConnectionState.active:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  case ConnectionState.done:
+                    return dataTable(snapshot.data);
+                }
+              }),
         ),
       ),
       floatingActionButton: TimingFAB(currentTimeStatus, (String value) {
         if (currentTimeStatus != value) {
+//          statuses = getStatuses();
+          handleStatus(value);
+          statuses = getStatuses();
           setState(() {
             currentTimeStatus = value;
           });
@@ -100,11 +243,11 @@ class _TimingFABState extends State<TimingFAB> {
       case '':
         return FloatingActionButton(
           onPressed: () {
-            widget.onPressed(TIMING_STATUS_START);
+            widget.onPressed(TIMING_STATUS_WORKDAY);
           },
           child: Icon(Icons.work),
         );
-      case (TIMING_STATUS_START):
+      case (TIMING_STATUS_WORKDAY):
         return SpeedDial(
           animatedIcon: AnimatedIcons.menu_close,
           closeManually: false,
@@ -113,7 +256,7 @@ class _TimingFABState extends State<TimingFAB> {
               label: "Робота",
               child: Icon(Icons.add),
               onTap: () {
-                widget.onPressed(TIMING_STATUS_WORK);
+                widget.onPressed(TIMING_STATUS_JOB);
               },
             ),
             SpeedDialChild(
@@ -150,7 +293,7 @@ class _TimingFABState extends State<TimingFAB> {
               label: "Робота",
               child: Icon(Icons.add),
               onTap: () {
-                widget.onPressed(TIMING_STATUS_WORK);
+                widget.onPressed(TIMING_STATUS_JOB);
               },
             ),
             SpeedDialChild(
@@ -176,7 +319,7 @@ class _TimingFABState extends State<TimingFAB> {
             ),
           ],
         );
-      case (TIMING_STATUS_WORK):
+      case (TIMING_STATUS_JOB):
         return SpeedDial(
           animatedIcon: AnimatedIcons.menu_close,
           closeManually: false,
@@ -220,7 +363,7 @@ class _TimingFABState extends State<TimingFAB> {
               label: "Робота",
               child: Icon(Icons.add),
               onTap: () {
-                widget.onPressed(TIMING_STATUS_WORK);
+                widget.onPressed(TIMING_STATUS_JOB);
               },
             ),
             SpeedDialChild(
@@ -255,14 +398,14 @@ class _TimingFABState extends State<TimingFAB> {
               label: "Робота",
               child: Icon(Icons.add),
               onTap: () {
-                widget.onPressed(TIMING_STATUS_WORK);
+                widget.onPressed(TIMING_STATUS_JOB);
               },
             ),
             SpeedDialChild(
-              label: "Домів",
-              child: Icon(Icons.home),
+              label: "Обід",
+              child: Icon(Icons.fastfood),
               onTap: () {
-                widget.onPressed('');
+                widget.onPressed(TIMING_STATUS_DINER);
               },
             ),
             SpeedDialChild(

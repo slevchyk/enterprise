@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:enterprise/db.dart';
+
 Profile profileFromJson(String str) {
   final jsonData = json.decode(str);
   return Profile.fromMap(jsonData);
@@ -167,4 +169,44 @@ class Passport {
         "issued": issued,
         "date": date,
       };
+}
+
+class Timing {
+  int id;
+  String userID;
+  String date;
+  String operation;
+  String startTime;
+  String endTime;
+
+  Timing({
+    this.id,
+    this.userID,
+    this.date,
+    this.operation,
+    this.startTime,
+    this.endTime,
+  });
+
+  factory Timing.fromMap(Map<String, dynamic> json) => new Timing(
+        id: json["id"],
+        userID: json["user_id"],
+        date: json["date"],
+        operation: json["operation"],
+        startTime: json["start_time"],
+        endTime: json["end_time"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "id": id,
+        "user_id": userID,
+        "date": date,
+        "operation": operation,
+        "start_time": startTime,
+        "end_time": endTime,
+      };
+
+//  static Future<List<Timing>> getUserTiming(String date, String userID) async {
+//    return DBProvider.db.getUserTiming(date, userID);
+//  }
 }

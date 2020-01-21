@@ -15,8 +15,8 @@ const String CS_DIVORCED = 'Divorced';
 const String CS_WIDOWED = 'Widowed';
 const String CS_OTHER = 'Other';
 
-const String TIMING_STATUS_START = 'Start';
-const String TIMING_STATUS_WORK = 'Work';
+const String TIMING_STATUS_WORKDAY = 'Workday';
+const String TIMING_STATUS_JOB = 'Job';
 const String TIMING_STATUS_DINER = 'Diner';
 const String TIMING_STATUS_BREAK = 'Break';
 const String TIMING_STATUS_STOP = 'Stop';

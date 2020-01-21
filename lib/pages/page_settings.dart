@@ -276,7 +276,7 @@ class PageSettingsState extends State<PageSettings> {
   }
 
   _clearDB() async {
-    DBProvider.db.deleteProfileAll();
+    DBProvider.db.deleteAllProfiles();
   }
 
   _deleteDB() async {
