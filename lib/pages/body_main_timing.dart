@@ -191,35 +191,33 @@ class _TimingMainState extends State<TimingMain> {
     return Scaffold(
       body: Container(
 //        color: Colors.blueGrey,
-        child: Center(
-          child: FutureBuilder(
-              future: statuses,
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                switch (snapshot.connectionState) {
-                  case ConnectionState.none:
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  case ConnectionState.waiting:
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  case ConnectionState.active:
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  case ConnectionState.done:
-                    return dataTable(snapshot.data);
-                }
-              }),
-        ),
+        child: FutureBuilder(
+            future: statuses,
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.none:
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                case ConnectionState.waiting:
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                case ConnectionState.active:
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                case ConnectionState.done:
+                  return dataTable(snapshot.data);
+              }
+            }),
       ),
       floatingActionButton: TimingFAB(currentTimeStatus, (String value) {
         if (currentTimeStatus != value) {
           handleStatus(value);
-          setState(() {
-            currentTimeStatus = value;
-          });
+//          setState(() {
+//            currentTimeStatus = value;
+//          });
         }
       }),
     );

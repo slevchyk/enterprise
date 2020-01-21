@@ -71,7 +71,7 @@ class Profile {
         phone: json["phone"],
         itn: json["itn"],
         email: json["email"],
-        photo: json["photo"],
+        photo: json["photo_name"],
         photoData: json["photo_data"],
         blocked: json["blocked"] == 1,
         passport: Passport.fromMap(json["passport"]),
