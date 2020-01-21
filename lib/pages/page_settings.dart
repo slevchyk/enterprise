@@ -200,9 +200,16 @@ class PageSettingsState extends State<PageSettings> {
                   ),
                   FlatButton(
                     onPressed: () {
-                      _clearDB();
+                      _clearProfile();
                     },
-                    child: Text('clear db'),
+                    child: Text('clear profile'),
+                    color: Colors.blueGrey,
+                  ),
+                  FlatButton(
+                    onPressed: () {
+                      _clearTiming();
+                    },
+                    child: Text('clear timing'),
                     color: Colors.blueGrey,
                   ),
                   FlatButton(
@@ -275,8 +282,12 @@ class PageSettingsState extends State<PageSettings> {
     ));
   }
 
-  _clearDB() async {
+  _clearProfile() async {
     DBProvider.db.deleteAllProfiles();
+  }
+
+  _clearTiming() async {
+    DBProvider.db.deleteAllTiming();
   }
 
   _deleteDB() async {

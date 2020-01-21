@@ -273,6 +273,12 @@ class DBProvider {
     return res;
   }
 
+  deleteAllTiming() async {
+    final db = await database;
+    Future<int> raw = db.rawDelete("Delete * from timing");
+    return raw;
+  }
+
   newChanel(Chanel chanel) async {
     final db = await database;
     var raw = await db.rawInsert(
