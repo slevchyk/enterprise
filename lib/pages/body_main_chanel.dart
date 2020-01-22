@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/db.dart';
 import 'package:enterprise/models.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -71,46 +72,23 @@ class BodyChanelState extends State<BodyChanel> {
     }
   }
 
+  _updateChanel() async {
+    await _downloadChanel(context);
+    chaneles = getChaneles();
+    setState(() {});
+  }
+
   Future<List<Chanel>> chaneles;
 
   void initState() {
-    chaneles = getStatuses();
+    chaneles = getChaneles();
   }
 
-  Future<List<Chanel>> getStatuses() async {
+  Future<List<Chanel>> getChaneles() async {
     final prefs = await SharedPreferences.getInstance();
 
     String userID = prefs.getString(KEY_USER_ID) ?? "";
     return DBProvider.db.getUserChanel(userID);
-  }
-
-  Widget listView(List<Chanel> listChaneles) {
-//    List<DataRow> dataRows = [];
-
-    if (listChaneles == null)
-      return Container(
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-
-    List<ListTile> listTile = [];
-
-    for (var _chanele in listChaneles) {
-      ListTile tile = new ListTile(
-        isThreeLine: true,
-        title: Text(_chanele.title),
-        subtitle: Text(_chanele.news),
-        leading: CircleAvatar(
-          child: Text('1c'),
-        ),
-      );
-      listTile.add(tile);
-    }
-
-    return ListView(
-      children: listTile.toList(),
-    );
   }
 
   @override
@@ -122,58 +100,52 @@ class BodyChanelState extends State<BodyChanel> {
 //      drawer: AppDrawer(widget.profile),
       body: Container(
 //        color: Colors.blueGrey,
-        child: Column(children: [
-          FutureBuilder(
-              future: chaneles,
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                switch (snapshot.connectionState) {
-                  case ConnectionState.none:
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  case ConnectionState.waiting:
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  case ConnectionState.active:
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  case ConnectionState.done:
-                    return listView(snapshot.data);
-                }
-              }),
-//          RaisedButton(
-//            onPressed: () {
-//              _downloadChanel(context);
-//            },
-//            child: Text('Download'),
-//          ),
-        ]),
-      ),
-
+          child: FutureBuilder(
+        future: chaneles,
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            case ConnectionState.waiting:
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            case ConnectionState.active:
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            case ConnectionState.done:
+              var listChaneles = snapshot.data;
+              return ListView.separated(
+                itemCount: listChaneles.length,
+                separatorBuilder: (context, index) => Divider(),
+                itemBuilder: (BuildContext context, int index) {
+                  Chanel chanel = listChaneles[index];
+                  return ListTile(
+                    title: Text(chanel.title),
+                    isThreeLine: true,
+                    leading: CircleAvatar(
+                      child: Text('1C'),
+                    ),
+                    subtitle: Text(
+                      chanel.news,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                },
+              );
+          }
+        },
+      )),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _downloadChanel(context);
+          _updateChanel();
         },
-        child: Text('Download'),
+        child: Icon(Icons.update),
       ),
     );
   }
 }
-
-//ListView.separated(
-//
-//itemCount: 10,
-//separatorBuilder: (context, index) => Divider(),
-//itemBuilder: (BuildContext context, int index) {
-//return ListTile(
-//title: Text('Title $index'),
-//isThreeLine: true,
-//leading: CircleAvatar(
-//child: Text('1C'),
-//),
-//subtitle: Text(
-//'Another text text text text text text text text text text text'),
-//);
-//}),
