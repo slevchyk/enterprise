@@ -315,11 +315,11 @@ class _TimingFABState extends State<TimingFAB> {
 
   SpeedDialChild stopSDC() {
     return SpeedDialChild(
-      label: "Завершити $currentTimingStatus",
-      child: Icon(Icons.home),
+      label: "Завершити",
+      child: Icon(Icons.stop),
       onTap: () {
         setState(() {
-          widget.onPressed('');
+          widget.onPressed(TIMING_STATUS_STOP);
         });
       },
     );
