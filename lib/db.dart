@@ -57,11 +57,13 @@ class DBProvider {
           'user_id TEXT,'
           'date TEXT,'
           'operation TEXT,'
-          'start_time TEXT,'
-          'end_time TEXT'
+          'start_date TEXT,'
+          'end_date TEXT,'
+          'change_date TEXT'
           ')');
       await db.execute('CREATE TABLE chanel ('
           'id INTEGER PRIMARY KEY,'
+          'user_id TEXT,'
           'title TEXT,'
           'news TEXT,'
           'date TEXT'
@@ -80,9 +82,6 @@ class DBProvider {
     //get the biggest id in the table
     var table = await db.rawQuery("SELECT MAX(id)+1 as id FROM Profile");
     int id = table.first["id"];
-//    if (id == null) {
-//      id = 1;
-//    }
     //insert to the table using the new id
     var raw = await db.rawInsert(
         'INSERT Into Profile ('
@@ -211,17 +210,19 @@ class DBProvider {
         'user_id,'
         'date,'
         'operation,'
-        'start_time,'
-        'end_time'
+        'start_date,'
+        'end_date,'
+        'change_date'
         ')'
-        'VALUES (?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?)',
         [
           id,
           timing.userID,
-          timing.date,
+          timing.date.toIso8601String(),
           timing.operation,
-          timing.startTime,
+          timing.startDate.toIso8601String(),
           "",
+          DateTime.now().toIso8601String(),
         ]);
     return raw;
   }
@@ -232,12 +233,12 @@ class DBProvider {
     return res.isNotEmpty ? Timing.fromMap(res.first) : null;
   }
 
-  Future<List<Timing>> getUserTiming(String date, String userID) async {
+  Future<List<Timing>> getUserTiming(DateTime date, String userID) async {
     final db = await database;
     var res = await db.query(
       "timing",
       where: "date=? and user_id=?",
-      whereArgs: [date, userID],
+      whereArgs: [date.toIso8601String(), userID],
     );
 
     List<Timing> list =
@@ -245,45 +246,56 @@ class DBProvider {
     return list;
   }
 
-  Future<List<Timing>> getOpenTimingOperation(
-      String date, String userID) async {
+  Future<List<Timing>> getTimingOpenOperation(
+      DateTime date, String userID) async {
     final db = await database;
     var res = await db.query("timing",
-        where: "user_id=? and date=? and operation<>? and end_time=?",
-        whereArgs: [userID, date, TIMING_STATUS_WORKDAY, ""]);
+        where: "user_id=? and date=? and operation<>? and end_date=?",
+        whereArgs: [userID, date.toIso8601String(), TIMING_STATUS_WORKDAY, ""]);
 
     List<Timing> list =
         res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
     return list;
   }
 
-  Future<String> getCurrentTiming(String userID) async {
+  Future<String> getTimingCurrentByUser(String userID) async {
     final db = await database;
     var res = await db.query(
       "timing",
       where: "id = ?",
       whereArgs: [userID],
-      orderBy: "start_time DESC",
+      orderBy: "start_date DESC",
     );
 
     Timing _timing = res.isNotEmpty ? Timing.fromMap(res.first) : null;
     return _timing != null ? _timing.operation : "";
   }
 
-  Future<List<Timing>> getOpenTiming(String date, String userID) async {
+  Future<List<Timing>> getTimingOpenWorkday(
+      DateTime date, String userID) async {
     final db = await database;
     var res = await db.query("timing",
-        where: "user_id=? and date=? and operation=? and end_time=?",
-        whereArgs: [userID, date, TIMING_STATUS_WORKDAY, ""]);
+        where: "user_id=? and date=? and operation=? and end_date=?",
+        whereArgs: [userID, date.toIso8601String(), TIMING_STATUS_WORKDAY, ""]);
 
     List<Timing> list =
         res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
     return list;
   }
 
-  endOperation(Timing timing) async {
+  Future<List<Timing>> getTimingOpenAllByDay(DateTime date) async {
     final db = await database;
-    timing.endTime = DateTime.now().toIso8601String();
+    var res = await db.query("timing",
+        where: "date=? and end_date=?",
+        whereArgs: [date.toIso8601String(), ""]);
+
+    List<Timing> list =
+        res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  endTimingOperation(Timing timing) async {
+    final db = await database;
     var res = await db.update("timing", timing.toMap(),
         where: "id = ?", whereArgs: [timing.id]);
     return res;
@@ -299,14 +311,16 @@ class DBProvider {
     final db = await database;
     var raw = await db.rawInsert(
         'INSERT Into chanel ('
-        'id411,'
+        'id,'
+        'user_id,'
         'title,'
         'date,'
         'news'
         ')'
-        'VALUES (?,?,?,?)',
+        'VALUES (?,?,?,?,?)',
         [
           chanel.id,
+          chanel.userID,
           chanel.title,
           chanel.date,
           chanel.news,

@@ -1,3 +1,4 @@
+import 'package:enterprise/models.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/route_generator.dart';
 
@@ -8,6 +9,11 @@ class EnterpriseApp extends StatefulWidget {
 }
 
 class EnterpriseAppState extends State<EnterpriseApp> {
+  void initState() {
+    Timing.closePastOperation();
+    Timing.clearCurrentOperation();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:enterprise/contatns.dart';
 import 'package:enterprise/db.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Profile profileFromJson(String str) {
   final jsonData = json.decode(str);
@@ -174,50 +176,75 @@ class Passport {
 class Timing {
   int id;
   String userID;
-  String date;
+  DateTime date;
   String operation;
-  String startTime;
-  String endTime;
+  DateTime startDate;
+  DateTime endDate;
+  DateTime changeDate;
 
   Timing({
     this.id,
     this.userID,
     this.date,
     this.operation,
-    this.startTime,
-    this.endTime,
+    this.startDate,
+    this.endDate,
+    this.changeDate,
   });
 
   factory Timing.fromMap(Map<String, dynamic> json) => new Timing(
         id: json["id"],
         userID: json["user_id"],
-        date: json["date"],
+        date: json["date"] != "" ? DateTime.parse(json["date"]) : null,
         operation: json["operation"],
-        startTime: json["start_time"],
-        endTime: json["end_time"],
+        startDate: json["start_date"] != ""
+            ? DateTime.parse(json["start_date"])
+            : null,
+        endDate:
+            json["end_date"] != "" ? DateTime.parse(json["end_date"]) : null,
+        changeDate: json["change_date"] != ""
+            ? DateTime.parse(json["change_date"])
+            : "",
       );
 
   Map<String, dynamic> toMap() => {
         "id": id,
         "user_id": userID,
-        "date": date,
+        "date": date != null ? date.toIso8601String() : "",
         "operation": operation,
-        "start_time": startTime,
-        "end_time": endTime,
+        "start_date": startDate != null ? startDate.toIso8601String() : "",
+        "end_date": endDate != null ? endDate.toIso8601String() : "",
+        "change_date": changeDate != null ? changeDate.toIso8601String() : "",
       };
-//  static Future<List<Timing>> getUserTiming(String date, String userID) async {
-//    return DBProvider.db.getUserTiming(date, userID);
-//  }
+
+  static void closePastOperation() async {
+    List<Timing> openOperation =
+        await DBProvider.db.getTimingOpenAllByDay(DateTime.now());
+
+    for (var timimg in openOperation) {
+      timimg.endDate = new DateTime(timimg.startDate.year,
+          timimg.startDate.month, timimg.startDate.day, 18, 00, 00);
+
+      DBProvider.db.endTimingOperation(timimg);
+    }
+  }
+
+  static void clearCurrentOperation() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(KEY_CURRENT_STATUS, "");
+  }
 }
 
 class Chanel {
   int id;
+  String userID;
   String title;
   String news;
   String date;
 
   Chanel({
     this.id,
+    this.userID,
     this.title,
     this.news,
     this.date,
@@ -232,6 +259,7 @@ class Chanel {
 
   Map<String, dynamic> toMap() => {
         "id": id,
+        "user_id": userID,
         "title": title,
         "news": news,
         "date": date,
