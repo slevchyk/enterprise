@@ -19,10 +19,10 @@ class EnterpriseAppState extends State<EnterpriseApp> {
     return MaterialApp(
       initialRoute: '/',
       onGenerateRoute: RouteGenerator.generateRoute,
-//      theme: ThemeData(
-//        primaryColor: Colors.lightGreen.shade200,
-//        accentColor: Colors.lightGreen.shade400,
-//      ),
+      theme: ThemeData(
+        primaryColor: Colors.green.shade800,
+        accentColor: Colors.green.shade500,
+      ),
     );
   }
 }
