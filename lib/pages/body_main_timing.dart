@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/db.dart';
@@ -411,14 +412,43 @@ class TimingHistory extends StatefulWidget {
 class _TimingHistoryState extends State<TimingHistory> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.yellow,
-      child: Center(
-        child: Text(
-          'Історія',
-          style: TextStyle(fontSize: 50),
-        ),
-      ),
-    );
+    return StreamBuilder(
+        stream: Firestore.instance.collection("chanel").snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          return ListView.builder(
+//            itemCount: snapshot.data.documnets.length,
+            itemCount: snapshot.data.documents.length,
+            itemBuilder: (context, index) {
+              var documnet = snapshot.data.documents[index];
+              return ListTile(
+                title: Text(documnet.data['title']),
+                isThreeLine: true,
+                leading: CircleAvatar(
+                  child: Text('1C'),
+                ),
+                subtitle: Text(
+                  documnet.data['news'],
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              );
+            },
+          );
+        });
+//    Container(
+//      color: Colors.yellow,
+//      child: Center(
+//        child: Text(
+//          'Історія',
+//          style: TextStyle(fontSize: 50),
+//        ),
+//      ),
+//    );
   }
 }
