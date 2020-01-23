@@ -228,31 +228,77 @@ class _TimingMainState extends State<TimingMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView(children: [
-        FutureBuilder(
-            future: operations,
-            builder: (BuildContext context, AsyncSnapshot snapshot) {
-              switch (snapshot.connectionState) {
-                case ConnectionState.none:
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                case ConnectionState.waiting:
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                case ConnectionState.active:
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                case ConnectionState.done:
-                  return dataTable(snapshot.data);
-              }
-            }),
-        Container(
-          child: DonutAutoLabelChart.withSampleData(),
-        ),
-      ]),
+      body: CustomScrollView(
+        slivers: <Widget>[
+          SliverAppBar(
+            title: Text('операції'),
+            pinned: true,
+            floating: true,
+            expandedHeight: 300.0,
+            flexibleSpace: FlexibleSpaceBar(
+              background: DonutAutoLabelChart.withSampleData(),
+            ),
+          ),
+          SliverFillRemaining(
+//            child: Center(
+//              child: Text('Center text'),
+//            ),
+            child: ListView(children: [
+              FutureBuilder(
+                  future: operations,
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.none:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.waiting:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.active:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.done:
+                        return dataTable(snapshot.data);
+                      default:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                    }
+                  }), //
+            ]),
+          ),
+        ],
+
+//        ListView(children: [
+//          FutureBuilder(
+//              future: operations,
+//              builder: (BuildContext context, AsyncSnapshot snapshot) {
+//                switch (snapshot.connectionState) {
+//                  case ConnectionState.none:
+//                    return Center(
+//                      child: CircularProgressIndicator(),
+//                    );
+//                  case ConnectionState.waiting:
+//                    return Center(
+//                      child: CircularProgressIndicator(),
+//                    );
+//                  case ConnectionState.active:
+//                    return Center(
+//                      child: CircularProgressIndicator(),
+//                    );
+//                  case ConnectionState.done:
+//                    return dataTable(snapshot.data);
+//                }
+//              }),
+//          Container(
+//            height: 1000,
+//            child: DonutAutoLabelChart.withSampleData(),
+//          ),
+//        ]),
+      ),
       floatingActionButton: TimingFAB(currentTimeStatus, (String value) {
         if (currentTimeStatus != value) {
           handleOperation(value);
@@ -489,16 +535,15 @@ class DonutAutoLabelChart extends StatelessWidget {
   }
 
   /// Create one series with sample hard coded data.
-  static List<charts.Series<LinearSales, int>> _createSampleData() {
+  static List<charts.Series<LinearSales, String>> _createSampleData() {
     final data = [
-      new LinearSales(0, 100),
-      new LinearSales(1, 75),
-      new LinearSales(2, 25),
-      new LinearSales(3, 5),
+      new LinearSales('рообота', 100),
+      new LinearSales('обід', 75),
+      new LinearSales('перерви', 25),
     ];
 
     return [
-      new charts.Series<LinearSales, int>(
+      new charts.Series<LinearSales, String>(
         id: 'Sales',
         domainFn: (LinearSales sales, _) => sales.year,
         measureFn: (LinearSales sales, _) => sales.sales,
@@ -512,7 +557,7 @@ class DonutAutoLabelChart extends StatelessWidget {
 
 /// Sample linear data type.
 class LinearSales {
-  final int year;
+  final String year;
   final int sales;
 
   LinearSales(this.year, this.sales);
