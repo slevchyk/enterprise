@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
 
 import '../models.dart';
 
@@ -227,9 +228,8 @@ class _TimingMainState extends State<TimingMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-//        color: Colors.blueGrey,
-        child: FutureBuilder(
+      body: ListView(children: [
+        FutureBuilder(
             future: operations,
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               switch (snapshot.connectionState) {
@@ -249,7 +249,10 @@ class _TimingMainState extends State<TimingMain> {
                   return dataTable(snapshot.data);
               }
             }),
-      ),
+        Container(
+          child: DonutAutoLabelChart.withSampleData(),
+        ),
+      ]),
       floatingActionButton: TimingFAB(currentTimeStatus, (String value) {
         if (currentTimeStatus != value) {
           handleOperation(value);
@@ -412,43 +415,105 @@ class TimingHistory extends StatefulWidget {
 class _TimingHistoryState extends State<TimingHistory> {
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-        stream: Firestore.instance.collection("chanel").snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          return ListView.builder(
-//            itemCount: snapshot.data.documnets.length,
-            itemCount: snapshot.data.documents.length,
-            itemBuilder: (context, index) {
-              var documnet = snapshot.data.documents[index];
-              return ListTile(
-                title: Text(documnet.data['title']),
-                isThreeLine: true,
-                leading: CircleAvatar(
-                  child: Text('1C'),
-                ),
-                subtitle: Text(
-                  documnet.data['news'],
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              );
-            },
-          );
-        });
-//    Container(
-//      color: Colors.yellow,
-//      child: Center(
-//        child: Text(
-//          'Історія',
-//          style: TextStyle(fontSize: 50),
-//        ),
-//      ),
-//    );
+//    return StreamBuilder(
+//        stream: Firestore.instance.collection("chanel").snapshots(),
+//        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+//          if (!snapshot.hasData) {
+//            return Center(
+//              child: CircularProgressIndicator(),
+//            );
+//          }
+//
+//          return ListView.builder(
+////            itemCount: snapshot.data.documnets.length,
+//            itemCount: snapshot.data.documents.length,
+//            itemBuilder: (context, index) {
+//              var documnet = snapshot.data.documents[index];
+//              return ListTile(
+//                title: Text(documnet.data['title']),
+//                isThreeLine: true,
+//                leading: CircleAvatar(
+//                  child: Text('1C'),
+//                ),
+//                subtitle: Text(
+//                  documnet.data['news'],
+//                  maxLines: 2,
+//                  overflow: TextOverflow.ellipsis,
+//                ),
+//              );
+//            },
+//          );
+//        });
+    return DonutAutoLabelChart.withSampleData();
   }
+}
+
+class DonutAutoLabelChart extends StatelessWidget {
+  final List<charts.Series> seriesList;
+  final bool animate;
+
+  DonutAutoLabelChart(this.seriesList, {this.animate});
+
+  /// Creates a [PieChart] with sample data and no transition.
+  factory DonutAutoLabelChart.withSampleData() {
+    return new DonutAutoLabelChart(
+      _createSampleData(),
+      // Disable animations for image tests.
+      animate: true,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new charts.PieChart(seriesList,
+        animate: animate,
+        // Configure the width of the pie slices to 60px. The remaining space in
+        // the chart will be left as a hole in the center.
+        //
+        // [ArcLabelDecorator] will automatically position the label inside the
+        // arc if the label will fit. If the label will not fit, it will draw
+        // outside of the arc with a leader line. Labels can always display
+        // inside or outside using [LabelPosition].
+        //
+        // Text style for inside / outside can be controlled independently by
+        // setting [insideLabelStyleSpec] and [outsideLabelStyleSpec].
+        //
+        // Example configuring different styles for inside/outside:
+        //       new charts.ArcLabelDecorator(
+        //          insideLabelStyleSpec: new charts.TextStyleSpec(...),
+        //          outsideLabelStyleSpec: new charts.TextStyleSpec(...)),
+        defaultRenderer: new charts.ArcRendererConfig(
+            arcWidth: 100,
+            startAngle: 30,
+            arcRendererDecorators: [new charts.ArcLabelDecorator()]));
+  }
+
+  /// Create one series with sample hard coded data.
+  static List<charts.Series<LinearSales, int>> _createSampleData() {
+    final data = [
+      new LinearSales(0, 100),
+      new LinearSales(1, 75),
+      new LinearSales(2, 25),
+      new LinearSales(3, 5),
+    ];
+
+    return [
+      new charts.Series<LinearSales, int>(
+        id: 'Sales',
+        domainFn: (LinearSales sales, _) => sales.year,
+        measureFn: (LinearSales sales, _) => sales.sales,
+        data: data,
+        // Set a label accessor to control the text of the arc label.
+        labelAccessorFn: (LinearSales row, _) => '${row.year}: ${row.sales}',
+      )
+    ];
+  }
+}
+
+/// Sample linear data type.
+class LinearSales {
+  final int year;
+  final int sales;
+
+  LinearSales(this.year, this.sales);
 }

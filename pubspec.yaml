@@ -8,8 +8,6 @@ environment:
 
 dependencies:
 
-  cloud_firestore:
-
   flutter:
     sdk: flutter
 
@@ -21,6 +19,8 @@ dependencies:
   font_awesome_flutter: any
   date_format: ^1.0.8
   flutter_speed_dial:
+  charts_flutter:
+  cloud_firestore:
 
 dev_dependencies:
   flutter_test:

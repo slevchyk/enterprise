@@ -2,6 +2,7 @@ import 'package:enterprise/db.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/body_main_chanel.dart';
 import 'package:enterprise/pages/body_main_timing.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../contatns.dart';
@@ -119,6 +120,16 @@ class _AppDrawerState extends State<AppDrawer> {
             onTap: () {
               Navigator.of(context).pushNamed(
                 '/',
+                arguments: "",
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(FontAwesomeIcons.moneyBill),
+            title: Text('Каса'),
+            onTap: () {
+              Navigator.of(context).pushNamed(
+                '/paydesk',
                 arguments: "",
               );
             },

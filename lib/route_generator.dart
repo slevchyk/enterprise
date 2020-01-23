@@ -1,3 +1,4 @@
+import 'package:enterprise/pages/paydesk.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:enterprise/pages/page_profile.dart';
@@ -12,6 +13,8 @@ class RouteGenerator {
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(builder: (_) => PageMain());
+      case '/paydesk':
+        return MaterialPageRoute(builder: (_) => PagePayDesk());
       case '/profile':
         return MaterialPageRoute(builder: (_) => PageProfile());
       case '/settings':
