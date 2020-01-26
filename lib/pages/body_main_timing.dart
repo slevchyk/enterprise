@@ -24,30 +24,9 @@ class BodyMain extends StatefulWidget {
 class BodyMainState extends State<BodyMain> {
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Хронометраж'),
-          bottom: TabBar(
-            tabs: <Widget>[
-              Tab(
-                text: 'Сьогодні',
-              ),
-              Tab(
-                text: 'Історія',
-              ),
-            ],
-          ),
-        ),
-        drawer: AppDrawer(widget.profile),
-        body: TabBarView(
-          children: <Widget>[
-            TimingMain(),
-            TimingHistory(),
-          ],
-        ),
-      ),
+    return Scaffold(
+      drawer: AppDrawer(widget.profile),
+      body: TimingMain(),
     );
   }
 }
@@ -61,27 +40,90 @@ class _TimingMainState extends State<TimingMain> {
   String currentTimeStatus = '';
   String userID;
   Future<List<Timing>> operations;
+  Future<List<charts.Series<ChartData, String>>> listChartData;
 
   void initState() {
-    operations = getOperations();
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initWidgetState());
   }
 
-  Future<List<Timing>> getOperations() async {
+  void _initWidgetState() async {
+    final prefs = await SharedPreferences.getInstance();
+    String _userID = prefs.getString(KEY_USER_ID) ?? "";
+
+    operations = getUserTiming(_userID);
+    listChartData = createChartData(operations);
+
+    setState(() {
+      userID = _userID;
+    });
+  }
+
+  Future<List<Timing>> getUserTiming(String userID) async {
     final dateTimeNow = DateTime.now();
-    final dayBegin =
+    final beginningDay =
         new DateTime(dateTimeNow.year, dateTimeNow.month, dateTimeNow.day);
 
-    final prefs = await SharedPreferences.getInstance();
-    String userID = prefs.getString(KEY_USER_ID) ?? "";
+//    if (currentTimeStatus.isEmpty) {
+//      String _currentTimeStatus = prefs.getString(KEY_CURRENT_STATUS) ?? "";
+//      setState(() {
+//        currentTimeStatus = _currentTimeStatus;
+//      });
+//    }
 
-    if (currentTimeStatus.isEmpty) {
-      String _currentTimeStatus = prefs.getString(KEY_CURRENT_STATUS) ?? "";
-      setState(() {
-        currentTimeStatus = _currentTimeStatus;
-      });
+    return await DBProvider.db.getUserTiming(beginningDay, userID);
+  }
+
+  Future<List<charts.Series<ChartData, String>>> createChartData(
+      Future<List<Timing>> listTiming) async {
+    List<Timing> _listTiming = await listTiming;
+    List<ChartData> _chartData = [];
+    double timingHours = 0.0;
+
+    for (var _timing in _listTiming) {
+      if (_timing.operation == TIMING_STATUS_WORKDAY) {
+        continue;
+      }
+
+      DateTime endDate = _timing.endDate;
+      if (endDate == null) {
+        endDate = DateTime.now();
+      }
+
+      double duration = (endDate.millisecondsSinceEpoch -
+              _timing.startDate.millisecondsSinceEpoch) /
+          3600000;
+      timingHours += duration;
+
+      int existIndex = _chartData
+          .indexWhere((record) => record.title.contains(_timing.operation));
+      if (existIndex == -1) {
+        _chartData
+            .add(new ChartData(title: _timing.operation, value: duration));
+      } else {
+        _chartData[existIndex].value += duration;
+      }
     }
 
-    return await DBProvider.db.getUserTiming(dayBegin, userID);
+    for (var _record in _chartData) {
+      _record.title = operationAlias[_record.title] +
+          ' - ' +
+          _record.value.toStringAsFixed(2) +
+          ' год';
+      _record.value =
+          ((_record.value / timingHours * 100.0).round().toDouble());
+    }
+
+    return [
+      new charts.Series<ChartData, String>(
+        id: 'operation',
+        domainFn: (ChartData record, _) => record.title,
+        measureFn: (ChartData record, _) => record.value,
+        data: _chartData,
+        // Set a label accessor to control the text of the arc label.
+        labelAccessorFn: (ChartData row, _) => '${row.title}: ${row.value}',
+      )
+    ];
   }
 
   handleOperation(String timingOperation) async {
@@ -90,7 +132,6 @@ class _TimingMainState extends State<TimingMain> {
         new DateTime(dateTimeNow.year, dateTimeNow.month, dateTimeNow.day);
 
     final prefs = await SharedPreferences.getInstance();
-
     String userID = prefs.getString(KEY_USER_ID) ?? "";
 
     if (timingOperation == TIMING_STATUS_WORKDAY) {
@@ -144,7 +185,8 @@ class _TimingMainState extends State<TimingMain> {
       }
     }
 
-    operations = getOperations();
+    operations = getUserTiming(userID);
+    listChartData = createChartData(operations);
 
     prefs.setString(KEY_CURRENT_STATUS, timingOperation);
     setState(() {
@@ -152,8 +194,8 @@ class _TimingMainState extends State<TimingMain> {
     });
   }
 
-  Map<String, String> mapOperation = {
-    TIMING_STATUS_WORKDAY: "Робочий день",
+  Map<String, String> operationAlias = {
+    TIMING_STATUS_WORKDAY: "Турнікет",
     TIMING_STATUS_JOB: "Робота",
     TIMING_STATUS_LANCH: "Обід",
     TIMING_STATUS_BREAK: "Перерва",
@@ -194,7 +236,7 @@ class _TimingMainState extends State<TimingMain> {
             SizedBox(
               width: 10.0,
             ),
-            Text(mapOperation[timing.operation]),
+            Text(operationAlias[timing.operation]),
           ],
         )),
         DataCell(Text(timing.startDate != null
@@ -231,12 +273,50 @@ class _TimingMainState extends State<TimingMain> {
       body: CustomScrollView(
         slivers: <Widget>[
           SliverAppBar(
-            title: Text('операції'),
+            title: Text('Хронометраж'),
             pinned: true,
-            floating: true,
+            floating: false,
             expandedHeight: 300.0,
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.history),
+                onPressed: () {
+                  Navigator.of(context).pushNamed(
+                    '/timinghistory',
+                    arguments: "",
+                  );
+                },
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
-              background: DonutAutoLabelChart.withSampleData(),
+              background: FutureBuilder(
+                  future: listChartData,
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.none:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.waiting:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.active:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.done:
+                        return DonutAutoLabelChart(
+                          snapshot.data,
+                          animate: true,
+                        );
+                      default:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                    }
+                  }),
+//              background: DonutAutoLabelChart.withSampleData(),
             ),
           ),
           SliverFillRemaining(
@@ -271,33 +351,6 @@ class _TimingMainState extends State<TimingMain> {
             ]),
           ),
         ],
-
-//        ListView(children: [
-//          FutureBuilder(
-//              future: operations,
-//              builder: (BuildContext context, AsyncSnapshot snapshot) {
-//                switch (snapshot.connectionState) {
-//                  case ConnectionState.none:
-//                    return Center(
-//                      child: CircularProgressIndicator(),
-//                    );
-//                  case ConnectionState.waiting:
-//                    return Center(
-//                      child: CircularProgressIndicator(),
-//                    );
-//                  case ConnectionState.active:
-//                    return Center(
-//                      child: CircularProgressIndicator(),
-//                    );
-//                  case ConnectionState.done:
-//                    return dataTable(snapshot.data);
-//                }
-//              }),
-//          Container(
-//            height: 1000,
-//            child: DonutAutoLabelChart.withSampleData(),
-//          ),
-//        ]),
       ),
       floatingActionButton: TimingFAB(currentTimeStatus, (String value) {
         if (currentTimeStatus != value) {
@@ -335,7 +388,7 @@ class _TimingFABState extends State<TimingFAB> {
 
   SpeedDialChild jobSDC() {
     return SpeedDialChild(
-      label: "Робота",
+      label: "Почати роботу",
       child: Icon(FontAwesomeIcons.hammer),
       onTap: () {
         widget.onPressed(TIMING_STATUS_JOB);
@@ -365,7 +418,7 @@ class _TimingFABState extends State<TimingFAB> {
 
   SpeedDialChild stopSDC() {
     return SpeedDialChild(
-      label: "Завершити",
+      label: "Завершити роботу",
       child: Icon(Icons.stop),
       onTap: () {
         setState(() {
@@ -377,7 +430,7 @@ class _TimingFABState extends State<TimingFAB> {
 
   SpeedDialChild homeSDC() {
     return SpeedDialChild(
-      label: "Домів",
+      label: "Турнікет (вихід)",
       child: Icon(Icons.home),
       onTap: () {
         setState(() {
@@ -450,47 +503,6 @@ class _TimingFABState extends State<TimingFAB> {
       default:
         return workdayFAB();
     }
-  }
-}
-
-class TimingHistory extends StatefulWidget {
-  @override
-  _TimingHistoryState createState() => _TimingHistoryState();
-}
-
-class _TimingHistoryState extends State<TimingHistory> {
-  @override
-  Widget build(BuildContext context) {
-//    return StreamBuilder(
-//        stream: Firestore.instance.collection("chanel").snapshots(),
-//        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-//          if (!snapshot.hasData) {
-//            return Center(
-//              child: CircularProgressIndicator(),
-//            );
-//          }
-//
-//          return ListView.builder(
-////            itemCount: snapshot.data.documnets.length,
-//            itemCount: snapshot.data.documents.length,
-//            itemBuilder: (context, index) {
-//              var documnet = snapshot.data.documents[index];
-//              return ListTile(
-//                title: Text(documnet.data['title']),
-//                isThreeLine: true,
-//                leading: CircleAvatar(
-//                  child: Text('1C'),
-//                ),
-//                subtitle: Text(
-//                  documnet.data['news'],
-//                  maxLines: 2,
-//                  overflow: TextOverflow.ellipsis,
-//                ),
-//              );
-//            },
-//          );
-//        });
-    return DonutAutoLabelChart.withSampleData();
   }
 }
 

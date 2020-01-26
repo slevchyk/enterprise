@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/db.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Profile profileFromJson(String str) {
@@ -181,6 +182,7 @@ class Timing {
   DateTime startDate;
   DateTime endDate;
   DateTime changeDate;
+  double duration;
 
   Timing({
     this.id,
@@ -190,6 +192,7 @@ class Timing {
     this.startDate,
     this.endDate,
     this.changeDate,
+    this.duration,
   });
 
   factory Timing.fromMap(Map<String, dynamic> json) => new Timing(
@@ -229,6 +232,38 @@ class Timing {
     }
   }
 
+//  static Future<List<TimingDayData>> getTimingDayChartData(
+//      String userID, DateTime dateTime) async {
+//    DateTime beginDay = DateTime(dateTime.year, dateTime.month, dateTime.day);
+//
+//    List<Timing> listTiming =
+//        await DBProvider.db.getUserTiming(beginDay, userID);
+//
+//    List<TimingDayData> listOperation = [];
+//
+//    for (var _timing in listTiming) {
+//      DateTime endDate = _timing.endDate;
+//      if (endDate == null) {
+//        endDate = DateTime.now();
+//      }
+//
+//      double time = (endDate.millisecondsSinceEpoch -
+//              _timing.startDate.millisecondsSinceEpoch) /
+//          3600000;
+//
+////      DateTime endDate = _timing.endDate = null ? DateTime.now() : _timing.endDate;
+////
+////      double time = endDate.millisecondsSinceEpoch - _timing.startDate.millisecondsSinceEpoch / 36000000;
+//
+////      TimingDayData operation = TimingDayData(_timing.operation, time);
+//
+//      TimingDayData operation = TimingDayData(_timing.operation, 22.0);
+//      listOperation.add(operation);
+//    }
+//
+//    return listOperation;
+//  }
+
   static void clearCurrentOperation() async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString(KEY_CURRENT_STATUS, "");
@@ -264,4 +299,14 @@ class Chanel {
         "news": news,
         "date": date,
       };
+}
+
+class ChartData {
+  String title;
+  double value;
+
+  ChartData({
+    this.title,
+    this.value,
+  });
 }

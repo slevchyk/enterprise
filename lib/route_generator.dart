@@ -1,4 +1,5 @@
 import 'package:enterprise/pages/page_paydesk.dart';
+import 'package:enterprise/pages/page_timing_hitory.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:enterprise/pages/page_profile.dart';
@@ -15,6 +16,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => PageMain());
       case '/paydesk':
         return MaterialPageRoute(builder: (_) => PagePayDesk());
+      case '/timinghistory':
+        return MaterialPageRoute(builder: (_) => PageTimingHistory());
       case '/profile':
         return MaterialPageRoute(builder: (_) => PageProfile());
       case '/settings':
