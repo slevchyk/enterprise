@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/models.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'models.dart';
@@ -262,9 +263,10 @@ class DBProvider {
     final db = await database;
     var res = await db.query(
       "timing",
-      where: "id = ?",
+      where: "user_id = ?",
       whereArgs: [userID],
       orderBy: "start_date DESC",
+      limit: 1,
     );
 
     Timing _timing = res.isNotEmpty ? Timing.fromMap(res.first) : null;
@@ -288,6 +290,33 @@ class DBProvider {
     var res = await db.query("timing",
         where: "date=? and end_date=?",
         whereArgs: [date.toIso8601String(), ""]);
+
+    List<Timing> list =
+        res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  Future<List<Timing>> getTimingPeriod(
+      List<DateTime> date, String userID) async {
+    final db = await database;
+
+    List<String> conditionValues = [];
+    for (var _date in date) {
+      conditionValues.add(_date.toIso8601String());
+    }
+
+    String dateCondition = '';
+    for (int i = 0; i < conditionValues.length; i++) {
+      dateCondition += dateCondition.isEmpty ? '' : ', ';
+      dateCondition += '?';
+    }
+
+    conditionValues.add(userID);
+
+    var res = await db.query("timing",
+        where: "date in ($dateCondition) and user_id = ?",
+        whereArgs: conditionValues,
+        orderBy: 'date ASC, operation ASC');
 
     List<Timing> list =
         res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];

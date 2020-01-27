@@ -1,8 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+//import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/db.dart';
 import 'package:enterprise/pages/page_main.dart';
+import 'package:enterprise/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -51,30 +52,26 @@ class _TimingMainState extends State<TimingMain> {
     final prefs = await SharedPreferences.getInstance();
     String _userID = prefs.getString(KEY_USER_ID) ?? "";
 
-    operations = getUserTiming(_userID);
-    listChartData = createChartData(operations);
+    operations = _getOperations(_userID);
+    listChartData = _createChartData(operations);
+
+    String _currentTimeStatus =
+        await DBProvider.db.getTimingCurrentByUser(_userID);
 
     setState(() {
       userID = _userID;
+      currentTimeStatus = _currentTimeStatus;
     });
   }
 
-  Future<List<Timing>> getUserTiming(String userID) async {
+  Future<List<Timing>> _getOperations(String userID) async {
     final dateTimeNow = DateTime.now();
-    final beginningDay =
-        new DateTime(dateTimeNow.year, dateTimeNow.month, dateTimeNow.day);
-
-//    if (currentTimeStatus.isEmpty) {
-//      String _currentTimeStatus = prefs.getString(KEY_CURRENT_STATUS) ?? "";
-//      setState(() {
-//        currentTimeStatus = _currentTimeStatus;
-//      });
-//    }
+    final beginningDay = Utility.beginningOfDay(dateTimeNow);
 
     return await DBProvider.db.getUserTiming(beginningDay, userID);
   }
 
-  Future<List<charts.Series<ChartData, String>>> createChartData(
+  Future<List<charts.Series<ChartData, String>>> _createChartData(
       Future<List<Timing>> listTiming) async {
     List<Timing> _listTiming = await listTiming;
     List<ChartData> _chartData = [];
@@ -185,8 +182,8 @@ class _TimingMainState extends State<TimingMain> {
       }
     }
 
-    operations = getUserTiming(userID);
-    listChartData = createChartData(operations);
+    operations = _getOperations(userID);
+    listChartData = _createChartData(operations);
 
     prefs.setString(KEY_CURRENT_STATUS, timingOperation);
     setState(() {

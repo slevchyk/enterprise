@@ -1,9 +1,13 @@
 import 'package:charts_flutter/flutter.dart' as charts;
-import 'package:cloud_firestore/cloud_firestore.dart';
+//import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
+import 'package:enterprise/contatns.dart';
+import 'package:enterprise/db.dart';
 import 'package:enterprise/models.dart';
+import 'package:enterprise/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PageTimingHistory extends StatefulWidget {
   @override
@@ -14,11 +18,135 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
   DateTime beginningPeriod = new DateTime.now().add(new Duration(days: -7));
   DateTime endPeriod = new DateTime.now();
 
-  Future<List<ChartData>> jobChartData;
-  Future<List<ChartData>> lanchChartData;
-  Future<List<ChartData>> breakChartData;
+  Future<List<Timing>> operations;
+  Future<List<charts.Series<ChartData, String>>> chartData;
+  String userID;
 
-  createChartData() {}
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initWidgetState());
+  }
+
+  void _initWidgetState() async {
+    final prefs = await SharedPreferences.getInstance();
+    String _userID = prefs.getString(KEY_USER_ID) ?? "";
+
+    operations = _getOperations(_userID);
+    chartData = _createChartData(operations);
+
+    setState(() {
+      userID = _userID;
+    });
+  }
+
+  Future<List<Timing>> _getOperations(String userID) async {
+    DateTime currentDay = beginningPeriod;
+    List<DateTime> listDate = [];
+
+    do {
+      DateTime beginningDay;
+
+      beginningDay = Utility.beginningOfDay(currentDay);
+      listDate.add(beginningDay);
+
+      currentDay = currentDay.add(new Duration(days: 1));
+    } while (
+        currentDay.millisecondsSinceEpoch < endPeriod.millisecondsSinceEpoch);
+
+    return DBProvider.db.getTimingPeriod(listDate, userID);
+  }
+
+  Future<List<charts.Series<ChartData, String>>> _createChartData(
+      Future<List<Timing>> listTiming) async {
+    List<Timing> _listTiming = await listTiming;
+
+    List<ChartData> jobChartData = [];
+    List<ChartData> lanchChartData = [];
+    List<ChartData> breakChartData = [];
+    String strDate;
+
+    for (var _timing in _listTiming) {
+      if (_timing.operation == TIMING_STATUS_WORKDAY) {
+        continue;
+      }
+
+      strDate = formatDate(_timing.date, [yyyy, '-', mm, '-', dd]);
+
+      DateTime endDate = _timing.endDate;
+      if (endDate == null) {
+        endDate = DateTime.now();
+      }
+
+      double duration = (endDate.millisecondsSinceEpoch -
+              _timing.startDate.millisecondsSinceEpoch) /
+          3600000;
+
+//      strDate = formatDate(_timing.date, [yyyy, '-', mm, '-', dd]);
+
+      switch (_timing.operation) {
+        case TIMING_STATUS_JOB:
+          int existIndex = jobChartData
+              .indexWhere((record) => record.title.contains(strDate));
+          if (existIndex == -1) {
+            jobChartData.add(new ChartData(title: strDate, value: duration));
+          } else {
+            jobChartData[existIndex].value += duration;
+          }
+          break;
+        case TIMING_STATUS_LANCH:
+          int existIndex = lanchChartData
+              .indexWhere((record) => record.title.contains(strDate));
+          if (existIndex == -1) {
+            lanchChartData.add(new ChartData(title: strDate, value: duration));
+          } else {
+            lanchChartData[existIndex].value += duration;
+          }
+          break;
+        case TIMING_STATUS_BREAK:
+          int existIndex = breakChartData
+              .indexWhere((record) => record.title.contains(strDate));
+          if (existIndex == -1) {
+            breakChartData.add(new ChartData(title: strDate, value: duration));
+          } else {
+            breakChartData[existIndex].value += duration;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+
+    return [
+      // Blue bars with a lighter center color.
+      new charts.Series<ChartData, String>(
+        id: TIMING_STATUS_JOB,
+        domainFn: (ChartData timing, _) => timing.title,
+        measureFn: (ChartData timing, _) => timing.value,
+        data: jobChartData,
+        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
+        fillColorFn: (_, __) =>
+            charts.MaterialPalette.blue.shadeDefault.lighter,
+      ),
+      // Solid red bars. Fill color will default to the series color if no
+      // fillColorFn is configured.
+      new charts.Series<ChartData, String>(
+        id: TIMING_STATUS_LANCH,
+        domainFn: (ChartData timing, _) => timing.title,
+        measureFn: (ChartData timing, _) => timing.value,
+        data: lanchChartData,
+        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
+      ),
+      // Hollow green bars.
+      new charts.Series<ChartData, String>(
+        id: TIMING_STATUS_BREAK,
+        domainFn: (ChartData timing, _) => timing.title,
+        measureFn: (ChartData timing, _) => timing.value,
+        data: breakChartData,
+        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
+        fillColorFn: (_, __) => charts.MaterialPalette.transparent,
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,35 +159,33 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
             floating: false,
             expandedHeight: 300.0,
             flexibleSpace: FlexibleSpaceBar(
-              background: GroupedFillColorBarChart.withSampleData(),
-//                FutureBuilder(
-//                    future: listChartData,
-//                    builder: (BuildContext context, AsyncSnapshot snapshot) {
-//                      switch (snapshot.connectionState) {
-//                        case ConnectionState.none:
-//                          return Center(
-//                            child: CircularProgressIndicator(),
-//                          );
-//                        case ConnectionState.waiting:
-//                          return Center(
-//                            child: CircularProgressIndicator(),
-//                          );
-//                        case ConnectionState.active:
-//                          return Center(
-//                            child: CircularProgressIndicator(),
-//                          );
-//                        case ConnectionState.done:
-//                          return DonutAutoLabelChart(
-//                            snapshot.data,
-//                            animate: true,
-//                          );
-//                        default:
-//                          return Center(
-//                            child: CircularProgressIndicator(),
-//                          );
-//                      }
-//                    }),
-//              background: DonutAutoLabelChart.withSampleData(),
+              background: FutureBuilder(
+                  future: chartData,
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.none:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.waiting:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.active:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.done:
+                        return GroupedFillColorBarChart(
+                          snapshot.data,
+                          animate: true,
+                        );
+                      default:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                    }
+                  }),
             ),
           ),
           SliverFillRemaining(
@@ -75,10 +201,6 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
 //                    SizedBox(
 //                      width: 10.0,
 //                    ),
-                    Text('період з:'),
-                    SizedBox(
-                      width: 10.0,
-                    ),
                     FlatButton(
                       onPressed: () async {
                         DateTime picked = await showDatePicker(
@@ -87,10 +209,14 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                             initialDate: beginningPeriod,
                             lastDate: new DateTime(DateTime.now().year + 1));
 
-                        if (picked != null)
+                        if (picked != null) {
                           setState(() {
                             beginningPeriod = picked;
                           });
+
+                          operations = _getOperations(userID);
+                          chartData = _createChartData(operations);
+                        }
                       },
                       child: Text(formatDate(
                           beginningPeriod, [yyyy, '-', mm, '-', dd])),
@@ -102,7 +228,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                     SizedBox(
                       width: 10.0,
                     ),
-                    Text('по:'),
+                    Text(':'),
                     SizedBox(
                       width: 10.0,
                     ),
@@ -114,10 +240,14 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                             initialDate: endPeriod,
                             lastDate: new DateTime(DateTime.now().year + 1));
 
-                        if (picked != null)
+                        if (picked != null) {
                           setState(() {
                             endPeriod = picked;
                           });
+
+                          operations = _getOperations(userID);
+                          chartData = _createChartData(operations);
+                        }
                       },
                       child:
                           Text(formatDate(endPeriod, [yyyy, '-', mm, '-', dd])),
@@ -174,14 +304,6 @@ class GroupedFillColorBarChart extends StatelessWidget {
 
   GroupedFillColorBarChart(this.seriesList, {this.animate});
 
-  factory GroupedFillColorBarChart.withSampleData() {
-    return new GroupedFillColorBarChart(
-      _createSampleData(),
-      // Disable animations for image tests.
-      animate: false,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return new charts.BarChart(
@@ -192,67 +314,4 @@ class GroupedFillColorBarChart extends StatelessWidget {
           groupingType: charts.BarGroupingType.grouped, strokeWidthPx: 2.0),
     );
   }
-
-  /// Create series list with multiple series
-  static List<charts.Series<OrdinalSales, String>> _createSampleData() {
-    final desktopSalesData = [
-      new OrdinalSales('2014', 5),
-      new OrdinalSales('2015', 25),
-      new OrdinalSales('2016', 100),
-      new OrdinalSales('2017', 75),
-    ];
-
-    final tableSalesData = [
-      new OrdinalSales('2014', 25),
-      new OrdinalSales('2015', 50),
-      new OrdinalSales('2016', 10),
-      new OrdinalSales('2017', 20),
-    ];
-
-    final mobileSalesData = [
-      new OrdinalSales('2014', 10),
-      new OrdinalSales('2015', 50),
-      new OrdinalSales('2016', 50),
-      new OrdinalSales('2017', 45),
-    ];
-
-    return [
-      // Blue bars with a lighter center color.
-      new charts.Series<OrdinalSales, String>(
-        id: 'Desktop',
-        domainFn: (OrdinalSales sales, _) => sales.year,
-        measureFn: (OrdinalSales sales, _) => sales.sales,
-        data: desktopSalesData,
-        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        fillColorFn: (_, __) =>
-            charts.MaterialPalette.blue.shadeDefault.lighter,
-      ),
-      // Solid red bars. Fill color will default to the series color if no
-      // fillColorFn is configured.
-      new charts.Series<OrdinalSales, String>(
-        id: 'Tablet',
-        measureFn: (OrdinalSales sales, _) => sales.sales,
-        data: tableSalesData,
-        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
-        domainFn: (OrdinalSales sales, _) => sales.year,
-      ),
-      // Hollow green bars.
-      new charts.Series<OrdinalSales, String>(
-        id: 'Mobile',
-        domainFn: (OrdinalSales sales, _) => sales.year,
-        measureFn: (OrdinalSales sales, _) => sales.sales,
-        data: mobileSalesData,
-        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
-        fillColorFn: (_, __) => charts.MaterialPalette.transparent,
-      ),
-    ];
-  }
-}
-
-/// Sample ordinal data type.
-class OrdinalSales {
-  final String year;
-  final int sales;
-
-  OrdinalSales(this.year, this.sales);
 }

@@ -20,7 +20,8 @@ dependencies:
   date_format: ^1.0.8
   flutter_speed_dial: ^1.2.5
   charts_flutter: ^0.8.1
-  cloud_firestore: ^0.13.0+1
+#  cloud_firestore:
+#  file_picker: ^1.4.3+2
 
 dev_dependencies:
   flutter_test:
@@ -30,9 +31,7 @@ assets:
   - assets/
 
 flutter:
-
   uses-material-design: true
 
-#module:
-#
-#  androidX: true
+module:
+  androidX: true
