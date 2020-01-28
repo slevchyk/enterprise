@@ -81,8 +81,6 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
               _timing.startDate.millisecondsSinceEpoch) /
           3600000;
 
-//      strDate = formatDate(_timing.date, [yyyy, '-', mm, '-', dd]);
-
       switch (_timing.operation) {
         case TIMING_STATUS_JOB:
           int existIndex = jobChartData
@@ -148,6 +146,48 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
     ];
   }
 
+  Widget dataTable(List<Timing> listTiming) {
+    List<DataRow> dataRows = [];
+
+    for (var timing in listTiming) {
+      dataRows.add(
+        DataRow(
+          cells: <DataCell>[
+            DataCell(
+              Text(timing.date != null
+                  ? formatDate(timing.date, [dd, '-', mm, '-', yyyy])
+                  : ""),
+            ),
+            DataCell(
+              Text(timing.operation),
+            ),
+            DataCell(
+//              Text(timing.duration?.toStringAsFixed(2)),
+                Text('')),
+          ],
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child: DataTable(
+        columns: [
+          DataColumn(
+            label: Text('Дата'),
+          ),
+          DataColumn(
+            label: Text('Стаус'),
+          ),
+          DataColumn(
+            label: Text('Год'),
+          )
+        ],
+        rows: dataRows,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -194,13 +234,6 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-//                    Icon(
-//                      Icons.calendar_today,
-//                      color: Theme.of(context).primaryColor,
-//                    ),
-//                    SizedBox(
-//                      width: 10.0,
-//                    ),
                     FlatButton(
                       onPressed: () async {
                         DateTime picked = await showDatePicker(
@@ -258,6 +291,30 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                     ),
                   ],
                 ),
+                FutureBuilder(
+                    future: operations,
+                    builder: (BuildContext context, AsyncSnapshot snapshot) {
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.none:
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        case ConnectionState.waiting:
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        case ConnectionState.active:
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        case ConnectionState.done:
+                          return dataTable(snapshot.data);
+                        default:
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                      }
+                    }),
               ],
             ),
           ),

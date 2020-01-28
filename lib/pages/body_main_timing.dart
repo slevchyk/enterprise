@@ -118,7 +118,7 @@ class _TimingMainState extends State<TimingMain> {
         measureFn: (ChartData record, _) => record.value,
         data: _chartData,
         // Set a label accessor to control the text of the arc label.
-        labelAccessorFn: (ChartData row, _) => '${row.title}: ${row.value}',
+        labelAccessorFn: (ChartData row, _) => '${row.title}',
       )
     ];
   }
@@ -197,13 +197,6 @@ class _TimingMainState extends State<TimingMain> {
     TIMING_STATUS_LANCH: "Обід",
     TIMING_STATUS_BREAK: "Перерва",
   };
-
-  String formatISO8601DataToTime(String strDataTime) {
-    if (strDataTime.isEmpty) return "";
-
-    DateTime _dateTime = DateTime.parse(strDataTime);
-    return formatDate(_dateTime, [hh, ':', nn, ':', ss]);
-  }
 
   Widget rowIcon(String operation) {
     switch (operation) {
@@ -313,13 +306,9 @@ class _TimingMainState extends State<TimingMain> {
                         );
                     }
                   }),
-//              background: DonutAutoLabelChart.withSampleData(),
             ),
           ),
           SliverFillRemaining(
-//            child: Center(
-//              child: Text('Center text'),
-//            ),
             child: ListView(children: [
               FutureBuilder(
                   future: operations,
@@ -509,15 +498,6 @@ class DonutAutoLabelChart extends StatelessWidget {
 
   DonutAutoLabelChart(this.seriesList, {this.animate});
 
-  /// Creates a [PieChart] with sample data and no transition.
-  factory DonutAutoLabelChart.withSampleData() {
-    return new DonutAutoLabelChart(
-      _createSampleData(),
-      // Disable animations for image tests.
-      animate: true,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return new charts.PieChart(seriesList,
@@ -542,32 +522,4 @@ class DonutAutoLabelChart extends StatelessWidget {
             startAngle: 30,
             arcRendererDecorators: [new charts.ArcLabelDecorator()]));
   }
-
-  /// Create one series with sample hard coded data.
-  static List<charts.Series<LinearSales, String>> _createSampleData() {
-    final data = [
-      new LinearSales('рообота', 100),
-      new LinearSales('обід', 75),
-      new LinearSales('перерви', 25),
-    ];
-
-    return [
-      new charts.Series<LinearSales, String>(
-        id: 'Sales',
-        domainFn: (LinearSales sales, _) => sales.year,
-        measureFn: (LinearSales sales, _) => sales.sales,
-        data: data,
-        // Set a label accessor to control the text of the arc label.
-        labelAccessorFn: (LinearSales row, _) => '${row.year}: ${row.sales}',
-      )
-    ];
-  }
-}
-
-/// Sample linear data type.
-class LinearSales {
-  final String year;
-  final int sales;
-
-  LinearSales(this.year, this.sales);
 }
