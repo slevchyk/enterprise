@@ -15,7 +15,7 @@ class PageTimingHistory extends StatefulWidget {
 }
 
 class _PageTimingHistoryState extends State<PageTimingHistory> {
-  DateTime beginningPeriod = new DateTime.now().add(new Duration(days: -7));
+  DateTime beginningPeriod = new DateTime.now().add(new Duration(days: -4));
   DateTime endPeriod = new DateTime.now();
 
   Future<List<Timing>> operations;
@@ -40,6 +40,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
   }
 
   Future<List<Timing>> _getOperations(String userID) async {
+    List<Timing> result = [];
     DateTime currentDay = beginningPeriod;
     List<DateTime> listDate = [];
 
@@ -53,7 +54,37 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
     } while (
         currentDay.millisecondsSinceEpoch < endPeriod.millisecondsSinceEpoch);
 
-    return DBProvider.db.getTimingPeriod(listDate, userID);
+    List<Timing> listTiming =
+        await DBProvider.db.getTimingPeriod(listDate, userID);
+
+    for (var _timing in listTiming) {
+      if (_timing.operation == TIMING_STATUS_WORKDAY) {
+        continue;
+      }
+
+      DateTime endDate = _timing.endDate;
+      if (endDate == null) {
+        endDate = DateTime.now();
+      }
+
+      double duration = (endDate.millisecondsSinceEpoch -
+              _timing.startDate.millisecondsSinceEpoch) /
+          3600000;
+
+      int existIndex = result.indexWhere((record) =>
+          (record.date == _timing.date) &&
+          (record.operation == _timing.operation));
+      if (existIndex == -1) {
+        result.add(new Timing(
+            date: _timing.date,
+            operation: _timing.operation,
+            duration: duration));
+      } else {
+        result[existIndex].duration += duration;
+      }
+    }
+
+    return result;
   }
 
   Future<List<charts.Series<ChartData, String>>> _createChartData(
@@ -66,48 +97,20 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
     String strDate;
 
     for (var _timing in _listTiming) {
-      if (_timing.operation == TIMING_STATUS_WORKDAY) {
-        continue;
-      }
-
       strDate = formatDate(_timing.date, [yyyy, '-', mm, '-', dd]);
-
-      DateTime endDate = _timing.endDate;
-      if (endDate == null) {
-        endDate = DateTime.now();
-      }
-
-      double duration = (endDate.millisecondsSinceEpoch -
-              _timing.startDate.millisecondsSinceEpoch) /
-          3600000;
 
       switch (_timing.operation) {
         case TIMING_STATUS_JOB:
-          int existIndex = jobChartData
-              .indexWhere((record) => record.title.contains(strDate));
-          if (existIndex == -1) {
-            jobChartData.add(new ChartData(title: strDate, value: duration));
-          } else {
-            jobChartData[existIndex].value += duration;
-          }
+          jobChartData
+              .add(new ChartData(title: strDate, value: _timing.duration));
           break;
         case TIMING_STATUS_LANCH:
-          int existIndex = lanchChartData
-              .indexWhere((record) => record.title.contains(strDate));
-          if (existIndex == -1) {
-            lanchChartData.add(new ChartData(title: strDate, value: duration));
-          } else {
-            lanchChartData[existIndex].value += duration;
-          }
+          lanchChartData
+              .add(new ChartData(title: strDate, value: _timing.duration));
           break;
         case TIMING_STATUS_BREAK:
-          int existIndex = breakChartData
-              .indexWhere((record) => record.title.contains(strDate));
-          if (existIndex == -1) {
-            breakChartData.add(new ChartData(title: strDate, value: duration));
-          } else {
-            breakChartData[existIndex].value += duration;
-          }
+          breakChartData
+              .add(new ChartData(title: strDate, value: _timing.duration));
           break;
         default:
           break;
@@ -117,31 +120,22 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
     return [
       // Blue bars with a lighter center color.
       new charts.Series<ChartData, String>(
-        id: TIMING_STATUS_JOB,
+        id: OPERATION_ALIAS[TIMING_STATUS_JOB],
         domainFn: (ChartData timing, _) => timing.title,
         measureFn: (ChartData timing, _) => timing.value,
         data: jobChartData,
-        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        fillColorFn: (_, __) =>
-            charts.MaterialPalette.blue.shadeDefault.lighter,
       ),
-      // Solid red bars. Fill color will default to the series color if no
-      // fillColorFn is configured.
       new charts.Series<ChartData, String>(
-        id: TIMING_STATUS_LANCH,
+        id: OPERATION_ALIAS[TIMING_STATUS_LANCH],
         domainFn: (ChartData timing, _) => timing.title,
         measureFn: (ChartData timing, _) => timing.value,
         data: lanchChartData,
-        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
       ),
-      // Hollow green bars.
       new charts.Series<ChartData, String>(
-        id: TIMING_STATUS_BREAK,
+        id: OPERATION_ALIAS[TIMING_STATUS_BREAK],
         domainFn: (ChartData timing, _) => timing.title,
         measureFn: (ChartData timing, _) => timing.value,
         data: breakChartData,
-        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
-        fillColorFn: (_, __) => charts.MaterialPalette.transparent,
       ),
     ];
   }
@@ -155,15 +149,16 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
           cells: <DataCell>[
             DataCell(
               Text(timing.date != null
-                  ? formatDate(timing.date, [dd, '-', mm, '-', yyyy])
+                  ? formatDate(timing.date, [yyyy, '-', mm, '-', dd])
                   : ""),
             ),
             DataCell(
-              Text(timing.operation),
+              Text(OPERATION_ALIAS[timing.operation]),
             ),
             DataCell(
-//              Text(timing.duration?.toStringAsFixed(2)),
-                Text('')),
+              Text(timing.duration.toStringAsFixed(2)),
+            ),
+//                Text('')),
           ],
         ),
       );
@@ -196,7 +191,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
           SliverAppBar(
             title: Text('Історія хронометражу'),
             pinned: true,
-            floating: false,
+            floating: true,
             expandedHeight: 300.0,
             flexibleSpace: FlexibleSpaceBar(
               background: FutureBuilder(
@@ -216,7 +211,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                           child: CircularProgressIndicator(),
                         );
                       case ConnectionState.done:
-                        return GroupedFillColorBarChart(
+                        return SimpleSeriesLegend(
                           snapshot.data,
                           animate: true,
                         );
@@ -228,94 +223,98 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                   }),
             ),
           ),
-          SliverFillRemaining(
-            child: ListView(
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    FlatButton(
-                      onPressed: () async {
-                        DateTime picked = await showDatePicker(
-                            context: context,
-                            firstDate: new DateTime(2020),
-                            initialDate: beginningPeriod,
-                            lastDate: new DateTime(DateTime.now().year + 1));
+          SliverPersistentHeader(
+            pinned: true,
+            floating: false,
+            delegate: PeriodBar(
+              minSize: 40.0,
+              maxSize: 40.0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  FlatButton(
+                    onPressed: () async {
+                      DateTime picked = await showDatePicker(
+                          context: context,
+                          firstDate: new DateTime(2020),
+                          initialDate: beginningPeriod,
+                          lastDate: new DateTime(DateTime.now().year + 1));
 
-                        if (picked != null) {
-                          setState(() {
-                            beginningPeriod = picked;
-                          });
+                      if (picked != null) {
+                        setState(() {
+                          beginningPeriod = picked;
+                        });
 
-                          operations = _getOperations(userID);
-                          chartData = _createChartData(operations);
-                        }
-                      },
-                      child: Text(formatDate(
-                          beginningPeriod, [yyyy, '-', mm, '-', dd])),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(18.0),
-                          side: BorderSide(
-                              color: Theme.of(context).primaryColor)),
-                    ),
-                    SizedBox(
-                      width: 10.0,
-                    ),
-                    Text(':'),
-                    SizedBox(
-                      width: 10.0,
-                    ),
-                    FlatButton(
-                      onPressed: () async {
-                        DateTime picked = await showDatePicker(
-                            context: context,
-                            firstDate: new DateTime(2020),
-                            initialDate: endPeriod,
-                            lastDate: new DateTime(DateTime.now().year + 1));
-
-                        if (picked != null) {
-                          setState(() {
-                            endPeriod = picked;
-                          });
-
-                          operations = _getOperations(userID);
-                          chartData = _createChartData(operations);
-                        }
-                      },
-                      child:
-                          Text(formatDate(endPeriod, [yyyy, '-', mm, '-', dd])),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(18.0),
-                          side: BorderSide(
-                              color: Theme.of(context).primaryColor)),
-                    ),
-                  ],
-                ),
-                FutureBuilder(
-                    future: operations,
-                    builder: (BuildContext context, AsyncSnapshot snapshot) {
-                      switch (snapshot.connectionState) {
-                        case ConnectionState.none:
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        case ConnectionState.waiting:
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        case ConnectionState.active:
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        case ConnectionState.done:
-                          return dataTable(snapshot.data);
-                        default:
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
+                        operations = _getOperations(userID);
+                        chartData = _createChartData(operations);
                       }
-                    }),
-              ],
+                    },
+                    color: Colors.white,
+                    child: Text(
+                      formatDate(beginningPeriod, [yyyy, '-', mm, '-', dd]),
+                    ),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: new BorderRadius.circular(18.0),
+                        side:
+                            BorderSide(color: Theme.of(context).primaryColor)),
+                  ),
+                  SizedBox(
+                    width: 24.0,
+                  ),
+                  FlatButton(
+                    onPressed: () async {
+                      DateTime picked = await showDatePicker(
+                          context: context,
+                          firstDate: new DateTime(2020),
+                          initialDate: endPeriod,
+                          lastDate: new DateTime(DateTime.now().year + 1));
+
+                      if (picked != null) {
+                        setState(() {
+                          endPeriod = picked;
+                        });
+
+                        operations = _getOperations(userID);
+                        chartData = _createChartData(operations);
+                      }
+                    },
+                    color: Colors.white,
+                    child:
+                        Text(formatDate(endPeriod, [yyyy, '-', mm, '-', dd])),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: new BorderRadius.circular(18.0),
+                        side:
+                            BorderSide(color: Theme.of(context).primaryColor)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverFillRemaining(
+            child: FutureBuilder(
+              future: operations,
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                switch (snapshot.connectionState) {
+                  case ConnectionState.none:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  case ConnectionState.waiting:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  case ConnectionState.active:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  case ConnectionState.done:
+                    return dataTable(snapshot.data);
+                  default:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                }
+              },
             ),
           ),
         ],
@@ -355,20 +354,76 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
   }
 }
 
-class GroupedFillColorBarChart extends StatelessWidget {
+class SimpleSeriesLegend extends StatelessWidget {
   final List<charts.Series> seriesList;
   final bool animate;
 
-  GroupedFillColorBarChart(this.seriesList, {this.animate});
+  SimpleSeriesLegend(this.seriesList, {this.animate});
 
   @override
   Widget build(BuildContext context) {
     return new charts.BarChart(
       seriesList,
       animate: animate,
-      // Configure a stroke width to enable borders on the bars.
-      defaultRenderer: new charts.BarRendererConfig(
-          groupingType: charts.BarGroupingType.grouped, strokeWidthPx: 2.0),
+      barGroupingType: charts.BarGroupingType.grouped,
+      // Add the series legend behavior to the chart to turn on series legends.
+      // By default the legend will display above the chart.
+      behaviors: [
+        new charts.SeriesLegend(
+          // Positions for "start" and "end" will be left and right respectively
+          // for widgets with a build context that has directionality ltr.
+          // For rtl, "start" and "end" will be right and left respectively.
+          // Since this example has directionality of ltr, the legend is
+          // positioned on the right side of the chart.
+          position: charts.BehaviorPosition.end,
+          // For a legend that is positioned on the left or right of the chart,
+          // setting the justification for [endDrawArea] is aligned to the
+          // bottom of the chart draw area.
+          outsideJustification: charts.OutsideJustification.endDrawArea,
+          // By default, if the position of the chart is on the left or right of
+          // the chart, [horizontalFirst] is set to false. This means that the
+          // legend entries will grow as new rows first instead of a new column.
+          horizontalFirst: false,
+          // By setting this value to 2, the legend entries will grow up to two
+          // rows before adding a new column.
+          desiredMaxRows: 5,
+          // This defines the padding around each legend entry.
+          cellPadding: new EdgeInsets.only(right: 4.0, bottom: 4.0),
+        )
+      ],
     );
+  }
+}
+
+class PeriodBar extends SliverPersistentHeaderDelegate {
+  final double minSize;
+  final double maxSize;
+  final Widget child;
+
+  PeriodBar({
+    this.minSize,
+    this.maxSize,
+    this.child,
+  });
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    // TODO: implement build
+    return child;
+  }
+
+  @override
+  // TODO: implement maxExtent
+  double get maxExtent => maxSize;
+
+  @override
+  // TODO: implement minExtent
+  double get minExtent => minSize;
+
+  @override
+  bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
+    // TODO: implement shouldRebuild
+    return false;
   }
 }

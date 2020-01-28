@@ -103,7 +103,7 @@ class _TimingMainState extends State<TimingMain> {
     }
 
     for (var _record in _chartData) {
-      _record.title = operationAlias[_record.title] +
+      _record.title = OPERATION_ALIAS[_record.title] +
           ' - ' +
           _record.value.toStringAsFixed(2) +
           ' год';
@@ -191,13 +191,6 @@ class _TimingMainState extends State<TimingMain> {
     });
   }
 
-  Map<String, String> operationAlias = {
-    TIMING_STATUS_WORKDAY: "Турнікет",
-    TIMING_STATUS_JOB: "Робота",
-    TIMING_STATUS_LANCH: "Обід",
-    TIMING_STATUS_BREAK: "Перерва",
-  };
-
   Widget rowIcon(String operation) {
     switch (operation) {
       case TIMING_STATUS_WORKDAY:
@@ -226,7 +219,7 @@ class _TimingMainState extends State<TimingMain> {
             SizedBox(
               width: 10.0,
             ),
-            Text(operationAlias[timing.operation]),
+            Text(OPERATION_ALIAS[timing.operation]),
           ],
         )),
         DataCell(Text(timing.startDate != null
@@ -309,32 +302,30 @@ class _TimingMainState extends State<TimingMain> {
             ),
           ),
           SliverFillRemaining(
-            child: ListView(children: [
-              FutureBuilder(
-                  future: operations,
-                  builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    switch (snapshot.connectionState) {
-                      case ConnectionState.none:
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      case ConnectionState.waiting:
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      case ConnectionState.active:
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      case ConnectionState.done:
-                        return dataTable(snapshot.data);
-                      default:
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
-                    }
-                  }), //
-            ]),
+            child: FutureBuilder(
+                future: operations,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.waiting:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.active:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.done:
+                      return dataTable(snapshot.data);
+                    default:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                  }
+                }),
           ),
         ],
       ),

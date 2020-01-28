@@ -22,3 +22,10 @@ const String TIMING_STATUS_JOB = 'Job';
 const String TIMING_STATUS_LANCH = 'Lanch';
 const String TIMING_STATUS_BREAK = 'Break';
 const String TIMING_STATUS_STOP = 'Stop';
+
+const Map<String, String> OPERATION_ALIAS = {
+  TIMING_STATUS_WORKDAY: "Турнікет",
+  TIMING_STATUS_JOB: "Робота",
+  TIMING_STATUS_LANCH: "Обід",
+  TIMING_STATUS_BREAK: "Перерва",
+};

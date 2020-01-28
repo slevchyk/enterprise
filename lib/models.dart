@@ -110,8 +110,8 @@ class Profile {
         lastWorkPlace: json["last_work_place"],
         skills: json["skills"],
         languages: json["languages"],
-        disability: json["disability"],
-        pensioner: json["pensioner"],
+        disability: json["disability"] == "0" ? false : true,
+        pensioner: json["pensioner"] == "0" ? false : true,
       );
 
   Map<String, dynamic> toMap() => {
