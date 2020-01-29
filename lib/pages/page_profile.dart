@@ -36,6 +36,13 @@ class PageProfileState extends State<PageProfile> {
   final _civilStatusController = TextEditingController();
   final _childrenController = TextEditingController();
   final _educationController = TextEditingController();
+  final _specialtyController = TextEditingController();
+  final _additionalEducationController = TextEditingController();
+  final _lastWorkPlaceController = TextEditingController();
+  final _skillsController = TextEditingController();
+  final _languagesController = TextEditingController();
+  final _disabilityController = TextEditingController();
+  final _pensionerController = TextEditingController();
 
   bool isLoadingProfile = true;
   Profile profile;
@@ -53,7 +60,14 @@ class PageProfileState extends State<PageProfile> {
     _passportDateController.text = _pfl.passport.date;
     _civilStatusController.text = _pfl.civilStatus;
     _childrenController.text = _pfl.children;
-    _educationController.text = _pfl.education;
+    _educationController.text = _pfl.education.toString();
+    _specialtyController.text = _pfl.specialty;
+    _additionalEducationController.text = _pfl.additionalEducation;
+    _lastWorkPlaceController.text = _pfl.lastWorkPlace;
+    _skillsController.text = _pfl.skills;
+    _lastWorkPlaceController.text = _pfl.languages;
+    _disabilityController.text = _pfl.disability;
+    _pensionerController.text = _pfl.pensioner;
   }
 
   _getSettings() async {
@@ -174,11 +188,19 @@ class PageProfileState extends State<PageProfile> {
   }
 
   Map<String, String> _civilStatuses = {
-    CS_SINGLE: "Не одружений",
+    CIVIL_STATUS_SINGLE: "Не одружений",
     CIVIL_STATUS_MERRIED: "Одружений",
-    CS_DIVORCED: "Розлучений",
-    CS_WIDOWED: "Вдівець",
-    CS_OTHER: "Інше",
+    CIVIL_STATUS_DIVORCED: "Розлучений",
+    CIVIL_STATUS_WIDOWED: "Вдівець",
+    CIVIL_STATUS_OTHER: "Інше",
+  };
+
+  Map<int, String> _educations = {
+    EDUCATION_OTHER: "Інше",
+    EDUCATION_HIGHER: "Вища освіта",
+    EDUCATION_INCOMPLETE_HIGHER: "Неповна вища освіта",
+    EDUCATION_PRIMARY_VOCATIONAL: "Початкова професійна освіта",
+    EDUCATION_BASIC_GENERAL: "Основна загальна освіта",
   };
 
   List<DropdownMenuItem<String>> _getCivilStatuses() {
@@ -186,6 +208,20 @@ class PageProfileState extends State<PageProfile> {
     _civilStatuses.forEach((k, v) {
       _list.add(
         DropdownMenuItem<String>(
+          value: k,
+          child: Text(v),
+        ),
+      );
+    });
+
+    return _list;
+  }
+
+  List<DropdownMenuItem<int>> _getEdications() {
+    List<DropdownMenuItem<int>> _list = [];
+    _educations.forEach((k, v) {
+      _list.add(
+        DropdownMenuItem<int>(
           value: k,
           child: Text(v),
         ),
@@ -220,6 +256,7 @@ class PageProfileState extends State<PageProfile> {
                   'Основне:',
                   style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
                 ),
+//                _firstNameController
                 TextFormField(
                   controller: _firstNameController,
                   decoration: InputDecoration(
@@ -236,6 +273,7 @@ class PageProfileState extends State<PageProfile> {
                     setState(() {});
                   },
                 ),
+//                _lastNameController
                 TextFormField(
                   controller: _lastNameController,
                   decoration: InputDecoration(
@@ -271,9 +309,6 @@ class PageProfileState extends State<PageProfile> {
                   onChanged: (value) {
                     setState(() {});
                   },
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 TextFormField(
                   controller: _itnController,
@@ -326,7 +361,9 @@ class PageProfileState extends State<PageProfile> {
                   },
                   keyboardType: TextInputType.emailAddress,
                 ),
-                SizedBox(height: 10.0),
+                SizedBox(
+                  height: 25.0,
+                ),
                 Text(
                   'Паспорт:',
                   style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
@@ -395,26 +432,32 @@ class PageProfileState extends State<PageProfile> {
                     ),
                   ),
                 ),
+                SizedBox(
+                  height: 25.0,
+                ),
+                Text(
+                  'Сімейні дані:',
+                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+                ),
                 FormField<String>(
                   builder: (FormFieldState<String> state) {
                     return InputDecorator(
                       decoration: InputDecoration(
                         icon: Icon(FontAwesomeIcons.userFriends),
-                        hintText: 'оберіть із спику',
+                        hintText: 'оберіть із списку',
                         labelText: 'Сімейний стан',
-                        helperText: 'оберіть однк із значень із спику',
+                        helperText: 'оберіть одне із значень із спику',
                       ),
                       isEmpty: false,
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _civilStatusController.text.isEmpty
-                              ? CS_OTHER
+                              ? CIVIL_STATUS_OTHER
                               : _civilStatusController.text,
                           isDense: true,
                           onChanged: (String newValue) {
                             setState(() {
                               _civilStatusController.text = newValue;
-//                              state.didChange(newValue);
                             });
                           },
                           items: _getCivilStatuses(),
@@ -429,8 +472,123 @@ class PageProfileState extends State<PageProfile> {
                       icon: Icon(FontAwesomeIcons.baby),
                       hintText: '12.03.2012, 23.09.2015',
                       labelText: 'Дати народження дітей',
-                      helperText: 'запонвювати якшо є діти'),
+                      helperText: 'заповнювати якщо є діти'),
                 ),
+                SizedBox(
+                  height: 25.0,
+                ),
+                Text(
+                  'Освіта і інше:',
+                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+                ),
+                FormField<String>(
+                  builder: (FormFieldState<String> state) {
+                    return InputDecorator(
+                      decoration: InputDecoration(
+                        icon: Icon(Icons.school),
+                        hintText: 'оберіть із списку',
+                        labelText: 'Освіта',
+                        helperText: 'оберіть одне із значень із спику',
+                      ),
+                      isEmpty: false,
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<int>(
+                          value: _educationController.text.isEmpty
+                              ? EDUCATION_OTHER
+                              : int.parse(_educationController.text),
+                          isDense: true,
+                          onChanged: (int newValue) {
+                            setState(() {
+                              _educationController.text = newValue.toString();
+                            });
+                          },
+                          items: _getEdications(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                TextFormField(
+                  controller: _specialtyController,
+                  decoration: InputDecoration(
+                    icon: SizedBox(
+                      width: 24.0,
+                    ),
+                    hintText: 'спеціальність за дипломом',
+                    labelText: 'Спеціальність',
+                  ),
+                ),
+                TextFormField(
+                  controller: _additionalEducationController,
+                  decoration: InputDecoration(
+                    icon: SizedBox(
+                      width: 24.0,
+                    ),
+                    labelText: 'Додаткова освіта',
+                  ),
+                ),
+                TextFormField(
+                  controller: _skillsController,
+                  decoration: InputDecoration(
+                      icon: SizedBox(
+                        width: 24.0,
+                      ),
+                      labelText: 'Навики',
+                      hintText: 'професійні та інші навики'),
+                ),
+                TextFormField(
+                  controller: _languagesController,
+                  decoration: InputDecoration(
+                      icon: Icon(Icons.language),
+                      labelText: 'Знання мов',
+                      hintText: 'іноземні мови'),
+                ),
+                TextFormField(
+                  controller: _additionalEducationController,
+                  decoration: InputDecoration(
+                      icon: Icon(FontAwesomeIcons.building),
+                      labelText: 'Останнє місце роботи',
+                      hintText: 'місто, компанія, посада'),
+                ),
+                FormField<String>(
+                  builder: (FormFieldState<String> state) {
+                    return InputDecorator(
+                      decoration: InputDecoration(
+                        icon: Icon(FontAwesomeIcons.wheelchair),
+                      ),
+                      child: SwitchListTile(
+                          title: Text('Відомість про інвалідність'),
+                          value: _disabilityController.text == 'true',
+                          onChanged: (bool value) {
+                            setState(() {
+                              value == true
+                                  ? _disabilityController.text = 'true'
+                                  : _disabilityController.text = 'false';
+                            });
+                          }),
+                    );
+                  },
+                ),
+                FormField<String>(
+                  builder: (FormFieldState<String> state) {
+                    return InputDecorator(
+                      decoration: InputDecoration(
+                        icon: Icon(FontAwesomeIcons.blind),
+                      ),
+                      child: SwitchListTile(
+                          title: Text('Пенсіонер'),
+                          value: _pensionerController.text == 'true',
+                          onChanged: (bool value) {
+                            setState(() {
+                              value == true
+                                  ? _pensionerController.text = 'true'
+                                  : _pensionerController.text = 'false';
+                            });
+                          }),
+                    );
+                  },
+                ),
+
                 SizedBox(height: 20.0),
                 RaisedButton(
                   onPressed: () {

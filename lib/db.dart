@@ -44,7 +44,7 @@ class DBProvider {
           "passport_date TEXT,"
           "civil_status TEXT,"
           "children TEXT,"
-          "education TEXT,"
+          "education INTEGER,"
           "specialty TEXT,"
           "additional_education TEXT,"
           "last_work_place TEXT,"

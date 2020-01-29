@@ -9,11 +9,17 @@ const String KEY_USER_ID = "keyUserID";
 const String KEY_USER_PIN = "keyUserPin";
 const String KEY_USER_PICTURE = "keyUserPicture";
 
-const String CS_SINGLE = 'Single';
+const String CIVIL_STATUS_SINGLE = 'Single';
 const String CIVIL_STATUS_MERRIED = 'Married';
-const String CS_DIVORCED = 'Divorced';
-const String CS_WIDOWED = 'Widowed';
-const String CS_OTHER = 'Other';
+const String CIVIL_STATUS_DIVORCED = 'Divorced';
+const String CIVIL_STATUS_WIDOWED = 'Widowed';
+const String CIVIL_STATUS_OTHER = 'Other';
+
+const int EDUCATION_OTHER = 0;
+const int EDUCATION_HIGHER = 1;
+const int EDUCATION_INCOMPLETE_HIGHER = 2;
+const int EDUCATION_PRIMARY_VOCATIONAL = 3;
+const int EDUCATION_BASIC_GENERAL = 4;
 
 const String TIMING_STATUS_WORKDAY = 'Workday';
 const String TIMING_STATUS_JOB = 'Job';

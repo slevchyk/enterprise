@@ -35,14 +35,14 @@ class Profile {
   Passport passport;
   String civilStatus;
   String children;
-  String education;
+  int education;
   String specialty;
   String additionalEducation;
   String lastWorkPlace;
   String skills;
   String languages;
-  bool disability;
-  bool pensioner;
+  String disability;
+  String pensioner;
 
   Profile(
       {this.id,
@@ -81,7 +81,7 @@ class Profile {
         passport: Passport.fromMap(json["passport"]),
         civilStatus: json["civil_status"],
         children: json["children"],
-        education: json['education'],
+        education: int.parse(json['education']),
         specialty: json['specialty'],
         additionalEducation: json['additional_education'],
         lastWorkPlace: json["last_work_place"],
@@ -105,14 +105,14 @@ class Profile {
         passport: Passport.fromDB(json),
         civilStatus: json["civil_status"],
         children: json["children"],
-        education: json['education'],
+        education: int.parse(json['education']),
         specialty: json['specialty'],
         additionalEducation: json['additional_education'],
         lastWorkPlace: json["last_work_place"],
         skills: json["skills"],
         languages: json["languages"],
-        disability: json["disability"] == "0" ? false : true,
-        pensioner: json["pensioner"] == "0" ? false : true,
+        disability: json["disability"],
+        pensioner: json["pensioner"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -129,7 +129,7 @@ class Profile {
         "passport": passport.toMap(),
         "civil_status": civilStatus,
         "children": children,
-        "ducation": education,
+        "ducation": education.toString(),
         "specialty": specialty,
         "additional_education": additionalEducation,
         "last_work_place": lastWorkPlace,
