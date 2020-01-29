@@ -191,7 +191,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
           SliverAppBar(
             title: Text('Історія хронометражу'),
             pinned: true,
-            floating: true,
+            floating: false,
             expandedHeight: 300.0,
             flexibleSpace: FlexibleSpaceBar(
               background: FutureBuilder(

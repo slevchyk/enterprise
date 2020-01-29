@@ -136,6 +136,10 @@ class PageProfileState extends State<PageProfile> {
       });
     }
 
+    setState(() {
+      isLoadingProfile = false;
+    });
+
     Scaffold.of(context).showSnackBar(SnackBar(
       content: Text('Оновлена'),
       backgroundColor: Colors.green,
@@ -200,6 +204,13 @@ class PageProfileState extends State<PageProfile> {
       body: ListView(
         padding: EdgeInsets.all(10.0),
         children: <Widget>[
+          Container(
+            height: isLoadingProfile ? 50 : 0,
+            child: Center(
+              child:
+                  isLoadingProfile ? CircularProgressIndicator() : SizedBox(),
+            ),
+          ),
           Form(
             key: _formKey,
             child: Column(
@@ -442,6 +453,9 @@ class PageProfileState extends State<PageProfile> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.update),
         onPressed: () {
+          setState(() {
+            isLoadingProfile = true;
+          });
           _downloadProfile(context);
         },
       ),

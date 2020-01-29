@@ -263,8 +263,8 @@ class DBProvider {
     final db = await database;
     var res = await db.query(
       "timing",
-      where: "user_id = ?",
-      whereArgs: [userID],
+      where: "user_id=? and end_date = ?",
+      whereArgs: [userID, ""],
       orderBy: "start_date DESC",
       limit: 1,
     );
@@ -285,10 +285,10 @@ class DBProvider {
     return list;
   }
 
-  Future<List<Timing>> getTimingOpenAllByDay(DateTime date) async {
+  Future<List<Timing>> getTimingOpenPastOperation(DateTime date) async {
     final db = await database;
     var res = await db.query("timing",
-        where: "date=? and end_date=?",
+        where: "date <> ? and end_date = ?",
         whereArgs: [date.toIso8601String(), ""]);
 
     List<Timing> list =
@@ -323,7 +323,7 @@ class DBProvider {
     return list;
   }
 
-  endTimingOperation(Timing timing) async {
+  updateTiming(Timing timing) async {
     final db = await database;
     var res = await db.update("timing", timing.toMap(),
         where: "id = ?", whereArgs: [timing.id]);
@@ -380,3 +380,76 @@ class DBProvider {
     return list;
   }
 }
+
+//class DBProfile {
+//  DBProvider db = DBProvider.db;
+//  Database = DBProvider.DataBase;
+//
+//  DBProfile({
+//    this.db,
+//  });
+//
+//
+//
+//  newProfile(Profile newProfile) async {
+//    final db = await database;
+//    //get the biggest id in the table
+//    var table = await db.rawQuery("SELECT MAX(id)+1 as id FROM Profile");
+//    int id = table.first["id"];
+//    //insert to the table using the new id
+//    var raw = await db.rawInsert(
+//        'INSERT Into Profile ('
+//            'id, '
+//            'first_name,'
+//            'last_name,'
+//            'middle_name,'
+//            'phone,'
+//            'itn,'
+//            'email,'
+//            'photo,'
+//            'blocked,'
+//            'passport_series,'
+//            'passport_number,'
+//            'passport_issued,'
+//            'passport_date,'
+//            'civil_status,'
+//            'children,'
+//            'education,'
+//            'specialty,'
+//            'additional_education,'
+//            'last_work_place,'
+//            'skills,'
+//            'languages,'
+//            'disability,'
+//            'pensioner'
+//            ')'
+//            'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+//        [
+//          id,
+//          newProfile.firstName,
+//          newProfile.lastName,
+//          newProfile.middleName,
+//          newProfile.phone,
+//          newProfile.itn,
+//          newProfile.email,
+//          newProfile.photo,
+//          newProfile.blocked,
+//          newProfile.passport.series,
+//          newProfile.passport.number,
+//          newProfile.passport.issued,
+//          newProfile.passport.date,
+//          newProfile.civilStatus,
+//          newProfile.education,
+//          newProfile.specialty,
+//          newProfile.additionalEducation,
+//          newProfile.lastWorkPlace,
+//          newProfile.skills,
+//          newProfile.languages,
+//          newProfile.languages,
+//          newProfile.disability,
+//          newProfile.pensioner
+//        ]);
+//    return raw;
+//  }
+//
+//}

@@ -52,15 +52,12 @@ class _TimingMainState extends State<TimingMain> {
     final prefs = await SharedPreferences.getInstance();
     String _userID = prefs.getString(KEY_USER_ID) ?? "";
 
+    _setCurrentStatus(_userID);
     operations = _getOperations(_userID);
     listChartData = _createChartData(operations);
 
-    String _currentTimeStatus =
-        await DBProvider.db.getTimingCurrentByUser(_userID);
-
     setState(() {
       userID = _userID;
-      currentTimeStatus = _currentTimeStatus;
     });
   }
 
@@ -145,14 +142,14 @@ class _TimingMainState extends State<TimingMain> {
           await DBProvider.db.getTimingOpenOperation(dayBegin, userID);
       for (var timing in listTiming) {
         timing.endDate = dateTimeNow;
-        await DBProvider.db.endTimingOperation(timing);
+        await DBProvider.db.updateTiming(timing);
       }
 
       listTiming = await DBProvider.db.getTimingOpenWorkday(dayBegin, userID);
       for (var timing in listTiming) {
         timing.endDate = dateTimeNow;
         timing.endDate = dateTimeNow;
-        await DBProvider.db.endTimingOperation(timing);
+        await DBProvider.db.updateTiming(timing);
       }
     } else if (timingOperation == TIMING_STATUS_JOB ||
         timingOperation == TIMING_STATUS_LANCH ||
@@ -162,7 +159,7 @@ class _TimingMainState extends State<TimingMain> {
 
       for (var timing in listTiming) {
         timing.endDate = dateTimeNow;
-        await DBProvider.db.endTimingOperation(timing);
+        await DBProvider.db.updateTiming(timing);
       }
 
       Timing timing = Timing(
@@ -178,16 +175,20 @@ class _TimingMainState extends State<TimingMain> {
 
       for (var timing in listTiming) {
         timing.endDate = dateTimeNow;
-        await DBProvider.db.endTimingOperation(timing);
+        await DBProvider.db.updateTiming(timing);
       }
     }
 
+    _setCurrentStatus(userID);
     operations = _getOperations(userID);
     listChartData = _createChartData(operations);
+  }
 
-    prefs.setString(KEY_CURRENT_STATUS, timingOperation);
+  void _setCurrentStatus(userID) async {
+    String _currentTimeStatus =
+        await DBProvider.db.getTimingCurrentByUser(userID);
     setState(() {
-      currentTimeStatus = timingOperation;
+      currentTimeStatus = _currentTimeStatus;
     });
   }
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/db.dart';
+import 'package:enterprise/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -221,14 +222,14 @@ class Timing {
       };
 
   static void closePastOperation() async {
-    List<Timing> openOperation =
-        await DBProvider.db.getTimingOpenAllByDay(DateTime.now());
+    List<Timing> openOperation = await DBProvider.db
+        .getTimingOpenPastOperation(Utility.beginningOfDay(DateTime.now()));
 
     for (var timimg in openOperation) {
       timimg.endDate = new DateTime(timimg.startDate.year,
           timimg.startDate.month, timimg.startDate.day, 18, 00, 00);
 
-      DBProvider.db.endTimingOperation(timimg);
+      DBProvider.db.updateTiming(timimg);
     }
   }
 
@@ -264,10 +265,6 @@ class Timing {
 //    return listOperation;
 //  }
 
-  static void clearCurrentOperation() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString(KEY_CURRENT_STATUS, "");
-  }
 }
 
 class Chanel {
