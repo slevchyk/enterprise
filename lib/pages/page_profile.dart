@@ -2,6 +2,7 @@ import 'package:date_format/date_format.dart';
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/db.dart';
 import 'package:enterprise/models.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -65,7 +66,7 @@ class PageProfileState extends State<PageProfile> {
     _additionalEducationController.text = _pfl.additionalEducation;
     _lastWorkPlaceController.text = _pfl.lastWorkPlace;
     _skillsController.text = _pfl.skills;
-    _lastWorkPlaceController.text = _pfl.languages;
+    _languagesController.text = _pfl.languages;
     _disabilityController.text = _pfl.disability;
     _pensionerController.text = _pfl.pensioner;
   }
@@ -80,12 +81,14 @@ class PageProfileState extends State<PageProfile> {
       _profile = await DBProvider.db.getProfile(_userID);
     }
 
-    setState(() {
-      if (_profile != null) {
+    if (_profile != null) {
+      setState(() {
         setControllers(_profile);
-      }
+        profile = _profile;
+      });
+    }
 
-      profile = _profile;
+    setState(() {
       isLoadingProfile = false;
     });
   }
@@ -125,32 +128,50 @@ class PageProfileState extends State<PageProfile> {
 
     String body = utf8.decode(response.bodyBytes);
 
-    Profile profile = profileFromJsonApi(body);
+    var jsonData = json.decode(body);
+
+    if (jsonData['status'] == 25) {
+      setState(() {
+        isLoadingProfile = false;
+      });
+
+      Scaffold.of(context).showSnackBar(SnackBar(
+        content: Text('Не знайдено в базі'),
+        backgroundColor: Colors.redAccent,
+      ));
+
+      return;
+    }
+
+    Profile profile = Profile.fromMap(jsonData["application"]);
 
     if (profile.photo != '') {
       final documentDirectory = await getApplicationDocumentsDirectory();
       File file = new File(join(documentDirectory.path, profile.photo));
 
-      var strPhoto = profile.photoData;
-      strPhoto = strPhoto.replaceAll("\r", "");
-      strPhoto = strPhoto.replaceAll("\n", "");
+      var base64Photo = profile.photoData;
+      base64Photo = base64Photo.replaceAll("\r", "");
+      base64Photo = base64Photo.replaceAll("\n", "");
 
-      final _bytePhoto = base64Decode(strPhoto);
+      final _bytePhoto = base64Decode(base64Photo);
       file.writeAsBytes(_bytePhoto);
 
       profile.photo = file.path;
       prefs.setString(KEY_USER_PICTURE, file.path);
     }
 
-    await DBProvider.db.newProfile(profile);
-
-    if (profile != null) {
-      setState(() {
-        setControllers(profile);
-      });
+    Profile existProfile = await DBProvider.db.getProfile(_userID);
+    if (existProfile == null) {
+      await DBProvider.db.newProfile(profile);
+    } else {
+      profile.id = existProfile.id;
+      await DBProvider.db.updateProfile(profile);
     }
 
     setState(() {
+      if (profile != null) {
+        setControllers(profile);
+      }
       isLoadingProfile = false;
     });
 
@@ -231,6 +252,39 @@ class PageProfileState extends State<PageProfile> {
     return _list;
   }
 
+  Widget getUserpic(profile) {
+    if (profile == null || profile.photo == '') {
+      return CircleAvatar(
+        minRadius: 75,
+        maxRadius: 100,
+        child: Text('фото'),
+      );
+    } else {
+      return CircleAvatar(
+        minRadius: 75,
+        maxRadius: 100,
+        backgroundImage: ExactAssetImage(profile.photo),
+//        child: Image.asset(profile.photo),
+      );
+    }
+  }
+
+  _changeUserPhoto(Profile _profile) async {
+    File file = await FilePicker.getFile(
+      type: FileType.IMAGE,
+    );
+
+    final documentDirectory = await getApplicationDocumentsDirectory();
+    file.copy(documentDirectory.path);
+
+    _profile.photo = file.path;
+    await DBProvider.db.updateProfile(_profile);
+
+    setState(() {
+      profile = _profile;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -246,6 +300,12 @@ class PageProfileState extends State<PageProfile> {
               child:
                   isLoadingProfile ? CircularProgressIndicator() : SizedBox(),
             ),
+          ),
+          FlatButton(
+            onPressed: () {
+              _changeUserPhoto(profile);
+            },
+            child: getUserpic(profile),
           ),
           Form(
             key: _formKey,

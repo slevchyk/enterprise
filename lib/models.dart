@@ -11,10 +11,10 @@ Profile profileFromJson(String str) {
   return Profile.fromMap(jsonData);
 }
 
-Profile profileFromJsonApi(String str) {
-  final jsonData = json.decode(str);
-  return Profile.fromMap(jsonData["application"]);
-}
+//Profile profileFromJsonApi(String str) {
+//  final jsonData = json.decode(str);
+//  return Profile.fromMap(jsonData["application"]);
+//}
 
 String profiletToJson(Profile data) {
   final dyn = data.toMap();
@@ -87,8 +87,8 @@ class Profile {
         lastWorkPlace: json["last_work_place"],
         skills: json["skills"],
         languages: json["languages"],
-        disability: json["disability"],
-        pensioner: json["pensioner"],
+        disability: json["disability"] ? 'true' : 'false',
+        pensioner: json["pensioner"] ? 'true' : 'false',
       );
 
   factory Profile.fromDB(Map<String, dynamic> json) => new Profile(
@@ -100,12 +100,12 @@ class Profile {
         itn: json["itn"],
         email: json["email"],
         photo: json["photo"],
-        photoData: json["photo_data"],
+//        photoData: json["photo_data"],
         blocked: json["blocked"] == 1,
         passport: Passport.fromDB(json),
         civilStatus: json["civil_status"],
         children: json["children"],
-        education: int.parse(json['education']),
+        education: json['education'],
         specialty: json['specialty'],
         additionalEducation: json['additional_education'],
         lastWorkPlace: json["last_work_place"],
@@ -129,7 +129,32 @@ class Profile {
         "passport": passport.toMap(),
         "civil_status": civilStatus,
         "children": children,
-        "ducation": education.toString(),
+        "education": education,
+        "specialty": specialty,
+        "additional_education": additionalEducation,
+        "last_work_place": lastWorkPlace,
+        "skills": skills,
+        "languages": languages,
+        "disability": disability,
+        "pensioner": pensioner,
+      };
+  Map<String, dynamic> toDB() => {
+        "id": id,
+        "first_name": firstName,
+        "last_name": lastName,
+        "middle_name": middleName,
+        "phone": phone,
+        "itn": itn,
+        "email": email,
+        "photo": photo,
+        "blocked": blocked,
+        "passport_series": passport.series,
+        "passport_number": passport.number,
+        "passport_issued": passport.issued,
+        "passport_date": passport.date,
+        "civil_status": civilStatus,
+        "children": children,
+        "education": education,
         "specialty": specialty,
         "additional_education": additionalEducation,
         "last_work_place": lastWorkPlace,

@@ -198,26 +198,30 @@ class PageSettingsState extends State<PageSettings> {
                     child: Text('Edit'),
                     color: Colors.blueGrey,
                   ),
-                  FlatButton(
-                    onPressed: () {
-                      _clearProfile();
-                    },
-                    child: Text('clear profile'),
-                    color: Colors.blueGrey,
-                  ),
-                  FlatButton(
-                    onPressed: () {
-                      _clearTiming();
-                    },
-                    child: Text('clear timing'),
-                    color: Colors.blueGrey,
-                  ),
-                  FlatButton(
-                    onPressed: () {
-                      _deleteDB();
-                    },
-                    child: Text('delete db'),
-                    color: Colors.blueGrey,
+                  Wrap(
+                    children: [
+                      FlatButton(
+                        onPressed: () {
+                          _clearProfile();
+                        },
+                        child: Text('clear profile'),
+                        color: Colors.blueGrey,
+                      ),
+                      FlatButton(
+                        onPressed: () {
+                          _clearTiming();
+                        },
+                        child: Text('clear timing'),
+                        color: Colors.blueGrey,
+                      ),
+                      FlatButton(
+                        onPressed: () {
+                          _deleteDB();
+                        },
+                        child: Text('delete db'),
+                        color: Colors.blueGrey,
+                      ),
+                    ],
                   ),
                 ],
               ))

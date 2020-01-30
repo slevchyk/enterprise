@@ -126,12 +126,12 @@ class DBProvider {
           newProfile.passport.issued,
           newProfile.passport.date,
           newProfile.civilStatus,
+          newProfile.children,
           newProfile.education,
           newProfile.specialty,
           newProfile.additionalEducation,
           newProfile.lastWorkPlace,
           newProfile.skills,
-          newProfile.languages,
           newProfile.languages,
           newProfile.disability,
           newProfile.pensioner
@@ -159,7 +159,7 @@ class DBProvider {
 
   updateProfile(Profile newProfile) async {
     final db = await database;
-    var res = await db.update("Profile", newProfile.toMap(),
+    var res = await db.update("Profile", newProfile.toDB(),
         where: "id = ?", whereArgs: [newProfile.id]);
     return res;
   }
@@ -191,12 +191,12 @@ class DBProvider {
 
   deleteProfile(int id) async {
     final db = await database;
-    return db.delete("Profile", where: "id = ?", whereArgs: [id]);
+    return db.delete("profile", where: "id = ?", whereArgs: [id]);
   }
 
   deleteAllProfiles() async {
     final db = await database;
-    db.rawDelete("Delete * from Profile");
+    db.delete("profile");
   }
 
   newTiming(Timing timing) async {
@@ -383,13 +383,10 @@ class DBProvider {
 
 //class DBProfile {
 //  DBProvider db = DBProvider.db;
-//  Database = DBProvider.DataBase;
 //
 //  DBProfile({
 //    this.db,
 //  });
-//
-//
 //
 //  newProfile(Profile newProfile) async {
 //    final db = await database;
@@ -399,31 +396,31 @@ class DBProvider {
 //    //insert to the table using the new id
 //    var raw = await db.rawInsert(
 //        'INSERT Into Profile ('
-//            'id, '
-//            'first_name,'
-//            'last_name,'
-//            'middle_name,'
-//            'phone,'
-//            'itn,'
-//            'email,'
-//            'photo,'
-//            'blocked,'
-//            'passport_series,'
-//            'passport_number,'
-//            'passport_issued,'
-//            'passport_date,'
-//            'civil_status,'
-//            'children,'
-//            'education,'
-//            'specialty,'
-//            'additional_education,'
-//            'last_work_place,'
-//            'skills,'
-//            'languages,'
-//            'disability,'
-//            'pensioner'
-//            ')'
-//            'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+//        'id, '
+//        'first_name,'
+//        'last_name,'
+//        'middle_name,'
+//        'phone,'
+//        'itn,'
+//        'email,'
+//        'photo,'
+//        'blocked,'
+//        'passport_series,'
+//        'passport_number,'
+//        'passport_issued,'
+//        'passport_date,'
+//        'civil_status,'
+//        'children,'
+//        'education,'
+//        'specialty,'
+//        'additional_education,'
+//        'last_work_place,'
+//        'skills,'
+//        'languages,'
+//        'disability,'
+//        'pensioner'
+//        ')'
+//        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
 //        [
 //          id,
 //          newProfile.firstName,
@@ -451,5 +448,4 @@ class DBProvider {
 //        ]);
 //    return raw;
 //  }
-//
 //}
