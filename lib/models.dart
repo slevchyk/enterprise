@@ -225,11 +225,17 @@ class Timing {
     List<Timing> openOperation = await DBProvider.db
         .getTimingOpenPastOperation(Utility.beginningOfDay(DateTime.now()));
 
-    for (var timimg in openOperation) {
-      timimg.endDate = new DateTime(timimg.startDate.year,
-          timimg.startDate.month, timimg.startDate.day, 18, 00, 00);
+    for (var _timimg in openOperation) {
+      DateTime endDate = new DateTime(_timimg.startDate.year,
+          _timimg.startDate.month, _timimg.startDate.day, 18, 00, 00);
 
-      DBProvider.db.updateTiming(timimg);
+      if (endDate.millisecondsSinceEpoch >
+          _timimg.startDate.millisecondsSinceEpoch) {
+        endDate = _timimg.startDate;
+      }
+
+      _timimg.endDate = endDate;
+      DBProvider.db.updateTiming(_timimg);
     }
   }
 
