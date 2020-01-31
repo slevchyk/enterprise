@@ -30,6 +30,7 @@ class DBProvider {
         onCreate: (Database db, int version) async {
       await db.execute("CREATE TABLE Profile ("
           "id INTEGER PRIMARY KEY,"
+          "uuid TEXT,"
           "first_name TEXT,"
           "last_name TEXT,"
           "middle_name TEXT,"
@@ -38,12 +39,15 @@ class DBProvider {
           "email TEXT,"
           "photo TEXT,"
           "blocked BIT,"
+          "passport_type TEXT,"
           "passport_series TEXT,"
           "passport_number TEXT,"
           "passport_issued TEXT,"
           "passport_date TEXT,"
+          "passport_expiry TEXT,"
           "civil_status TEXT,"
           "children TEXT,"
+          "position INTEGER,"
           "education INTEGER,"
           "specialty TEXT,"
           "additional_education TEXT,"
@@ -87,6 +91,7 @@ class DBProvider {
     var raw = await db.rawInsert(
         'INSERT Into Profile ('
         'id, '
+        'uuid, '
         'first_name,'
         'last_name,'
         'middle_name,'
@@ -95,12 +100,15 @@ class DBProvider {
         'email,'
         'photo,'
         'blocked,'
+        'passport_type,'
         'passport_series,'
         'passport_number,'
         'passport_issued,'
         'passport_date,'
+        'passport_expiry,'
         'civil_status,'
         'children,'
+        'position,'
         'education,'
         'specialty,'
         'additional_education,'
@@ -110,9 +118,10 @@ class DBProvider {
         'disability,'
         'pensioner'
         ')'
-        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
           id,
+          newProfile.uuid,
           newProfile.firstName,
           newProfile.lastName,
           newProfile.middleName,
@@ -121,12 +130,15 @@ class DBProvider {
           newProfile.email,
           newProfile.photo,
           newProfile.blocked,
-          newProfile.passport.series,
-          newProfile.passport.number,
-          newProfile.passport.issued,
-          newProfile.passport.date,
+          newProfile.passportType,
+          newProfile.passportSeries,
+          newProfile.passportNumber,
+          newProfile.passportIssued,
+          newProfile.passportDate,
+          newProfile.passportExpiry,
           newProfile.civilStatus,
           newProfile.children,
+          newProfile.position,
           newProfile.education,
           newProfile.specialty,
           newProfile.additionalEducation,
@@ -141,7 +153,7 @@ class DBProvider {
 
   blockProfile(Profile profile) async {
     final db = await database;
-    Profile blocked = getProfile(profile.itn);
+    Profile blocked = getProfile(profile.uuid);
     blocked.blocked = true;
     var res = await db.update("Profile", blocked.toMap(),
         where: "id = ?", whereArgs: [profile.id]);
@@ -150,7 +162,7 @@ class DBProvider {
 
   unblockProfile(Profile profile) async {
     final db = await database;
-    Profile blocked = getProfile(profile.itn);
+    Profile blocked = getProfile(profile.uuid);
     blocked.blocked = false;
     var res = await db.update("Profile", blocked.toMap(),
         where: "id = ?", whereArgs: [profile.id]);
@@ -164,9 +176,9 @@ class DBProvider {
     return res;
   }
 
-  getProfile(String id) async {
+  getProfile(String uuid) async {
     final db = await database;
-    var res = await db.query("Profile", where: "itn = ?", whereArgs: [id]);
+    var res = await db.query("profile", where: "uuid = ?", whereArgs: [uuid]);
     return res.isNotEmpty ? Profile.fromDB(res.first) : null;
   }
 

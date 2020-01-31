@@ -3,6 +3,8 @@ import 'dart:io';
 //import 'package:flutter/cupertino.dart';
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/db.dart';
+import 'package:enterprise/models.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart';
@@ -14,8 +16,10 @@ class PageSettings extends StatefulWidget {
 
 class PageSettingsState extends State<PageSettings> {
   final _formKey = GlobalKey<FormState>();
-  final _userIDController = TextEditingController();
-  final _userPINController = TextEditingController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final _userPhoneController = TextEditingController();
+  final _userPinController = TextEditingController();
   final _serverIPController = TextEditingController();
   final _serverUserController = TextEditingController();
   final _serverPasswordController = TextEditingController();
@@ -50,6 +54,7 @@ class PageSettingsState extends State<PageSettings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text('Налаштування'),
         actions: <Widget>[
@@ -75,27 +80,28 @@ class PageSettingsState extends State<PageSettings> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    'Account:',
+                    'Обліковий запис:',
                     style:
                         TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
                   ),
                   TextFormField(
-                    controller: _userIDController,
+                    controller: _userPhoneController,
                     readOnly: _readOnly,
+                    keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
-                        labelText: "ID",
-                        hintText: "1C user ID",
-                        icon: Icon(Icons.person)),
+                        labelText: "Номер телефону",
+                        hintText: "номер телефону +380...",
+                        icon: Icon(Icons.phone)),
                   ),
                   TextFormField(
-                    controller: _userPINController,
+                    controller: _userPinController,
                     obscureText: true,
+                    keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                        labelText: "PIN",
-                        hintText: "1C user PIN",
-                        icon: SizedBox(
-                          width: 24.0,
-                        )),
+                      labelText: "PIN",
+                      hintText: "пін код карти перепустки",
+                      icon: Icon(Icons.lock),
+                    ),
                   ),
                   SizedBox(
                     height: 20.0,
@@ -234,8 +240,8 @@ class PageSettingsState extends State<PageSettings> {
     final prefs = await SharedPreferences.getInstance();
 
     //account
-    _userIDController.text = prefs.getString(KEY_USER_ID) ?? "";
-    _userPINController.text = prefs.getString(KEY_USER_PIN) ?? "";
+    _userPhoneController.text = prefs.getString(KEY_USER_PHONE) ?? "";
+    _userPinController.text = prefs.getString(KEY_USER_PIN) ?? "";
 
     //connection
     _serverIPController.text = prefs.getString(KEY_SERVER_IP) ?? "";
@@ -248,14 +254,19 @@ class PageSettingsState extends State<PageSettings> {
     final prefs = await SharedPreferences.getInstance();
 
     //account
-    prefs.setString(KEY_USER_ID, _userIDController.text);
-    prefs.setString(KEY_USER_PIN, _userPINController.text);
+    prefs.setString(KEY_USER_PHONE, _userPhoneController.text);
+    prefs.setString(KEY_USER_PIN, _userPinController.text);
 
     //connection
     prefs.setString(KEY_SERVER_IP, _serverIPController.text);
     prefs.setString(KEY_SERVER_DATABASE, _serverDBController.text);
     prefs.setString(KEY_SERVER_USER, _serverUserController.text);
     prefs.setString(KEY_SERVER_PASSWORD, _serverPasswordController.text);
+
+    Profile profile = await Profile.download(_scaffoldKey);
+    if (profile != null) {
+      prefs.setString(KEY_USER_ID, profile.uuid);
+    }
   }
 
   _makePostRequest() async {

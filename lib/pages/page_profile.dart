@@ -23,7 +23,9 @@ class PageProfileState extends State<PageProfile> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _getSettings());
   }
 
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _middleNameController = TextEditingController();
@@ -36,6 +38,7 @@ class PageProfileState extends State<PageProfile> {
   final _passportDateController = TextEditingController();
   final _civilStatusController = TextEditingController();
   final _childrenController = TextEditingController();
+  final _positionController = TextEditingController();
   final _educationController = TextEditingController();
   final _specialtyController = TextEditingController();
   final _additionalEducationController = TextEditingController();
@@ -55,12 +58,13 @@ class PageProfileState extends State<PageProfile> {
     _itnController.text = _pfl.itn;
     _phoneController.text = _pfl.phone;
     _emailController.text = _pfl.email;
-    _passportSeriesController.text = _pfl.passport.series;
-    _passportNumberController.text = _pfl.passport.number;
-    _passportIssuedController.text = _pfl.passport.issued;
-    _passportDateController.text = _pfl.passport.date;
+    _passportSeriesController.text = _pfl.passportSeries;
+    _passportNumberController.text = _pfl.passportNumber;
+    _passportIssuedController.text = _pfl.passportIssued;
+    _passportDateController.text = _pfl.passportDate;
     _civilStatusController.text = _pfl.civilStatus;
     _childrenController.text = _pfl.children;
+    _positionController.text = _pfl.position;
     _educationController.text = _pfl.education.toString();
     _specialtyController.text = _pfl.specialty;
     _additionalEducationController.text = _pfl.additionalEducation;
@@ -94,79 +98,7 @@ class PageProfileState extends State<PageProfile> {
   }
 
   _downloadProfile(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final String _ip = prefs.getString(KEY_SERVER_IP) ?? "";
-    final String _user = prefs.getString(KEY_SERVER_USER) ?? "";
-    final String _password = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
-    final String _db = prefs.getString(KEY_SERVER_DATABASE) ?? "";
-
-    final String _userID = prefs.get(KEY_USER_ID);
-
-    final String url =
-        'http://$_ip/$_db/hs/m/profile?infocard=$_userID&photo=true';
-
-    final credentials = '$_user:$_password';
-    final stringToBase64 = utf8.fuse(base64);
-    final encodedCredentials = stringToBase64.encode(credentials);
-
-    Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
-    };
-
-    Response response = await get(url, headers: headers);
-
-    int statusCode = response.statusCode;
-
-    if (statusCode != 200) {
-      Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text('Не вдалось отримати дані профілю'),
-        backgroundColor: Colors.redAccent,
-      ));
-      return;
-    }
-
-    String body = utf8.decode(response.bodyBytes);
-
-    var jsonData = json.decode(body);
-
-    if (jsonData['status'] == 25) {
-      setState(() {
-        isLoadingProfile = false;
-      });
-
-      Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text('Не знайдено в базі'),
-        backgroundColor: Colors.redAccent,
-      ));
-
-      return;
-    }
-
-    Profile profile = Profile.fromMap(jsonData["application"]);
-
-    if (profile.photo != '') {
-      final documentDirectory = await getApplicationDocumentsDirectory();
-      File file = new File(join(documentDirectory.path, profile.photo));
-
-      var base64Photo = profile.photoData;
-      base64Photo = base64Photo.replaceAll("\r", "");
-      base64Photo = base64Photo.replaceAll("\n", "");
-
-      final _bytePhoto = base64Decode(base64Photo);
-      file.writeAsBytes(_bytePhoto);
-
-      profile.photo = file.path;
-      prefs.setString(KEY_USER_PICTURE, file.path);
-    }
-
-    Profile existProfile = await DBProvider.db.getProfile(_userID);
-    if (existProfile == null) {
-      await DBProvider.db.newProfile(profile);
-    } else {
-      profile.id = existProfile.id;
-      await DBProvider.db.updateProfile(profile);
-    }
+    Profile profile = await Profile.download(_scaffoldKey);
 
     setState(() {
       if (profile != null) {
@@ -174,11 +106,6 @@ class PageProfileState extends State<PageProfile> {
       }
       isLoadingProfile = false;
     });
-
-    Scaffold.of(context).showSnackBar(SnackBar(
-      content: Text('Оновлена'),
-      backgroundColor: Colors.green,
-    ));
   }
 
   Widget _clearIconButton(TextEditingController textController) {
@@ -288,6 +215,7 @@ class PageProfileState extends State<PageProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text('Профіль'),
       ),
@@ -541,6 +469,14 @@ class PageProfileState extends State<PageProfile> {
                   'Освіта і інше:',
                   style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
                 ),
+                TextFormField(
+                  controller: _positionController,
+                  decoration: InputDecoration(
+                    icon: Icon(Icons.work),
+                    hintText: 'ваша посада',
+                    labelText: 'Посада',
+                  ),
+                ),
                 FormField<String>(
                   builder: (FormFieldState<String> state) {
                     return InputDecorator(
@@ -604,7 +540,7 @@ class PageProfileState extends State<PageProfile> {
                       hintText: 'іноземні мови'),
                 ),
                 TextFormField(
-                  controller: _additionalEducationController,
+                  controller: _lastWorkPlaceController,
                   decoration: InputDecoration(
                       icon: Icon(FontAwesomeIcons.building),
                       labelText: 'Останнє місце роботи',
