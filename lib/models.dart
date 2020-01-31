@@ -342,6 +342,36 @@ class Timing {
         "change_date": changeDate != null ? changeDate.toIso8601String() : "",
       };
 
+  upload() async {
+    Map<String, dynamic> jsonData = this.toMap();
+
+    final prefs = await SharedPreferences.getInstance();
+
+    final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _serverPassord = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+    final String _serverDB = prefs.getString(KEY_SERVER_DATABASE) ?? "";
+
+    final String url = 'http://$_serverIP/$_serverDB/hs/m/timing';
+
+    final credentials = '$_serverUser:$_serverPassord';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+      HttpHeaders.contentTypeHeader: "application/json",
+    };
+
+    Response response = await post(
+      url,
+      headers: headers,
+      body: json.encode(jsonData),
+    );
+
+    if (response.statusCode == 200) {}
+  }
+
   static void closePastOperation() async {
     List<Timing> openOperation = await DBProvider.db
         .getTimingOpenPastOperation(Utility.beginningOfDay(DateTime.now()));

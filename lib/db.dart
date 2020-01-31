@@ -237,6 +237,7 @@ class DBProvider {
           "",
           DateTime.now().toIso8601String(),
         ]);
+    timing.id = raw;
     return raw;
   }
 

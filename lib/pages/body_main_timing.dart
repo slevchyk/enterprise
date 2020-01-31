@@ -137,12 +137,14 @@ class _TimingMainState extends State<TimingMain> {
       );
 
       await DBProvider.db.newTiming(timing);
+      timing.upload();
     } else if (timingOperation == '') {
       List<Timing> listTiming =
           await DBProvider.db.getTimingOpenOperation(dayBegin, userID);
       for (var timing in listTiming) {
         timing.endDate = dateTimeNow;
         await DBProvider.db.updateTiming(timing);
+        timing.upload();
       }
 
       listTiming = await DBProvider.db.getTimingOpenWorkday(dayBegin, userID);
@@ -150,6 +152,7 @@ class _TimingMainState extends State<TimingMain> {
         timing.endDate = dateTimeNow;
         timing.endDate = dateTimeNow;
         await DBProvider.db.updateTiming(timing);
+        timing.upload();
       }
     } else if (timingOperation == TIMING_STATUS_JOB ||
         timingOperation == TIMING_STATUS_LANCH ||
@@ -160,6 +163,7 @@ class _TimingMainState extends State<TimingMain> {
       for (var timing in listTiming) {
         timing.endDate = dateTimeNow;
         await DBProvider.db.updateTiming(timing);
+        timing.upload();
       }
 
       Timing timing = Timing(
@@ -169,6 +173,7 @@ class _TimingMainState extends State<TimingMain> {
           startDate: dateTimeNow);
 
       await DBProvider.db.newTiming(timing);
+      timing.upload();
     } else if (timingOperation == TIMING_STATUS_STOP) {
       List<Timing> listTiming =
           await DBProvider.db.getTimingOpenOperation(dayBegin, userID);
@@ -176,6 +181,7 @@ class _TimingMainState extends State<TimingMain> {
       for (var timing in listTiming) {
         timing.endDate = dateTimeNow;
         await DBProvider.db.updateTiming(timing);
+        timing.upload();
       }
     }
 
