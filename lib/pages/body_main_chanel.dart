@@ -4,10 +4,12 @@ import 'dart:io';
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/db.dart';
 import 'package:enterprise/models.dart';
+import 'package:enterprise/pages/page_main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../models.dart';
 
@@ -79,9 +81,15 @@ class BodyChanelState extends State<BodyChanel> {
   }
 
   Future<List<Chanel>> chaneles;
+  Future<List<Chanel>> chaneles_archive;
+  Future<List<Chanel>> chaneles_star;
+  Future<List<Chanel>> chaneles_delete;
 
   void initState() {
     chaneles = getChaneles();
+    chaneles_archive = getArchive();
+    chaneles_star = getStarted();
+    chaneles_delete = getDelete();
   }
 
   Future<List<Chanel>> getChaneles() async {
@@ -91,60 +99,215 @@ class BodyChanelState extends State<BodyChanel> {
     return DBProvider.db.getUserChanel(userID);
   }
 
+  Future<List<Chanel>> getStarted() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String userID = prefs.getString(KEY_USER_ID) ?? "";
+    return DBProvider.db.getStarted(userID);
+  }
+
+  Future<List<Chanel>> getDelete() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String userID = prefs.getString(KEY_USER_ID) ?? "";
+    return DBProvider.db.getDelete(userID);
+  }
+
+  Future<List<Chanel>> getArchive() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String userID = prefs.getString(KEY_USER_ID) ?? "";
+    return DBProvider.db.getArchive(userID);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Канал'),
-      ),
-//      drawer: AppDrawer(widget.profile),
-      body: Container(
-//        color: Colors.blueGrey,
-          child: FutureBuilder(
-        future: chaneles,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            case ConnectionState.waiting:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            case ConnectionState.active:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            case ConnectionState.done:
-              var listChaneles = snapshot.data;
-              return ListView.separated(
-                itemCount: listChaneles.length,
-                separatorBuilder: (context, index) => Divider(),
-                itemBuilder: (BuildContext context, int index) {
-                  Chanel chanel = listChaneles[index];
-                  return ListTile(
-                    title: Text(chanel.title),
-                    isThreeLine: true,
-                    leading: CircleAvatar(
-                      child: Text('1C'),
-                    ),
-                    subtitle: Text(
-                      chanel.news,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  );
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Канал'),
+          bottom: TabBar(
+            tabs: <Widget>[
+              Tab(text: "New"),
+              Tab(text: "Archive"),
+            ],
+          ),
+        ),
+        drawer: AppDrawer(widget.profile),
+        body: TabBarView(
+          children: [
+            Container(
+              child: FutureBuilder(
+                future: chaneles,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.waiting:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.active:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.done:
+                      var listChaneles = snapshot.data;
+                      return Center(
+                        child: ListView.separated(
+                          itemCount: listChaneles.length,
+                          separatorBuilder: (context, index) => Divider(),
+                          itemBuilder: (BuildContext context, int index) {
+                            Chanel chanel = listChaneles[index];
+                            return Slidable(
+                              delegate: new SlidableDrawerDelegate(),
+                              actionExtentRatio: 0.25,
+                              actions: <Widget>[
+                                new IconSlideAction(
+                                  caption: 'Archive',
+                                  color: Colors.blue,
+                                  icon: Icons.archive,
+                                  onTap: () {
+                                    setState(() {
+                                      DBProvider.db.updateArchive(
+                                          listChaneles[index].id);
+                                    });
+                                  },
+                                ),
+                              ],
+                              secondaryActions: <Widget>[
+                                new IconSlideAction(
+                                  caption: 'Star',
+                                  color: Colors.yellow,
+                                  icon: Icons.star_border,
+                                  onTap: () => {
+                                    setState(() {
+                                      DBProvider.db
+                                          .updateStar(listChaneles[index].id);
+                                    })
+                                  },
+                                ),
+                                new IconSlideAction(
+                                  caption: 'Delete',
+                                  color: Colors.red,
+                                  icon: Icons.delete,
+                                  onTap: () => {
+                                    setState(() {
+                                      DBProvider.db
+                                          .updateDelete(listChaneles[index].id);
+                                    })
+                                  },
+                                ),
+                              ],
+                              child: ListTile(
+                                title: Text(chanel.title),
+                                isThreeLine: true,
+                                leading: CircleAvatar(
+                                  backgroundColor:
+                                      Theme.of(context).primaryColor,
+                                  child: Text('1C'),
+                                ),
+                                subtitle: Text(
+                                  chanel.news,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                  }
+                  ;
                 },
-              );
-          }
-        },
-      )),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _updateChanel();
-        },
-        child: Icon(Icons.update),
+              ),
+            ),
+            Container(
+              child: FutureBuilder(
+                future: chaneles_archive,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.waiting:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.active:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.done:
+                      var listChaneles = snapshot.data;
+                      return Center(
+                        child: ListView.separated(
+                          itemCount: listChaneles.length,
+                          separatorBuilder: (context, index) => Divider(),
+                          itemBuilder: (BuildContext context, int index) {
+                            Chanel chanel = listChaneles[index];
+                            return Slidable(
+                              delegate: new SlidableDrawerDelegate(),
+                              actionExtentRatio: 0.25,
+                              secondaryActions: <Widget>[
+                                new IconSlideAction(
+                                  caption: 'Star',
+                                  color: Colors.yellow,
+                                  icon: Icons.star_border,
+                                  onTap: () => {
+                                    setState(() {
+                                      DBProvider.db
+                                          .updateStar(listChaneles[index].id);
+                                    })
+                                  },
+                                ),
+                                new IconSlideAction(
+                                  caption: 'Delete',
+                                  color: Colors.red,
+                                  icon: Icons.delete,
+                                  onTap: () => {
+                                    setState(() {
+                                      DBProvider.db
+                                          .updateDelete(listChaneles[index].id);
+                                    })
+                                  },
+                                ),
+                              ],
+                              child: ListTile(
+                                title: Text(chanel.title),
+                                isThreeLine: true,
+                                leading: CircleAvatar(
+                                  backgroundColor:
+                                      Theme.of(context).primaryColor,
+                                  child: Text('1C'),
+                                ),
+                                subtitle: Text(
+                                  chanel.news,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                  }
+                  ;
+                },
+              ),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            _updateChanel();
+          },
+          child: Icon(Icons.update),
+        ),
       ),
     );
   }
