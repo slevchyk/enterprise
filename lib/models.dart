@@ -468,7 +468,10 @@ class Chanel {
   String userID;
   String title;
   String news;
-  String date;
+  DateTime date;
+  DateTime star;
+  DateTime archive;
+  DateTime delete_at;
 
   Chanel({
     this.id,
@@ -476,13 +479,22 @@ class Chanel {
     this.title,
     this.news,
     this.date,
+    this.star,
+    this.archive,
+    this.delete_at,
   });
 
   factory Chanel.fromMap(Map<String, dynamic> json) => new Chanel(
         id: json["id"],
         title: json["title"],
         news: json["news"],
-        date: json["date"],
+        date: json["date"] != null ? DateTime.parse(json["date"]) : null,
+        star: json["star"] != null ? DateTime.parse(json["star"]) : null,
+        archive:
+            json["archive"] != null ? DateTime.parse(json["archive"]) : null,
+        delete_at: json["delete_at"] != null
+            ? DateTime.parse(json["delete_at"])
+            : null,
       );
 
   Map<String, dynamic> toMap() => {
@@ -490,7 +502,10 @@ class Chanel {
         "user_id": userID,
         "title": title,
         "news": news,
-        "date": date,
+        "date": date != null ? date.toIso8601String() : null,
+        "star": star != null ? star.toIso8601String() : null,
+        "archive": archive != null ? archive.toIso8601String() : null,
+        "delete_at": delete_at != null ? delete_at.toIso8601String() : null,
       };
 }
 

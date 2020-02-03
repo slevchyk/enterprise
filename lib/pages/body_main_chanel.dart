@@ -34,7 +34,7 @@ class BodyChanelState extends State<BodyChanel> {
 
     final String _userID = prefs.get(KEY_USER_ID);
 
-    final String url = 'http://$_ip/$_db/hs/m/chanel?infocard=$_userID';
+    final String url = 'http://$_ip/$_db/hs/m/chanel?userid=$_userID';
 
     final credentials = '$_user:$_password';
     final stringToBase64 = utf8.fuse(base64);
@@ -167,20 +167,22 @@ class BodyChanelState extends State<BodyChanel> {
                               actionExtentRatio: 0.25,
                               actions: <Widget>[
                                 new IconSlideAction(
-                                  caption: 'Archive',
+                                  caption: 'Архівувати',
                                   color: Colors.blue,
                                   icon: Icons.archive,
                                   onTap: () {
+                                    DBProvider.db
+                                        .updateArchive(listChaneles[index].id);
                                     setState(() {
-                                      DBProvider.db.updateArchive(
-                                          listChaneles[index].id);
+                                      chaneles = getChaneles();
+                                      chaneles_archive = getArchive();
                                     });
                                   },
                                 ),
                               ],
                               secondaryActions: <Widget>[
                                 new IconSlideAction(
-                                  caption: 'Star',
+                                  caption: 'Важливі',
                                   color: Colors.yellow,
                                   icon: Icons.star_border,
                                   onTap: () => {
@@ -191,7 +193,7 @@ class BodyChanelState extends State<BodyChanel> {
                                   },
                                 ),
                                 new IconSlideAction(
-                                  caption: 'Delete',
+                                  caption: 'Видалити',
                                   color: Colors.red,
                                   icon: Icons.delete,
                                   onTap: () => {
@@ -253,9 +255,24 @@ class BodyChanelState extends State<BodyChanel> {
                             return Slidable(
                               delegate: new SlidableDrawerDelegate(),
                               actionExtentRatio: 0.25,
+                              actions: <Widget>[
+                                new IconSlideAction(
+                                  caption: 'Розархівувати',
+                                  color: Colors.blue,
+                                  icon: Icons.archive,
+                                  onTap: () {
+                                    DBProvider.db
+                                        .updateUnread(listChaneles[index].id);
+                                    setState(() {
+                                      chaneles = getChaneles();
+                                      chaneles_archive = getArchive();
+                                    });
+                                  },
+                                ),
+                              ],
                               secondaryActions: <Widget>[
                                 new IconSlideAction(
-                                  caption: 'Star',
+                                  caption: 'Важливі',
                                   color: Colors.yellow,
                                   icon: Icons.star_border,
                                   onTap: () => {
@@ -266,7 +283,7 @@ class BodyChanelState extends State<BodyChanel> {
                                   },
                                 ),
                                 new IconSlideAction(
-                                  caption: 'Delete',
+                                  caption: 'Видалити',
                                   color: Colors.red,
                                   icon: Icons.delete,
                                   onTap: () => {

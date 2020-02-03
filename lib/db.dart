@@ -94,7 +94,7 @@ class DBProvider {
           'date TEXT,'
           'star TEXT,'
           'archive TEXT,'
-          'delete TEXT'
+          'delete_at TEXT'
           ')');
 //      await db.execute('CREATE TRIGGER log_timing_after_update'
 //          'AFTER UPDATE ON timing'
@@ -438,18 +438,18 @@ class DBProvider {
         'news,'
         'star,'
         'archive,'
-        'delete'
+        'delete_at'
         ')'
-        'VALUES (?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?)',
         [
           chanel.id,
           chanel.userID,
           chanel.title,
-          chanel.date,
+          chanel.date != null ? chanel.date.toIso8601String() : null,
           chanel.news,
-          chanel.star.toIso8601String(),
-          chanel.archive.toIso8601String(),
-          chanel.delete.toIso8601String(),
+          chanel.star != null ? chanel.star.toIso8601String() : null,
+          chanel.archive != null ? chanel.archive.toIso8601String() : null,
+          chanel.delete_at != null ? chanel.delete_at.toIso8601String() : null,
         ]);
     return raw;
   }
@@ -475,26 +475,33 @@ class DBProvider {
     return res;
   }
 
-  updateArchive(Chanel chanel) async {
+  updateArchive(int id) async {
     final db = await database;
     var res = await db.update(
         "chanel", {"archive": DateTime.now().toIso8601String()},
-        where: "id = ?", whereArgs: [chanel.id]);
+        where: "id = ?", whereArgs: [id]);
     return res;
   }
 
-  updateDelete(Chanel chanel) async {
+  updateUnread(int id) async {
+    final db = await database;
+    var res = await db.update("chanel", {"archive": null},
+        where: "id = ?", whereArgs: [id]);
+    return res;
+  }
+
+  updateDelete(int id) async {
     final db = await database;
     var res = await db.update(
-        "chanel", {"delete": DateTime.now().toIso8601String()},
-        where: "id = ?", whereArgs: [chanel.id]);
+        "chanel", {"delete_at": DateTime.now().toIso8601String()},
+        where: "id = ?", whereArgs: [id]);
     return res;
   }
 
   Future<List<Chanel>> getUserChanel(String userID) async {
     final db = await database;
     var res = await db.query("chanel",
-        where: "user_id = ? and delete is null and archive is null",
+        where: "user_id = ? and delete_at is null and archive is null",
         whereArgs: [userID]);
 
     List<Chanel> list =
@@ -515,7 +522,7 @@ class DBProvider {
   Future<List<Chanel>> getDelete(String userID) async {
     final db = await database;
     var res = await db.query("chanel",
-        where: "user_id = ? and delete is not null", whereArgs: [userID]);
+        where: "user_id = ? and delete_at is not null", whereArgs: [userID]);
 
     List<Chanel> list =
         res.isNotEmpty ? res.map((c) => Chanel.fromMap(c)).toList() : [];
@@ -525,7 +532,7 @@ class DBProvider {
   Future<List<Chanel>> getArchive(String userID) async {
     final db = await database;
     var res = await db.query("chanel",
-        where: "user_id = ? and archive is not null and delete is null",
+        where: "user_id = ? and archive is not null and delete_at is null",
         whereArgs: [userID]);
 
     List<Chanel> list =
