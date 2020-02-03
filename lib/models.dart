@@ -1,8 +1,13 @@
 import 'dart:convert';
-
+import 'dart:io';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/db.dart';
-import 'package:flutter/material.dart';
+import 'package:enterprise/utils.dart';
+import 'package:http/http.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Profile profileFromJson(String str) {
@@ -10,18 +15,19 @@ Profile profileFromJson(String str) {
   return Profile.fromMap(jsonData);
 }
 
-Profile profileFromJsonApi(String str) {
-  final jsonData = json.decode(str);
-  return Profile.fromMap(jsonData["application"]);
-}
+//Profile profileFromJsonApi(String str) {
+//  final jsonData = json.decode(str);
+//  return Profile.fromMap(jsonData["application"]);
+//}
 
-String profiletToJson(Profile data) {
-  final dyn = data.toMap();
-  return json.encode(dyn);
-}
+//String profiletToJson(Profile data) {
+//  final dyn = data.toMap();
+//  return json.encode(dyn);
+//}
 
 class Profile {
   int id;
+  String uuid;
   String firstName;
   String lastName;
   String middleName;
@@ -30,21 +36,29 @@ class Profile {
   String email;
   String photo;
   String photoData;
+  String sex;
   bool blocked;
-  Passport passport;
+  String passportType;
+  String passportSeries;
+  String passportNumber;
+  String passportIssued;
+  String passportDate;
+  String passportExpiry;
   String civilStatus;
   String children;
-  String education;
+  String position;
+  int education;
   String specialty;
   String additionalEducation;
   String lastWorkPlace;
   String skills;
   String languages;
-  bool disability;
-  bool pensioner;
+  String disability;
+  String pensioner;
 
   Profile(
       {this.id,
+      this.uuid,
       this.firstName,
       this.lastName,
       this.middleName,
@@ -53,10 +67,17 @@ class Profile {
       this.email,
       this.photo,
       this.photoData,
+      this.sex,
       this.blocked,
-      this.passport,
+      this.passportType,
+      this.passportSeries,
+      this.passportNumber,
+      this.passportIssued,
+      this.passportDate,
+      this.passportExpiry,
       this.civilStatus,
       this.children,
+      this.position,
       this.education,
       this.specialty,
       this.additionalEducation,
@@ -68,6 +89,7 @@ class Profile {
 
   factory Profile.fromMap(Map<String, dynamic> json) => new Profile(
         id: json["id"],
+        uuid: json["uuid"],
         firstName: json["first_name"],
         lastName: json["last_name"],
         middleName: json["middle_name"],
@@ -76,11 +98,18 @@ class Profile {
         email: json["email"],
         photo: json["photo_name"],
         photoData: json["photo_data"],
+        sex: json["sex"],
         blocked: json["blocked"] == 1,
-        passport: Passport.fromMap(json["passport"]),
+        passportType: json["passport_type"],
+        passportSeries: json["passport_series"],
+        passportNumber: json["passport_number"],
+        passportIssued: json["passport_issued"],
+        passportDate: json["passport_date"],
+        passportExpiry: json["passport_expiry"],
         civilStatus: json["civil_status"],
         children: json["children"],
-        education: json['education'],
+        position: json["position"],
+        education: int.parse(json['education']),
         specialty: json['specialty'],
         additionalEducation: json['additional_education'],
         lastWorkPlace: json["last_work_place"],
@@ -92,6 +121,7 @@ class Profile {
 
   factory Profile.fromDB(Map<String, dynamic> json) => new Profile(
         id: json["id"],
+        uuid: json["uuid"],
         firstName: json["first_name"],
         lastName: json["last_name"],
         middleName: json["middle_name"],
@@ -99,11 +129,17 @@ class Profile {
         itn: json["itn"],
         email: json["email"],
         photo: json["photo"],
-        photoData: json["photo_data"],
+        sex: json["sex"],
         blocked: json["blocked"] == 1,
-        passport: Passport.fromDB(json),
+        passportType: json["passport_type"],
+        passportSeries: json["passport_series"],
+        passportNumber: json["passport_number"],
+        passportIssued: json["passport_issued"],
+        passportDate: json["passport_date"],
+        passportExpiry: json["passport_expiry"],
         civilStatus: json["civil_status"],
         children: json["children"],
+        position: json["position"],
         education: json['education'],
         specialty: json['specialty'],
         additionalEducation: json['additional_education'],
@@ -116,6 +152,7 @@ class Profile {
 
   Map<String, dynamic> toMap() => {
         "id": id,
+        "uuid": uuid,
         "first_name": firstName,
         "last_name": lastName,
         "middle_name": middleName,
@@ -124,11 +161,18 @@ class Profile {
         "email": email,
         "photo": photo,
         "photo_data": photoData,
+        "sex": sex,
         "blocked": blocked,
-        "passport": passport.toMap(),
+        "passport_type": passportType,
+        "passport_series": passportSeries,
+        "passport_number": passportNumber,
+        "passport_issued": passportIssued,
+        "passport_date": passportDate,
+        "passport_expiry": passportExpiry,
         "civil_status": civilStatus,
         "children": children,
-        "ducation": education,
+        "position": position,
+        "education": education,
         "specialty": specialty,
         "additional_education": additionalEducation,
         "last_work_place": lastWorkPlace,
@@ -137,98 +181,251 @@ class Profile {
         "disability": disability,
         "pensioner": pensioner,
       };
-}
 
-class Passport {
-  String series;
-  String number;
-  String issued;
-  String date;
-
-  Passport({
-    this.series,
-    this.number,
-    this.issued,
-    this.date,
-  });
-
-  factory Passport.fromMap(Map<String, dynamic> json) => new Passport(
-        series: json["series"],
-        number: json["number"],
-        issued: json["issued"],
-        date: json["date"],
-      );
-
-  factory Passport.fromDB(Map<String, dynamic> json) => new Passport(
-        series: json["passport_series"],
-        number: json["passport_number"],
-        issued: json["passport_issued"],
-        date: json["passport_date"],
-      );
-
-  Map<String, dynamic> toMap() => {
-        "series": series,
-        "number": number,
-        "issued": issued,
-        "date": date,
+  Map<String, dynamic> toDB() => {
+        "id": id,
+        "uuid": uuid,
+        "first_name": firstName,
+        "last_name": lastName,
+        "middle_name": middleName,
+        "phone": phone,
+        "itn": itn,
+        "email": email,
+        "photo": photo,
+        "sex": sex,
+        "blocked": blocked,
+        "passport_type": passportType,
+        "passport_series": passportSeries,
+        "passport_number": passportNumber,
+        "passport_issued": passportIssued,
+        "passport_date": passportDate,
+        "passport_expiry": passportExpiry,
+        "civil_status": civilStatus,
+        "children": children,
+        "position": position,
+        "education": education,
+        "specialty": specialty,
+        "additional_education": additionalEducation,
+        "last_work_place": lastWorkPlace,
+        "skills": skills,
+        "languages": languages,
+        "disability": disability,
+        "pensioner": pensioner,
       };
+
+  static Future<Profile> download(GlobalKey<ScaffoldState> _scaffoldKey) async {
+    Profile profile;
+
+    final prefs = await SharedPreferences.getInstance();
+
+    final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _serverPassord = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+    final String _serverDB = prefs.getString(KEY_SERVER_DATABASE) ?? "";
+
+    final String _userPhone = prefs.get(KEY_USER_PHONE);
+    final String _userPin = prefs.get(KEY_USER_PIN);
+
+    final String url =
+        'http://$_serverIP/$_serverDB/hs/m/profile?phone=$_userPhone&pin=$_userPin';
+
+    final credentials = '$_serverUser:$_serverPassord';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+    };
+
+    Response response = await get(url, headers: headers);
+
+    int statusCode = response.statusCode;
+
+    if (statusCode != 200) {
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('не вдалось з\'єднатись із сервером'),
+        backgroundColor: Colors.redAccent,
+      ));
+      return profile;
+    }
+
+    String body = utf8.decode(response.bodyBytes);
+
+    var jsonData = json.decode(body);
+
+    if (jsonData['status'] != 200) {
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('обліковий запис не знайдено'),
+        backgroundColor: Colors.redAccent,
+      ));
+      return profile;
+    }
+
+    profile = Profile.fromMap(jsonData["application"]);
+
+    if (profile.photo != '') {
+      final documentDirectory = await getApplicationDocumentsDirectory();
+      File file = new File(join(documentDirectory.path, profile.photo));
+
+      var base64Photo = profile.photoData;
+      base64Photo = base64Photo.replaceAll("\r", "");
+      base64Photo = base64Photo.replaceAll("\n", "");
+
+      final _bytePhoto = base64Decode(base64Photo);
+      file.writeAsBytes(_bytePhoto);
+
+      profile.photo = file.path;
+      prefs.setString(KEY_USER_PICTURE, file.path);
+    }
+
+    Profile existProfile = await DBProvider.db.getProfile(profile.uuid);
+    if (existProfile == null) {
+      await DBProvider.db.newProfile(profile);
+    } else {
+      profile.id = existProfile.id;
+      await DBProvider.db.updateProfile(profile);
+    }
+
+    if (profile != null) {
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('ваш обліовий запис оновлено'),
+        backgroundColor: Colors.green,
+      ));
+    } else {
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('не вдалось поновити обліковий запис'),
+        backgroundColor: Colors.green,
+      ));
+    }
+
+    return profile;
+  }
 }
 
 class Timing {
   int id;
+  String extID;
   String userID;
   DateTime date;
   String operation;
-  DateTime startDate;
-  DateTime endDate;
-  DateTime changeDate;
+  DateTime startedAt;
+  DateTime endedAt;
   double duration;
+  bool toUpload;
+  DateTime createdAt;
+  DateTime updatedAt;
+  DateTime deletedAt;
 
   Timing({
     this.id,
+    this.extID,
     this.userID,
     this.date,
     this.operation,
-    this.startDate,
-    this.endDate,
-    this.changeDate,
+    this.startedAt,
+    this.endedAt,
     this.duration,
+    this.toUpload,
+    this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
   });
 
   factory Timing.fromMap(Map<String, dynamic> json) => new Timing(
         id: json["id"],
+        extID: json["ext_id"],
         userID: json["user_id"],
-        date: json["date"] != "" ? DateTime.parse(json["date"]) : null,
+        date: json["date"] != null ? DateTime.parse(json["date"]) : null,
         operation: json["operation"],
-        startDate: json["start_date"] != ""
-            ? DateTime.parse(json["start_date"])
+        startedAt: json["started_at"] != null
+            ? DateTime.parse(json["started_at"])
             : null,
-        endDate:
-            json["end_date"] != "" ? DateTime.parse(json["end_date"]) : null,
-        changeDate: json["change_date"] != ""
-            ? DateTime.parse(json["change_date"])
-            : "",
+        endedAt:
+            json["ended_at"] != null ? DateTime.parse(json["ended_at"]) : null,
+        createdAt: json["created_at"] != null
+            ? DateTime.parse(json["created_at"])
+            : null,
+        updatedAt: json["updated_at"] != null
+            ? DateTime.parse(json["updated_at"])
+            : null,
+        deletedAt: json["deleted_at"] != null
+            ? DateTime.parse(json["deleted_at"])
+            : null,
       );
 
   Map<String, dynamic> toMap() => {
         "id": id,
         "user_id": userID,
-        "date": date != null ? date.toIso8601String() : "",
+        "date": date != null ? date.toIso8601String() : null,
         "operation": operation,
-        "start_date": startDate != null ? startDate.toIso8601String() : "",
-        "end_date": endDate != null ? endDate.toIso8601String() : "",
-        "change_date": changeDate != null ? changeDate.toIso8601String() : "",
+        "started_at": startedAt != null ? startedAt.toIso8601String() : null,
+        "ended_at": endedAt != null ? endedAt.toIso8601String() : null,
+        "created_at": createdAt != null ? createdAt.toIso8601String() : null,
+        "updated_at": updatedAt != null ? updatedAt.toIso8601String() : null,
+        "deleted_at": deletedAt != null ? deletedAt.toIso8601String() : null,
+        "ext_id": extID,
       };
 
+  static upload(userID) async {
+    List<Timing> toUpload = await DBProvider.db.getTimingToUpload(userID);
+
+    Map<String, List<Map<String, dynamic>>> jsonData;
+    List<Map<String, dynamic>> rows = [];
+
+    for (var _timing in toUpload) {
+      rows.add(_timing.toMap());
+    }
+
+    jsonData = {'timing': rows};
+
+    final prefs = await SharedPreferences.getInstance();
+
+    final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _serverPassord = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+    final String _serverDB = prefs.getString(KEY_SERVER_DATABASE) ?? "";
+
+    final String url = 'http://$_serverIP/$_serverDB/hs/m/timing';
+
+    final credentials = '$_serverUser:$_serverPassord';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+      HttpHeaders.contentTypeHeader: "application/json",
+    };
+
+    Response response = await post(
+      url,
+      headers: headers,
+      body: json.encode(jsonData),
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonData = json.decode(response.body);
+
+      for (var _timing in jsonData['precessed']) {
+        DBProvider.db.updateTimingProcessed(_timing['id'], _timing['ext_id']);
+      }
+    }
+  }
+
   static void closePastOperation() async {
-    List<Timing> openOperation =
-        await DBProvider.db.getTimingOpenAllByDay(DateTime.now());
+    List<Timing> openOperation = await DBProvider.db
+        .getTimingOpenPastOperation(Utility.beginningOfDay(DateTime.now()));
 
-    for (var timimg in openOperation) {
-      timimg.endDate = new DateTime(timimg.startDate.year,
-          timimg.startDate.month, timimg.startDate.day, 18, 00, 00);
+    for (var _timimg in openOperation) {
+      DateTime endDate = new DateTime(_timimg.startedAt.year,
+          _timimg.startedAt.month, _timimg.startedAt.day, 18, 00, 00);
 
-      DBProvider.db.endTimingOperation(timimg);
+      if (endDate.millisecondsSinceEpoch >
+          _timimg.startedAt.millisecondsSinceEpoch) {
+        endDate = _timimg.startedAt;
+      }
+
+      _timimg.endedAt = endDate;
+      DBProvider.db.updateTiming(_timimg);
     }
   }
 
@@ -264,10 +461,6 @@ class Timing {
 //    return listOperation;
 //  }
 
-  static void clearCurrentOperation() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString(KEY_CURRENT_STATUS, "");
-  }
 }
 
 class Chanel {

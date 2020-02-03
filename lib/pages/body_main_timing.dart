@@ -1,8 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+//import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/db.dart';
 import 'package:enterprise/pages/page_main.dart';
+import 'package:enterprise/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -51,30 +52,23 @@ class _TimingMainState extends State<TimingMain> {
     final prefs = await SharedPreferences.getInstance();
     String _userID = prefs.getString(KEY_USER_ID) ?? "";
 
-    operations = getUserTiming(_userID);
-    listChartData = createChartData(operations);
+    _setCurrentStatus(_userID);
+    operations = _getOperations(_userID);
+    listChartData = _createChartData(operations);
 
     setState(() {
       userID = _userID;
     });
   }
 
-  Future<List<Timing>> getUserTiming(String userID) async {
+  Future<List<Timing>> _getOperations(String userID) async {
     final dateTimeNow = DateTime.now();
-    final beginningDay =
-        new DateTime(dateTimeNow.year, dateTimeNow.month, dateTimeNow.day);
-
-//    if (currentTimeStatus.isEmpty) {
-//      String _currentTimeStatus = prefs.getString(KEY_CURRENT_STATUS) ?? "";
-//      setState(() {
-//        currentTimeStatus = _currentTimeStatus;
-//      });
-//    }
+    final beginningDay = Utility.beginningOfDay(dateTimeNow);
 
     return await DBProvider.db.getUserTiming(beginningDay, userID);
   }
 
-  Future<List<charts.Series<ChartData, String>>> createChartData(
+  Future<List<charts.Series<ChartData, String>>> _createChartData(
       Future<List<Timing>> listTiming) async {
     List<Timing> _listTiming = await listTiming;
     List<ChartData> _chartData = [];
@@ -85,13 +79,13 @@ class _TimingMainState extends State<TimingMain> {
         continue;
       }
 
-      DateTime endDate = _timing.endDate;
+      DateTime endDate = _timing.endedAt;
       if (endDate == null) {
         endDate = DateTime.now();
       }
 
       double duration = (endDate.millisecondsSinceEpoch -
-              _timing.startDate.millisecondsSinceEpoch) /
+              _timing.startedAt.millisecondsSinceEpoch) /
           3600000;
       timingHours += duration;
 
@@ -106,7 +100,7 @@ class _TimingMainState extends State<TimingMain> {
     }
 
     for (var _record in _chartData) {
-      _record.title = operationAlias[_record.title] +
+      _record.title = OPERATION_ALIAS[_record.title] +
           ' - ' +
           _record.value.toStringAsFixed(2) +
           ' год';
@@ -121,7 +115,7 @@ class _TimingMainState extends State<TimingMain> {
         measureFn: (ChartData record, _) => record.value,
         data: _chartData,
         // Set a label accessor to control the text of the arc label.
-        labelAccessorFn: (ChartData row, _) => '${row.title}: ${row.value}',
+        labelAccessorFn: (ChartData row, _) => '${row.title}',
       )
     ];
   }
@@ -139,7 +133,7 @@ class _TimingMainState extends State<TimingMain> {
         date: dayBegin,
         userID: userID,
         operation: timingOperation,
-        startDate: dateTimeNow,
+        startedAt: dateTimeNow,
       );
 
       await DBProvider.db.newTiming(timing);
@@ -147,15 +141,15 @@ class _TimingMainState extends State<TimingMain> {
       List<Timing> listTiming =
           await DBProvider.db.getTimingOpenOperation(dayBegin, userID);
       for (var timing in listTiming) {
-        timing.endDate = dateTimeNow;
-        await DBProvider.db.endTimingOperation(timing);
+        timing.endedAt = dateTimeNow;
+        await DBProvider.db.updateTiming(timing);
       }
 
       listTiming = await DBProvider.db.getTimingOpenWorkday(dayBegin, userID);
       for (var timing in listTiming) {
-        timing.endDate = dateTimeNow;
-        timing.endDate = dateTimeNow;
-        await DBProvider.db.endTimingOperation(timing);
+        timing.endedAt = dateTimeNow;
+        timing.endedAt = dateTimeNow;
+        await DBProvider.db.updateTiming(timing);
       }
     } else if (timingOperation == TIMING_STATUS_JOB ||
         timingOperation == TIMING_STATUS_LANCH ||
@@ -164,15 +158,15 @@ class _TimingMainState extends State<TimingMain> {
           await DBProvider.db.getTimingOpenOperation(dayBegin, userID);
 
       for (var timing in listTiming) {
-        timing.endDate = dateTimeNow;
-        await DBProvider.db.endTimingOperation(timing);
+        timing.endedAt = dateTimeNow;
+        await DBProvider.db.updateTiming(timing);
       }
 
       Timing timing = Timing(
           date: dayBegin,
           userID: userID,
           operation: timingOperation,
-          startDate: dateTimeNow);
+          startedAt: dateTimeNow);
 
       await DBProvider.db.newTiming(timing);
     } else if (timingOperation == TIMING_STATUS_STOP) {
@@ -180,32 +174,24 @@ class _TimingMainState extends State<TimingMain> {
           await DBProvider.db.getTimingOpenOperation(dayBegin, userID);
 
       for (var timing in listTiming) {
-        timing.endDate = dateTimeNow;
-        await DBProvider.db.endTimingOperation(timing);
+        timing.endedAt = dateTimeNow;
+        await DBProvider.db.updateTiming(timing);
       }
     }
 
-    operations = getUserTiming(userID);
-    listChartData = createChartData(operations);
+    Timing.upload(userID);
 
-    prefs.setString(KEY_CURRENT_STATUS, timingOperation);
-    setState(() {
-      currentTimeStatus = timingOperation;
-    });
+    _setCurrentStatus(userID);
+    operations = _getOperations(userID);
+    listChartData = _createChartData(operations);
   }
 
-  Map<String, String> operationAlias = {
-    TIMING_STATUS_WORKDAY: "Турнікет",
-    TIMING_STATUS_JOB: "Робота",
-    TIMING_STATUS_LANCH: "Обід",
-    TIMING_STATUS_BREAK: "Перерва",
-  };
-
-  String formatISO8601DataToTime(String strDataTime) {
-    if (strDataTime.isEmpty) return "";
-
-    DateTime _dateTime = DateTime.parse(strDataTime);
-    return formatDate(_dateTime, [hh, ':', nn, ':', ss]);
+  void _setCurrentStatus(userID) async {
+    String _currentTimeStatus =
+        await DBProvider.db.getTimingCurrentByUser(userID);
+    setState(() {
+      currentTimeStatus = _currentTimeStatus;
+    });
   }
 
   Widget rowIcon(String operation) {
@@ -236,14 +222,14 @@ class _TimingMainState extends State<TimingMain> {
             SizedBox(
               width: 10.0,
             ),
-            Text(operationAlias[timing.operation]),
+            Text(OPERATION_ALIAS[timing.operation]),
           ],
         )),
-        DataCell(Text(timing.startDate != null
-            ? formatDate(timing.startDate, [hh, ':', nn, ':', ss])
+        DataCell(Text(timing.startedAt != null
+            ? formatDate(timing.startedAt, [hh, ':', nn, ':', ss])
             : "")),
-        DataCell(Text(timing.endDate != null
-            ? formatDate(timing.endDate, [hh, ':', nn, ':', ss])
+        DataCell(Text(timing.endedAt != null
+            ? formatDate(timing.endedAt, [hh, ':', nn, ':', ss])
             : "")),
       ]));
     }
@@ -316,39 +302,33 @@ class _TimingMainState extends State<TimingMain> {
                         );
                     }
                   }),
-//              background: DonutAutoLabelChart.withSampleData(),
             ),
           ),
           SliverFillRemaining(
-//            child: Center(
-//              child: Text('Center text'),
-//            ),
-            child: ListView(children: [
-              FutureBuilder(
-                  future: operations,
-                  builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    switch (snapshot.connectionState) {
-                      case ConnectionState.none:
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      case ConnectionState.waiting:
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      case ConnectionState.active:
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      case ConnectionState.done:
-                        return dataTable(snapshot.data);
-                      default:
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
-                    }
-                  }), //
-            ]),
+            child: FutureBuilder(
+                future: operations,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.waiting:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.active:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.done:
+                      return dataTable(snapshot.data);
+                    default:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                  }
+                }),
           ),
         ],
       ),
@@ -512,15 +492,6 @@ class DonutAutoLabelChart extends StatelessWidget {
 
   DonutAutoLabelChart(this.seriesList, {this.animate});
 
-  /// Creates a [PieChart] with sample data and no transition.
-  factory DonutAutoLabelChart.withSampleData() {
-    return new DonutAutoLabelChart(
-      _createSampleData(),
-      // Disable animations for image tests.
-      animate: true,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return new charts.PieChart(seriesList,
@@ -545,32 +516,4 @@ class DonutAutoLabelChart extends StatelessWidget {
             startAngle: 30,
             arcRendererDecorators: [new charts.ArcLabelDecorator()]));
   }
-
-  /// Create one series with sample hard coded data.
-  static List<charts.Series<LinearSales, String>> _createSampleData() {
-    final data = [
-      new LinearSales('рообота', 100),
-      new LinearSales('обід', 75),
-      new LinearSales('перерви', 25),
-    ];
-
-    return [
-      new charts.Series<LinearSales, String>(
-        id: 'Sales',
-        domainFn: (LinearSales sales, _) => sales.year,
-        measureFn: (LinearSales sales, _) => sales.sales,
-        data: data,
-        // Set a label accessor to control the text of the arc label.
-        labelAccessorFn: (LinearSales row, _) => '${row.year}: ${row.sales}',
-      )
-    ];
-  }
-}
-
-/// Sample linear data type.
-class LinearSales {
-  final String year;
-  final int sales;
-
-  LinearSales(this.year, this.sales);
 }

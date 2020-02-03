@@ -2,6 +2,7 @@ import 'package:date_format/date_format.dart';
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/db.dart';
 import 'package:enterprise/models.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -22,7 +23,9 @@ class PageProfileState extends State<PageProfile> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _getSettings());
   }
 
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _middleNameController = TextEditingController();
@@ -35,7 +38,15 @@ class PageProfileState extends State<PageProfile> {
   final _passportDateController = TextEditingController();
   final _civilStatusController = TextEditingController();
   final _childrenController = TextEditingController();
+  final _positionController = TextEditingController();
   final _educationController = TextEditingController();
+  final _specialtyController = TextEditingController();
+  final _additionalEducationController = TextEditingController();
+  final _lastWorkPlaceController = TextEditingController();
+  final _skillsController = TextEditingController();
+  final _languagesController = TextEditingController();
+  final _disabilityController = TextEditingController();
+  final _pensionerController = TextEditingController();
 
   bool isLoadingProfile = true;
   Profile profile;
@@ -47,13 +58,21 @@ class PageProfileState extends State<PageProfile> {
     _itnController.text = _pfl.itn;
     _phoneController.text = _pfl.phone;
     _emailController.text = _pfl.email;
-    _passportSeriesController.text = _pfl.passport.series;
-    _passportNumberController.text = _pfl.passport.number;
-    _passportIssuedController.text = _pfl.passport.issued;
-    _passportDateController.text = _pfl.passport.date;
+    _passportSeriesController.text = _pfl.passportSeries;
+    _passportNumberController.text = _pfl.passportNumber;
+    _passportIssuedController.text = _pfl.passportIssued;
+    _passportDateController.text = _pfl.passportDate;
     _civilStatusController.text = _pfl.civilStatus;
     _childrenController.text = _pfl.children;
-    _educationController.text = _pfl.education;
+    _positionController.text = _pfl.position;
+    _educationController.text = _pfl.education.toString();
+    _specialtyController.text = _pfl.specialty;
+    _additionalEducationController.text = _pfl.additionalEducation;
+    _lastWorkPlaceController.text = _pfl.lastWorkPlace;
+    _skillsController.text = _pfl.skills;
+    _languagesController.text = _pfl.languages;
+    _disabilityController.text = _pfl.disability;
+    _pensionerController.text = _pfl.pensioner;
   }
 
   _getSettings() async {
@@ -66,80 +85,27 @@ class PageProfileState extends State<PageProfile> {
       _profile = await DBProvider.db.getProfile(_userID);
     }
 
-    setState(() {
-      if (_profile != null) {
+    if (_profile != null) {
+      setState(() {
         setControllers(_profile);
-      }
+        profile = _profile;
+      });
+    }
 
-      profile = _profile;
+    setState(() {
       isLoadingProfile = false;
     });
   }
 
   _downloadProfile(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
+    Profile profile = await Profile.download(_scaffoldKey);
 
-    final String _ip = prefs.getString(KEY_SERVER_IP) ?? "";
-    final String _user = prefs.getString(KEY_SERVER_USER) ?? "";
-    final String _password = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
-    final String _db = prefs.getString(KEY_SERVER_DATABASE) ?? "";
-
-    final String _userID = prefs.get(KEY_USER_ID);
-
-    final String url =
-        'http://$_ip/$_db/hs/m/profile?infocard=$_userID&photo=true';
-
-    final credentials = '$_user:$_password';
-    final stringToBase64 = utf8.fuse(base64);
-    final encodedCredentials = stringToBase64.encode(credentials);
-
-    Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
-    };
-
-    Response response = await get(url, headers: headers);
-
-    int statusCode = response.statusCode;
-
-    if (statusCode != 200) {
-      Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text('Не вдалось отримати дані профілю'),
-        backgroundColor: Colors.redAccent,
-      ));
-      return;
-    }
-
-    String body = utf8.decode(response.bodyBytes);
-
-    Profile profile = profileFromJsonApi(body);
-
-    if (profile.photo != '') {
-      final documentDirectory = await getApplicationDocumentsDirectory();
-      File file = new File(join(documentDirectory.path, profile.photo));
-
-      var strPhoto = profile.photoData;
-      strPhoto = strPhoto.replaceAll("\r", "");
-      strPhoto = strPhoto.replaceAll("\n", "");
-
-      final _bytePhoto = base64Decode(strPhoto);
-      file.writeAsBytes(_bytePhoto);
-
-      profile.photo = file.path;
-      prefs.setString(KEY_USER_PICTURE, file.path);
-    }
-
-    await DBProvider.db.newProfile(profile);
-
-    if (profile != null) {
-      setState(() {
+    setState(() {
+      if (profile != null) {
         setControllers(profile);
-      });
-    }
-
-    Scaffold.of(context).showSnackBar(SnackBar(
-      content: Text('Оновлена'),
-      backgroundColor: Colors.green,
-    ));
+      }
+      isLoadingProfile = false;
+    });
   }
 
   Widget _clearIconButton(TextEditingController textController) {
@@ -170,11 +136,19 @@ class PageProfileState extends State<PageProfile> {
   }
 
   Map<String, String> _civilStatuses = {
-    CS_SINGLE: "Не одружений",
+    CIVIL_STATUS_SINGLE: "Не одружений",
     CIVIL_STATUS_MERRIED: "Одружений",
-    CS_DIVORCED: "Розлучений",
-    CS_WIDOWED: "Вдівець",
-    CS_OTHER: "Інше",
+    CIVIL_STATUS_DIVORCED: "Розлучений",
+    CIVIL_STATUS_WIDOWED: "Вдівець",
+    CIVIL_STATUS_OTHER: "Інше",
+  };
+
+  Map<int, String> _educations = {
+    EDUCATION_OTHER: "Інше",
+    EDUCATION_HIGHER: "Вища освіта",
+    EDUCATION_INCOMPLETE_HIGHER: "Неповна вища освіта",
+    EDUCATION_PRIMARY_VOCATIONAL: "Початкова професійна освіта",
+    EDUCATION_BASIC_GENERAL: "Основна загальна освіта",
   };
 
   List<DropdownMenuItem<String>> _getCivilStatuses() {
@@ -191,15 +165,76 @@ class PageProfileState extends State<PageProfile> {
     return _list;
   }
 
+  List<DropdownMenuItem<int>> _getEdications() {
+    List<DropdownMenuItem<int>> _list = [];
+    _educations.forEach((k, v) {
+      _list.add(
+        DropdownMenuItem<int>(
+          value: k,
+          child: Text(v),
+        ),
+      );
+    });
+
+    return _list;
+  }
+
+  Widget getUserpic(profile) {
+    if (profile == null || profile.photo == '') {
+      return CircleAvatar(
+        minRadius: 75,
+        maxRadius: 100,
+        child: Text('фото'),
+      );
+    } else {
+      return CircleAvatar(
+        minRadius: 75,
+        maxRadius: 100,
+        backgroundImage: ExactAssetImage(profile.photo),
+//        child: Image.asset(profile.photo),
+      );
+    }
+  }
+
+  _changeUserPhoto(Profile _profile) async {
+    File file = await FilePicker.getFile(
+      type: FileType.IMAGE,
+    );
+
+    final documentDirectory = await getApplicationDocumentsDirectory();
+    file.copy(documentDirectory.path);
+
+    _profile.photo = file.path;
+    await DBProvider.db.updateProfile(_profile);
+
+    setState(() {
+      profile = _profile;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text('Профіль'),
       ),
       body: ListView(
         padding: EdgeInsets.all(10.0),
         children: <Widget>[
+          Container(
+            height: isLoadingProfile ? 50 : 0,
+            child: Center(
+              child:
+                  isLoadingProfile ? CircularProgressIndicator() : SizedBox(),
+            ),
+          ),
+          FlatButton(
+            onPressed: () {
+              _changeUserPhoto(profile);
+            },
+            child: getUserpic(profile),
+          ),
           Form(
             key: _formKey,
             child: Column(
@@ -209,6 +244,7 @@ class PageProfileState extends State<PageProfile> {
                   'Основне:',
                   style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
                 ),
+//                _firstNameController
                 TextFormField(
                   controller: _firstNameController,
                   decoration: InputDecoration(
@@ -225,6 +261,7 @@ class PageProfileState extends State<PageProfile> {
                     setState(() {});
                   },
                 ),
+//                _lastNameController
                 TextFormField(
                   controller: _lastNameController,
                   decoration: InputDecoration(
@@ -260,9 +297,6 @@ class PageProfileState extends State<PageProfile> {
                   onChanged: (value) {
                     setState(() {});
                   },
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 TextFormField(
                   controller: _itnController,
@@ -315,7 +349,9 @@ class PageProfileState extends State<PageProfile> {
                   },
                   keyboardType: TextInputType.emailAddress,
                 ),
-                SizedBox(height: 10.0),
+                SizedBox(
+                  height: 25.0,
+                ),
                 Text(
                   'Паспорт:',
                   style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
@@ -384,26 +420,32 @@ class PageProfileState extends State<PageProfile> {
                     ),
                   ),
                 ),
+                SizedBox(
+                  height: 25.0,
+                ),
+                Text(
+                  'Сімейні дані:',
+                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+                ),
                 FormField<String>(
                   builder: (FormFieldState<String> state) {
                     return InputDecorator(
                       decoration: InputDecoration(
                         icon: Icon(FontAwesomeIcons.userFriends),
-                        hintText: 'оберіть із спику',
+                        hintText: 'оберіть із списку',
                         labelText: 'Сімейний стан',
-                        helperText: 'оберіть однк із значень із спику',
+                        helperText: 'оберіть одне із значень із спику',
                       ),
                       isEmpty: false,
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _civilStatusController.text.isEmpty
-                              ? CS_OTHER
+                              ? CIVIL_STATUS_OTHER
                               : _civilStatusController.text,
                           isDense: true,
                           onChanged: (String newValue) {
                             setState(() {
                               _civilStatusController.text = newValue;
-//                              state.didChange(newValue);
                             });
                           },
                           items: _getCivilStatuses(),
@@ -418,8 +460,131 @@ class PageProfileState extends State<PageProfile> {
                       icon: Icon(FontAwesomeIcons.baby),
                       hintText: '12.03.2012, 23.09.2015',
                       labelText: 'Дати народження дітей',
-                      helperText: 'запонвювати якшо є діти'),
+                      helperText: 'заповнювати якщо є діти'),
                 ),
+                SizedBox(
+                  height: 25.0,
+                ),
+                Text(
+                  'Освіта і інше:',
+                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+                ),
+                TextFormField(
+                  controller: _positionController,
+                  decoration: InputDecoration(
+                    icon: Icon(Icons.work),
+                    hintText: 'ваша посада',
+                    labelText: 'Посада',
+                  ),
+                ),
+                FormField<String>(
+                  builder: (FormFieldState<String> state) {
+                    return InputDecorator(
+                      decoration: InputDecoration(
+                        icon: Icon(Icons.school),
+                        hintText: 'оберіть із списку',
+                        labelText: 'Освіта',
+                        helperText: 'оберіть одне із значень із спику',
+                      ),
+                      isEmpty: false,
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<int>(
+                          value: _educationController.text.isEmpty
+                              ? EDUCATION_OTHER
+                              : int.parse(_educationController.text),
+                          isDense: true,
+                          onChanged: (int newValue) {
+                            setState(() {
+                              _educationController.text = newValue.toString();
+                            });
+                          },
+                          items: _getEdications(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                TextFormField(
+                  controller: _specialtyController,
+                  decoration: InputDecoration(
+                    icon: SizedBox(
+                      width: 24.0,
+                    ),
+                    hintText: 'спеціальність за дипломом',
+                    labelText: 'Спеціальність',
+                  ),
+                ),
+                TextFormField(
+                  controller: _additionalEducationController,
+                  decoration: InputDecoration(
+                    icon: SizedBox(
+                      width: 24.0,
+                    ),
+                    labelText: 'Додаткова освіта',
+                  ),
+                ),
+                TextFormField(
+                  controller: _skillsController,
+                  decoration: InputDecoration(
+                      icon: SizedBox(
+                        width: 24.0,
+                      ),
+                      labelText: 'Навики',
+                      hintText: 'професійні та інші навики'),
+                ),
+                TextFormField(
+                  controller: _languagesController,
+                  decoration: InputDecoration(
+                      icon: Icon(Icons.language),
+                      labelText: 'Знання мов',
+                      hintText: 'іноземні мови'),
+                ),
+                TextFormField(
+                  controller: _lastWorkPlaceController,
+                  decoration: InputDecoration(
+                      icon: Icon(FontAwesomeIcons.building),
+                      labelText: 'Останнє місце роботи',
+                      hintText: 'місто, компанія, посада'),
+                ),
+                FormField<String>(
+                  builder: (FormFieldState<String> state) {
+                    return InputDecorator(
+                      decoration: InputDecoration(
+                        icon: Icon(FontAwesomeIcons.wheelchair),
+                      ),
+                      child: SwitchListTile(
+                          title: Text('Відомість про інвалідність'),
+                          value: _disabilityController.text == 'true',
+                          onChanged: (bool value) {
+                            setState(() {
+                              value == true
+                                  ? _disabilityController.text = 'true'
+                                  : _disabilityController.text = 'false';
+                            });
+                          }),
+                    );
+                  },
+                ),
+                FormField<String>(
+                  builder: (FormFieldState<String> state) {
+                    return InputDecorator(
+                      decoration: InputDecoration(
+                        icon: Icon(FontAwesomeIcons.blind),
+                      ),
+                      child: SwitchListTile(
+                          title: Text('Пенсіонер'),
+                          value: _pensionerController.text == 'true',
+                          onChanged: (bool value) {
+                            setState(() {
+                              value == true
+                                  ? _pensionerController.text = 'true'
+                                  : _pensionerController.text = 'false';
+                            });
+                          }),
+                    );
+                  },
+                ),
+
                 SizedBox(height: 20.0),
                 RaisedButton(
                   onPressed: () {
@@ -442,6 +607,9 @@ class PageProfileState extends State<PageProfile> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.update),
         onPressed: () {
+          setState(() {
+            isLoadingProfile = true;
+          });
           _downloadProfile(context);
         },
       ),

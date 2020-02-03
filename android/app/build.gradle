@@ -36,7 +36,7 @@ android {
         applicationId "com.intellectcase.enterprise"
         minSdkVersion 16
         targetSdkVersion 28
-        multiDexEnabled true
+//        multiDexEnabled true
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
