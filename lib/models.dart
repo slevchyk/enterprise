@@ -405,7 +405,7 @@ class Timing {
     if (response.statusCode == 200) {
       Map<String, dynamic> jsonData = json.decode(response.body);
 
-      for (var _timing in jsonData['precessed']) {
+      for (var _timing in jsonData['processed']) {
         DBProvider.db.updateTimingProcessed(_timing['id'], _timing['ext_id']);
       }
     }
