@@ -62,13 +62,13 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
         continue;
       }
 
-      DateTime endDate = _timing.endDate;
+      DateTime endDate = _timing.endedAt;
       if (endDate == null) {
         endDate = DateTime.now();
       }
 
       double duration = (endDate.millisecondsSinceEpoch -
-              _timing.startDate.millisecondsSinceEpoch) /
+              _timing.startedAt.millisecondsSinceEpoch) /
           3600000;
 
       int existIndex = result.indexWhere((record) =>

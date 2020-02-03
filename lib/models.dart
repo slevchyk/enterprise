@@ -20,10 +20,10 @@ Profile profileFromJson(String str) {
 //  return Profile.fromMap(jsonData["application"]);
 //}
 
-String profiletToJson(Profile data) {
-  final dyn = data.toMap();
-  return json.encode(dyn);
-}
+//String profiletToJson(Profile data) {
+//  final dyn = data.toMap();
+//  return json.encode(dyn);
+//}
 
 class Profile {
   int id;
@@ -36,6 +36,7 @@ class Profile {
   String email;
   String photo;
   String photoData;
+  String sex;
   bool blocked;
   String passportType;
   String passportSeries;
@@ -66,6 +67,7 @@ class Profile {
       this.email,
       this.photo,
       this.photoData,
+      this.sex,
       this.blocked,
       this.passportType,
       this.passportSeries,
@@ -96,6 +98,7 @@ class Profile {
         email: json["email"],
         photo: json["photo_name"],
         photoData: json["photo_data"],
+        sex: json["sex"],
         blocked: json["blocked"] == 1,
         passportType: json["passport_type"],
         passportSeries: json["passport_series"],
@@ -126,6 +129,7 @@ class Profile {
         itn: json["itn"],
         email: json["email"],
         photo: json["photo"],
+        sex: json["sex"],
         blocked: json["blocked"] == 1,
         passportType: json["passport_type"],
         passportSeries: json["passport_series"],
@@ -157,6 +161,7 @@ class Profile {
         "email": email,
         "photo": photo,
         "photo_data": photoData,
+        "sex": sex,
         "blocked": blocked,
         "passport_type": passportType,
         "passport_series": passportSeries,
@@ -187,6 +192,7 @@ class Profile {
         "itn": itn,
         "email": email,
         "photo": photo,
+        "sex": sex,
         "blocked": blocked,
         "passport_type": passportType,
         "passport_series": passportSeries,
@@ -298,52 +304,79 @@ class Profile {
 
 class Timing {
   int id;
+  String extID;
   String userID;
   DateTime date;
   String operation;
-  DateTime startDate;
-  DateTime endDate;
-  DateTime changeDate;
+  DateTime startedAt;
+  DateTime endedAt;
   double duration;
+  bool toUpload;
+  DateTime createdAt;
+  DateTime updatedAt;
+  DateTime deletedAt;
 
   Timing({
     this.id,
+    this.extID,
     this.userID,
     this.date,
     this.operation,
-    this.startDate,
-    this.endDate,
-    this.changeDate,
+    this.startedAt,
+    this.endedAt,
     this.duration,
+    this.toUpload,
+    this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
   });
 
   factory Timing.fromMap(Map<String, dynamic> json) => new Timing(
         id: json["id"],
+        extID: json["ext_id"],
         userID: json["user_id"],
-        date: json["date"] != "" ? DateTime.parse(json["date"]) : null,
+        date: json["date"] != null ? DateTime.parse(json["date"]) : null,
         operation: json["operation"],
-        startDate: json["start_date"] != ""
-            ? DateTime.parse(json["start_date"])
+        startedAt: json["started_at"] != null
+            ? DateTime.parse(json["started_at"])
             : null,
-        endDate:
-            json["end_date"] != "" ? DateTime.parse(json["end_date"]) : null,
-        changeDate: json["change_date"] != ""
-            ? DateTime.parse(json["change_date"])
-            : "",
+        endedAt:
+            json["ended_at"] != null ? DateTime.parse(json["ended_at"]) : null,
+        createdAt: json["created_at"] != null
+            ? DateTime.parse(json["created_at"])
+            : null,
+        updatedAt: json["updated_at"] != null
+            ? DateTime.parse(json["updated_at"])
+            : null,
+        deletedAt: json["deleted_at"] != null
+            ? DateTime.parse(json["deleted_at"])
+            : null,
       );
 
   Map<String, dynamic> toMap() => {
         "id": id,
         "user_id": userID,
-        "date": date != null ? date.toIso8601String() : "",
+        "date": date != null ? date.toIso8601String() : null,
         "operation": operation,
-        "start_date": startDate != null ? startDate.toIso8601String() : "",
-        "end_date": endDate != null ? endDate.toIso8601String() : "",
-        "change_date": changeDate != null ? changeDate.toIso8601String() : "",
+        "started_at": startedAt != null ? startedAt.toIso8601String() : null,
+        "ended_at": endedAt != null ? endedAt.toIso8601String() : null,
+        "created_at": createdAt != null ? createdAt.toIso8601String() : null,
+        "updated_at": updatedAt != null ? updatedAt.toIso8601String() : null,
+        "deleted_at": deletedAt != null ? deletedAt.toIso8601String() : null,
+        "ext_id": extID,
       };
 
-  upload() async {
-    Map<String, dynamic> jsonData = this.toMap();
+  static upload(userID) async {
+    List<Timing> toUpload = await DBProvider.db.getTimingToUpload(userID);
+
+    Map<String, List<Map<String, dynamic>>> jsonData;
+    List<Map<String, dynamic>> rows = [];
+
+    for (var _timing in toUpload) {
+      rows.add(_timing.toMap());
+    }
+
+    jsonData = {'timing': rows};
 
     final prefs = await SharedPreferences.getInstance();
 
@@ -369,7 +402,13 @@ class Timing {
       body: json.encode(jsonData),
     );
 
-    if (response.statusCode == 200) {}
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonData = json.decode(response.body);
+
+      for (var _timing in jsonData['precessed']) {
+        DBProvider.db.updateTimingProcessed(_timing['id'], _timing['ext_id']);
+      }
+    }
   }
 
   static void closePastOperation() async {
@@ -377,15 +416,15 @@ class Timing {
         .getTimingOpenPastOperation(Utility.beginningOfDay(DateTime.now()));
 
     for (var _timimg in openOperation) {
-      DateTime endDate = new DateTime(_timimg.startDate.year,
-          _timimg.startDate.month, _timimg.startDate.day, 18, 00, 00);
+      DateTime endDate = new DateTime(_timimg.startedAt.year,
+          _timimg.startedAt.month, _timimg.startedAt.day, 18, 00, 00);
 
       if (endDate.millisecondsSinceEpoch >
-          _timimg.startDate.millisecondsSinceEpoch) {
-        endDate = _timimg.startDate;
+          _timimg.startedAt.millisecondsSinceEpoch) {
+        endDate = _timimg.startedAt;
       }
 
-      _timimg.endDate = endDate;
+      _timimg.endedAt = endDate;
       DBProvider.db.updateTiming(_timimg);
     }
   }
