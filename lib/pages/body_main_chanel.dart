@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:enterprise/contatns.dart';
-import 'package:enterprise/database/chanel_dao.dart';
+import 'package:enterprise/database/channel_dao.dart';
 import 'package:enterprise/database/core.dart';
-import 'package:enterprise/models/chanel.dart';
+import 'package:enterprise/models/channel.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,17 +15,17 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../models/profile.dart';
 
-class BodyChanel extends StatefulWidget {
+class BodyChannel extends StatefulWidget {
   final Profile profile;
 
-  BodyChanel(
+  BodyChannel(
     this.profile,
   );
 
-  BodyChanelState createState() => BodyChanelState();
+  BodyChannelState createState() => BodyChannelState();
 }
 
-class BodyChanelState extends State<BodyChanel> {
+class BodyChannelState extends State<BodyChannel> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _initWidgetState());
@@ -33,15 +33,13 @@ class BodyChanelState extends State<BodyChanel> {
 
   Future<List<Channel>> channels;
   Future<List<Channel>> channelsArchived;
-  Future<List<Channel>> channelsDeleted;
 
   void _initWidgetState() {
-    channels = getChaneles();
-    channelsArchived = getArchive();
-    channelsDeleted = getDelete();
+    channels = getChannels();
+    channelsArchived = getArchived();
   }
 
-  _downloadChanel(BuildContext context) async {
+  _downloadChannel(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
 
     final String _ip = prefs.getString(KEY_SERVER_IP) ?? "";
@@ -51,7 +49,7 @@ class BodyChanelState extends State<BodyChanel> {
 
     final String _userID = prefs.get(KEY_USER_ID);
 
-    final String url = 'http://$_ip/$_db/hs/m/chanel?userid=$_userID';
+    final String url = 'http://$_ip/$_db/hs/m/channel?userid=$_userID';
 
     final credentials = '$_user:$_password';
     final stringToBase64 = utf8.fuse(base64);
@@ -77,45 +75,72 @@ class BodyChanelState extends State<BodyChanel> {
 
     final jsonData = json.decode(body);
 
-    for (var jsonRow in jsonData["chanel"]) {
-      Channel chanel = Channel.fromMap(jsonRow);
-      chanel.userID = _userID;
+    for (var jsonRow in jsonData["channel"]) {
+      Channel channel = Channel.fromMap(jsonRow);
+      channel.userID = _userID;
 
-      Channel existChanel = await ChanelDAO().getById(chanel.id);
+      Channel existChannel = await ChannelDAO().getById(channel.id);
 
-      if (existChanel != null) {
-        ChanelDAO().update(chanel);
+      if (existChannel != null) {
+        ChannelDAO().update(channel);
       } else {
-        ChanelDAO().insert(chanel);
+        ChannelDAO().insert(channel);
       }
     }
   }
 
-  _updateChanel() async {
-    await _downloadChanel(context);
-    channels = getChaneles();
+  _updateChannel() async {
+    await _downloadChannel(context);
+    channels = getChannels();
     setState(() {});
   }
 
-  Future<List<Channel>> getChaneles() async {
+  Future<List<Channel>> getChannels() async {
     final prefs = await SharedPreferences.getInstance();
 
     String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return ChanelDAO().getByUserId(userID);
+    return ChannelDAO().getByUserId(userID);
   }
 
-  Future<List<Channel>> getDelete() async {
+  Future<List<Channel>> getArchived() async {
     final prefs = await SharedPreferences.getInstance();
 
     String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return ChanelDAO().getDeletedByUSerId(userID);
+    return ChannelDAO().getArchivedByUserId(userID);
   }
 
-  Future<List<Channel>> getArchive() async {
-    final prefs = await SharedPreferences.getInstance();
+  Widget starSlideAction(Channel channel, int id) {
+    Widget iconSlideAction;
 
-    String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return ChanelDAO().getArchivedByUserId(userID);
+    if (channel.starredAt != null) {
+      iconSlideAction = new IconSlideAction(
+        caption: 'Не Важливі',
+        color: Colors.yellow,
+        icon: Icons.star,
+        onTap: () {
+          ChannelDAO().unstarById(id);
+          setState(() {
+            channels = getChannels();
+            channelsArchived = getArchived();
+          });
+        },
+      );
+    } else {
+      iconSlideAction = new IconSlideAction(
+        caption: 'Важливі',
+        color: Colors.yellow,
+        icon: Icons.star_border,
+        onTap: () {
+          ChannelDAO().starById(id);
+          setState(() {
+            channels = getChannels();
+            channelsArchived = getArchived();
+          });
+        },
+      );
+    }
+
+    return iconSlideAction;
   }
 
   @override
@@ -153,13 +178,13 @@ class BodyChanelState extends State<BodyChanel> {
                         child: CircularProgressIndicator(),
                       );
                     case ConnectionState.done:
-                      var listChaneles = snapshot.data;
+                      var listChanneles = snapshot.data;
                       return Center(
                         child: ListView.separated(
-                          itemCount: listChaneles.length,
+                          itemCount: listChanneles.length,
                           separatorBuilder: (context, index) => Divider(),
                           itemBuilder: (BuildContext context, int index) {
-                            Channel chanel = listChaneles[index];
+                            Channel channel = listChanneles[index];
                             return Slidable(
                               delegate: new SlidableDrawerDelegate(),
                               actionExtentRatio: 0.25,
@@ -169,11 +194,11 @@ class BodyChanelState extends State<BodyChanel> {
                                   color: Colors.blue,
                                   icon: Icons.archive,
                                   onTap: () {
-                                    ChanelDAO()
-                                        .archiveById(listChaneles[index].id);
+                                    ChannelDAO()
+                                        .archiveById(listChanneles[index].id);
                                     setState(() {
-                                      channels = getChaneles();
-                                      channelsArchived = getArchive();
+                                      channels = getChannels();
+                                      channelsArchived = getArchived();
                                     });
                                   },
                                 ),
@@ -184,8 +209,8 @@ class BodyChanelState extends State<BodyChanel> {
                                   color: Colors.yellow,
                                   icon: Icons.star_border,
                                   onTap: () {
-                                    ChanelDAO()
-                                        .starById(listChaneles[index].id);
+                                    ChannelDAO()
+                                        .starById(listChanneles[index].id);
                                   },
                                 ),
                                 new IconSlideAction(
@@ -193,13 +218,13 @@ class BodyChanelState extends State<BodyChanel> {
                                   color: Colors.red,
                                   icon: Icons.delete,
                                   onTap: () {
-                                    ChanelDAO()
-                                        .deleteById(listChaneles[index].id);
+                                    ChannelDAO()
+                                        .deleteById(listChanneles[index].id);
                                   },
                                 ),
                               ],
                               child: ListTile(
-                                title: Text(chanel.title),
+                                title: Text(channel.title),
                                 isThreeLine: true,
                                 leading: CircleAvatar(
                                   backgroundColor:
@@ -207,7 +232,7 @@ class BodyChanelState extends State<BodyChanel> {
                                   child: Text('1C'),
                                 ),
                                 subtitle: Text(
-                                  chanel.news,
+                                  channel.news,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -242,13 +267,13 @@ class BodyChanelState extends State<BodyChanel> {
                         child: CircularProgressIndicator(),
                       );
                     case ConnectionState.done:
-                      var listChaneles = snapshot.data;
+                      var listChanneles = snapshot.data;
                       return Center(
                         child: ListView.separated(
-                          itemCount: listChaneles.length,
+                          itemCount: listChanneles.length,
                           separatorBuilder: (context, index) => Divider(),
                           itemBuilder: (BuildContext context, int index) {
-                            Channel chanel = listChaneles[index];
+                            Channel channel = listChanneles[index];
                             return Slidable(
                               delegate: new SlidableDrawerDelegate(),
                               actionExtentRatio: 0.25,
@@ -258,11 +283,11 @@ class BodyChanelState extends State<BodyChanel> {
                                   color: Colors.blue,
                                   icon: Icons.archive,
                                   onTap: () {
-                                    ChanelDAO()
-                                        .unarchiveById(listChaneles[index].id);
+                                    ChannelDAO()
+                                        .unarchiveById(listChanneles[index].id);
                                     setState(() {
-                                      channels = getChaneles();
-                                      channelsArchived = getArchive();
+                                      channels = getChannels();
+                                      channelsArchived = getArchived();
                                     });
                                   },
                                 ),
@@ -273,8 +298,12 @@ class BodyChanelState extends State<BodyChanel> {
                                   color: Colors.yellow,
                                   icon: Icons.star_border,
                                   onTap: () {
-                                    ChanelDAO()
-                                        .starById(listChaneles[index].id);
+                                    ChannelDAO()
+                                        .starById(listChanneles[index].id);
+                                    setState(() {
+                                      channels = getChannels();
+                                      channelsArchived = getArchived();
+                                    });
                                   },
                                 ),
                                 new IconSlideAction(
@@ -282,13 +311,13 @@ class BodyChanelState extends State<BodyChanel> {
                                   color: Colors.red,
                                   icon: Icons.delete,
                                   onTap: () {
-                                    ChanelDAO()
-                                        .deleteById(listChaneles[index].id);
+                                    ChannelDAO()
+                                        .deleteById(listChanneles[index].id);
                                   },
                                 ),
                               ],
                               child: ListTile(
-                                title: Text(chanel.title),
+                                title: Text(channel.title),
                                 isThreeLine: true,
                                 leading: CircleAvatar(
                                   backgroundColor:
@@ -296,7 +325,7 @@ class BodyChanelState extends State<BodyChanel> {
                                   child: Text('1C'),
                                 ),
                                 subtitle: Text(
-                                  chanel.news,
+                                  channel.news,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -317,7 +346,7 @@ class BodyChanelState extends State<BodyChanel> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            _updateChanel();
+            _updateChannel();
           },
           child: Icon(Icons.update),
         ),

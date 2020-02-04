@@ -1,8 +1,8 @@
-import 'package:enterprise/models/chanel.dart';
+import 'package:enterprise/models/channel.dart';
 
 import 'core.dart';
 
-class ChanelDAO {
+class ChannelDAO {
   final dbProvider = DBProvider.db;
 
   insert(Channel chanel) async {
@@ -51,6 +51,13 @@ class ChanelDAO {
     final db = await dbProvider.database;
     var res = await db.update(
         "chanel", {"star": DateTime.now().toIso8601String()},
+        where: "id = ? ", whereArgs: [id]);
+    return res;
+  }
+
+  unstarById(int id) async {
+    final db = await dbProvider.database;
+    var res = await db.update("chanel", {"star": null},
         where: "id = ? ", whereArgs: [id]);
     return res;
   }

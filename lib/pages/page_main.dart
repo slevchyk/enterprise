@@ -44,7 +44,7 @@ class PageMainState extends State<PageMain> {
       case 0:
         return BodyMain(profile);
       case 1:
-        return BodyChanel(profile);
+        return BodyChannel(profile);
       default:
         return BodyMain(profile);
     }
