@@ -120,6 +120,40 @@ class BodyChanelState extends State<BodyChanel> {
     return DBProvider.db.getArchive(userID);
   }
 
+  Widget starUnstarSlideAction(Chanel chanel, int id) {
+    Widget iconSlideAction;
+
+    if (chanel.star != null) {
+      iconSlideAction = new IconSlideAction(
+        caption: 'Не Важливі',
+        color: Colors.yellow,
+        icon: Icons.star,
+        onTap: () => {
+          setState(() {
+            DBProvider.db.updateChanelNew(id);
+            chaneles = getChaneles();
+            chaneles_archive = getArchive();
+          })
+        },
+      );
+    } else {
+      iconSlideAction = new IconSlideAction(
+        caption: 'Важливі',
+        color: Colors.yellow,
+        icon: Icons.star_border,
+        onTap: () => {
+          setState(() {
+            DBProvider.db.updateChanelStar(id);
+            chaneles = getChaneles();
+            chaneles_archive = getArchive();
+          })
+        },
+      );
+    }
+
+    return iconSlideAction;
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -171,8 +205,8 @@ class BodyChanelState extends State<BodyChanel> {
                                   color: Colors.blue,
                                   icon: Icons.archive,
                                   onTap: () {
-                                    DBProvider.db
-                                        .updateArchive(listChaneles[index].id);
+                                    DBProvider.db.updateChanelArchive(
+                                        listChaneles[index].id);
                                     setState(() {
                                       chaneles = getChaneles();
                                       chaneles_archive = getArchive();
@@ -181,25 +215,16 @@ class BodyChanelState extends State<BodyChanel> {
                                 ),
                               ],
                               secondaryActions: <Widget>[
-                                new IconSlideAction(
-                                  caption: 'Важливі',
-                                  color: Colors.yellow,
-                                  icon: Icons.star_border,
-                                  onTap: () => {
-                                    setState(() {
-                                      DBProvider.db
-                                          .updateStar(listChaneles[index].id);
-                                    })
-                                  },
-                                ),
+                                starUnstarSlideAction(
+                                    chanel, listChaneles[index].id),
                                 new IconSlideAction(
                                   caption: 'Видалити',
                                   color: Colors.red,
                                   icon: Icons.delete,
                                   onTap: () => {
                                     setState(() {
-                                      DBProvider.db
-                                          .updateDelete(listChaneles[index].id);
+                                      DBProvider.db.updateChanelDelete(
+                                          listChaneles[index].id);
                                     })
                                   },
                                 ),
@@ -261,8 +286,8 @@ class BodyChanelState extends State<BodyChanel> {
                                   color: Colors.blue,
                                   icon: Icons.archive,
                                   onTap: () {
-                                    DBProvider.db
-                                        .updateUnread(listChaneles[index].id);
+                                    DBProvider.db.updateChanelUnread(
+                                        listChaneles[index].id);
                                     setState(() {
                                       chaneles = getChaneles();
                                       chaneles_archive = getArchive();
@@ -277,8 +302,10 @@ class BodyChanelState extends State<BodyChanel> {
                                   icon: Icons.star_border,
                                   onTap: () => {
                                     setState(() {
-                                      DBProvider.db
-                                          .updateStar(listChaneles[index].id);
+                                      DBProvider.db.updateChanelStar(
+                                          listChaneles[index].id);
+                                      chaneles = getChaneles();
+                                      chaneles_archive = getArchive();
                                     })
                                   },
                                 ),
@@ -288,8 +315,8 @@ class BodyChanelState extends State<BodyChanel> {
                                   icon: Icons.delete,
                                   onTap: () => {
                                     setState(() {
-                                      DBProvider.db
-                                          .updateDelete(listChaneles[index].id);
+                                      DBProvider.db.updateChanelDelete(
+                                          listChaneles[index].id);
                                     })
                                   },
                                 ),

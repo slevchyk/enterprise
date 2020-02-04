@@ -467,7 +467,7 @@ class DBProvider {
     return res;
   }
 
-  updateStar(int id) async {
+  updateChanelStar(int id) async {
     final db = await database;
     var res = await db.update(
         "chanel", {"star": DateTime.now().toIso8601String()},
@@ -475,7 +475,14 @@ class DBProvider {
     return res;
   }
 
-  updateArchive(int id) async {
+  updateChanelNew(int id) async {
+    final db = await database;
+    var res = await db.update("chanel", {"star": null},
+        where: "id = ? ", whereArgs: [id]);
+    return res;
+  }
+
+  updateChanelArchive(int id) async {
     final db = await database;
     var res = await db.update(
         "chanel", {"archive": DateTime.now().toIso8601String()},
@@ -483,14 +490,14 @@ class DBProvider {
     return res;
   }
 
-  updateUnread(int id) async {
+  updateChanelUnread(int id) async {
     final db = await database;
     var res = await db.update("chanel", {"archive": null},
         where: "id = ?", whereArgs: [id]);
     return res;
   }
 
-  updateDelete(int id) async {
+  updateChanelDelete(int id) async {
     final db = await database;
     var res = await db.update(
         "chanel", {"delete_at": DateTime.now().toIso8601String()},
@@ -502,7 +509,8 @@ class DBProvider {
     final db = await database;
     var res = await db.query("chanel",
         where: "user_id = ? and delete_at is null and archive is null",
-        whereArgs: [userID]);
+        whereArgs: [userID],
+        orderBy: 'star DESC');
 
     List<Chanel> list =
         res.isNotEmpty ? res.map((c) => Chanel.fromMap(c)).toList() : [];
@@ -533,7 +541,8 @@ class DBProvider {
     final db = await database;
     var res = await db.query("chanel",
         where: "user_id = ? and archive is not null and delete_at is null",
-        whereArgs: [userID]);
+        whereArgs: [userID],
+        orderBy: 'star DESC');
 
     List<Chanel> list =
         res.isNotEmpty ? res.map((c) => Chanel.fromMap(c)).toList() : [];
