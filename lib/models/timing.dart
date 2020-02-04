@@ -5,7 +5,7 @@ import 'package:enterprise/database/timing_dao.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../contatns.dart';
+import 'contatns.dart';
 import '../utils.dart';
 
 class Timing {
@@ -17,7 +17,6 @@ class Timing {
   DateTime startedAt;
   DateTime endedAt;
   double duration;
-  bool toUpload;
   DateTime createdAt;
   DateTime updatedAt;
   DateTime deletedAt;
@@ -31,7 +30,6 @@ class Timing {
     this.startedAt,
     this.endedAt,
     this.duration,
-    this.toUpload,
     this.createdAt,
     this.updatedAt,
     this.deletedAt,
@@ -61,6 +59,7 @@ class Timing {
 
   Map<String, dynamic> toMap() => {
         "id": id,
+        "ext_id": extID,
         "user_id": userID,
         "date": date != null ? date.toIso8601String() : null,
         "operation": operation,
@@ -69,7 +68,6 @@ class Timing {
         "created_at": createdAt != null ? createdAt.toIso8601String() : null,
         "updated_at": updatedAt != null ? updatedAt.toIso8601String() : null,
         "deleted_at": deletedAt != null ? deletedAt.toIso8601String() : null,
-        "ext_id": extID,
       };
 
   static upload(userID) async {
@@ -88,12 +86,12 @@ class Timing {
 
     final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
     final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
-    final String _serverPassord = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+    final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
     final String _serverDB = prefs.getString(KEY_SERVER_DATABASE) ?? "";
 
     final String url = 'http://$_serverIP/$_serverDB/hs/m/timing';
 
-    final credentials = '$_serverUser:$_serverPassord';
+    final credentials = '$_serverUser:$_serverPassword';
     final stringToBase64 = utf8.fuse(base64);
     final encodedCredentials = stringToBase64.encode(credentials);
 
@@ -111,8 +109,14 @@ class Timing {
     if (response.statusCode == 200) {
       Map<String, dynamic> jsonData = json.decode(response.body);
 
-      for (var _timing in jsonData['processed']) {
-        TimingDAO().updateProcessedById(_timing['id'], _timing['ext_id']);
+      for (var _timingMap in jsonData['processed']) {
+        var _timing = Timing.fromMap(_timingMap);
+
+        if (_timing.id == null) {
+          TimingDAO().insert(_timing);
+        } else {
+          TimingDAO().update(_timing);
+        }
       }
     }
   }

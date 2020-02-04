@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:enterprise/contatns.dart';
+import 'package:enterprise/models/contatns.dart';
 import 'package:enterprise/database/channel_dao.dart';
 import 'package:enterprise/database/core.dart';
 import 'package:enterprise/models/channel.dart';

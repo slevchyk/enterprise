@@ -1,7 +1,6 @@
 import 'package:enterprise/models/timing.dart';
 
-import '../contatns.dart';
-import '../models/profile.dart';
+import '../models/contatns.dart';
 import 'core.dart';
 
 class TimingDAO {
@@ -20,17 +19,15 @@ class TimingDAO {
         'date,'
         'operation,'
         'started_at,'
-        'to_upload,'
         'created_at'
         ')'
-        'VALUES (?,?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?)',
         [
           id,
           timing.userID,
           timing.date.toIso8601String(),
           timing.operation,
           timing.startedAt.toIso8601String(),
-          1,
           DateTime.now().toIso8601String(),
         ]);
     timing.id = raw;
@@ -71,7 +68,7 @@ class TimingDAO {
   Future<List<Timing>> getToUploadByUserId(String userID) async {
     final db = await dbProvider.database;
     var res = await db.query("timing",
-        where: "user_id = ? and to_upload=?", whereArgs: [userID, 1]);
+        where: "user_id = ? and ext_id is null", whereArgs: [userID]);
 
     List<Timing> list =
         res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
@@ -144,17 +141,9 @@ class TimingDAO {
 
   update(Timing timing) async {
     final db = await dbProvider.database;
-    timing.toUpload = true;
     timing.updatedAt = DateTime.now();
     var res = await db.update("timing", timing.toMap(),
         where: "id = ?", whereArgs: [timing.id]);
-    return res;
-  }
-
-  updateProcessedById(int id, String extID) async {
-    final db = await dbProvider.database;
-    var res = await db.update("timing", {'to_upload': 0, 'ext_id': extID},
-        where: "id = ?", whereArgs: [id]);
     return res;
   }
 

@@ -20,20 +20,21 @@ class EnterpriseAppState extends State<EnterpriseApp> {
     return MaterialApp(
       initialRoute: '/',
       onGenerateRoute: RouteGenerator.generateRoute,
-      theme: ThemeData(
-        primaryColor: Colors.pinkAccent.shade400,
-        accentColor: Colors.pinkAccent.shade200,
-        dividerColor: Colors.pinkAccent.shade700,
-        primaryIconTheme: IconThemeData(
-          color: Colors.pinkAccent.shade200,
-        ),
-//      ),theme: ThemeData(
-//        primaryColor: Colors.blueGrey.shade800,
-//        accentColor: Colors.blueGrey.shade500,
-//        dividerColor: Colors.blueGrey.shade900,
+//      theme: ThemeData(
+//        primaryColor: Colors.pinkAccent.shade400,
+//        accentColor: Colors.pinkAccent.shade200,
+//        dividerColor: Colors.pinkAccent.shade700,
 //        primaryIconTheme: IconThemeData(
-//          color: Colors.blueGrey.shade500,
+//          color: Colors.pinkAccent.shade200,
 //        ),
+//      ),
+      theme: ThemeData(
+        primaryColor: Colors.grey.shade800,
+        accentColor: Colors.grey.shade500,
+        dividerColor: Colors.grey.shade900,
+        primaryIconTheme: IconThemeData(
+          color: Colors.grey.shade500,
+        ),
       ),
     );
   }

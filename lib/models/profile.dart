@@ -5,7 +5,7 @@ import 'package:enterprise/database/timing_dao.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
-import 'package:enterprise/contatns.dart';
+import 'package:enterprise/models/contatns.dart';
 import 'package:enterprise/database/core.dart';
 import 'package:enterprise/utils.dart';
 import 'package:http/http.dart';

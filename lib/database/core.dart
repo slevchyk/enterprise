@@ -61,7 +61,6 @@ class DBProvider {
           'operation TEXT,'
           'started_at TEXT,'
           'ended_at TEXT,'
-          'to_upload BIT,'
           'created_at TEXT,'
           'updated_at TEXT,'
           'deleted_at TEXT'

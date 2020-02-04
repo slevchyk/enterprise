@@ -1,6 +1,6 @@
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:date_format/date_format.dart';
-import 'package:enterprise/contatns.dart';
+import 'package:enterprise/models/contatns.dart';
 import 'package:enterprise/database/timing_dao.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/timing.dart';

@@ -6,7 +6,7 @@ import 'package:enterprise/pages/body_main_timing.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../contatns.dart';
+import '../models/contatns.dart';
 import '../models/profile.dart';
 
 class PageMain extends StatefulWidget {
