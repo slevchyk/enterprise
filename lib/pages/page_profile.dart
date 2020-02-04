@@ -2,7 +2,7 @@ import 'package:date_format/date_format.dart';
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/profile_dao.dart';
-import 'package:enterprise/models.dart';
+import 'package:enterprise/models/profile.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

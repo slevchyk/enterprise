@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:enterprise/contatns.dart';
+import 'package:enterprise/database/chanel_dao.dart';
 import 'package:enterprise/database/core.dart';
-import 'package:enterprise/models.dart';
+import 'package:enterprise/models/chanel.dart';
+import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +13,7 @@ import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
-import '../models.dart';
+import '../models/profile.dart';
 
 class BodyChanel extends StatefulWidget {
   final Profile profile;
@@ -24,6 +26,21 @@ class BodyChanel extends StatefulWidget {
 }
 
 class BodyChanelState extends State<BodyChanel> {
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initWidgetState());
+  }
+
+  Future<List<Channel>> channels;
+  Future<List<Channel>> channelsArchived;
+  Future<List<Channel>> channelsDeleted;
+
+  void _initWidgetState() {
+    channels = getChaneles();
+    channelsArchived = getArchive();
+    channelsDeleted = getDelete();
+  }
+
   _downloadChanel(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -61,63 +78,44 @@ class BodyChanelState extends State<BodyChanel> {
     final jsonData = json.decode(body);
 
     for (var jsonRow in jsonData["chanel"]) {
-      Chanel chanel = Chanel.fromMap(jsonRow);
+      Channel chanel = Channel.fromMap(jsonRow);
       chanel.userID = _userID;
 
-      Chanel existChanel = await DBProvider.db.getChanel(chanel.id);
+      Channel existChanel = await ChanelDAO().getById(chanel.id);
 
       if (existChanel != null) {
-        DBProvider.db.updateChanel(chanel);
+        ChanelDAO().update(chanel);
       } else {
-        DBProvider.db.newChanel(chanel);
+        ChanelDAO().insert(chanel);
       }
     }
   }
 
   _updateChanel() async {
     await _downloadChanel(context);
-    chaneles = getChaneles();
+    channels = getChaneles();
     setState(() {});
   }
 
-  Future<List<Chanel>> chaneles;
-  Future<List<Chanel>> chaneles_archive;
-  Future<List<Chanel>> chaneles_star;
-  Future<List<Chanel>> chaneles_delete;
-
-  void initState() {
-    chaneles = getChaneles();
-    chaneles_archive = getArchive();
-    chaneles_star = getStarted();
-    chaneles_delete = getDelete();
-  }
-
-  Future<List<Chanel>> getChaneles() async {
+  Future<List<Channel>> getChaneles() async {
     final prefs = await SharedPreferences.getInstance();
 
     String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return DBProvider.db.getUserChanel(userID);
+    return ChanelDAO().getByUserId(userID);
   }
 
-  Future<List<Chanel>> getStarted() async {
+  Future<List<Channel>> getDelete() async {
     final prefs = await SharedPreferences.getInstance();
 
     String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return DBProvider.db.getStarted(userID);
+    return ChanelDAO().getDeletedByUSerId(userID);
   }
 
-  Future<List<Chanel>> getDelete() async {
+  Future<List<Channel>> getArchive() async {
     final prefs = await SharedPreferences.getInstance();
 
     String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return DBProvider.db.getDelete(userID);
-  }
-
-  Future<List<Chanel>> getArchive() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return DBProvider.db.getArchive(userID);
+    return ChanelDAO().getArchivedByUserId(userID);
   }
 
   @override
@@ -139,7 +137,7 @@ class BodyChanelState extends State<BodyChanel> {
           children: [
             Container(
               child: FutureBuilder(
-                future: chaneles,
+                future: channels,
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
                   switch (snapshot.connectionState) {
                     case ConnectionState.none:
@@ -161,7 +159,7 @@ class BodyChanelState extends State<BodyChanel> {
                           itemCount: listChaneles.length,
                           separatorBuilder: (context, index) => Divider(),
                           itemBuilder: (BuildContext context, int index) {
-                            Chanel chanel = listChaneles[index];
+                            Channel chanel = listChaneles[index];
                             return Slidable(
                               delegate: new SlidableDrawerDelegate(),
                               actionExtentRatio: 0.25,
@@ -171,11 +169,11 @@ class BodyChanelState extends State<BodyChanel> {
                                   color: Colors.blue,
                                   icon: Icons.archive,
                                   onTap: () {
-                                    DBProvider.db
-                                        .updateArchive(listChaneles[index].id);
+                                    ChanelDAO()
+                                        .archiveById(listChaneles[index].id);
                                     setState(() {
-                                      chaneles = getChaneles();
-                                      chaneles_archive = getArchive();
+                                      channels = getChaneles();
+                                      channelsArchived = getArchive();
                                     });
                                   },
                                 ),
@@ -185,22 +183,18 @@ class BodyChanelState extends State<BodyChanel> {
                                   caption: 'Важливі',
                                   color: Colors.yellow,
                                   icon: Icons.star_border,
-                                  onTap: () => {
-                                    setState(() {
-                                      DBProvider.db
-                                          .updateStar(listChaneles[index].id);
-                                    })
+                                  onTap: () {
+                                    ChanelDAO()
+                                        .starById(listChaneles[index].id);
                                   },
                                 ),
                                 new IconSlideAction(
                                   caption: 'Видалити',
                                   color: Colors.red,
                                   icon: Icons.delete,
-                                  onTap: () => {
-                                    setState(() {
-                                      DBProvider.db
-                                          .updateDelete(listChaneles[index].id);
-                                    })
+                                  onTap: () {
+                                    ChanelDAO()
+                                        .deleteById(listChaneles[index].id);
                                   },
                                 ),
                               ],
@@ -222,14 +216,17 @@ class BodyChanelState extends State<BodyChanel> {
                           },
                         ),
                       );
+                    default:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
                   }
-                  ;
                 },
               ),
             ),
             Container(
               child: FutureBuilder(
-                future: chaneles_archive,
+                future: channelsArchived,
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
                   switch (snapshot.connectionState) {
                     case ConnectionState.none:
@@ -251,7 +248,7 @@ class BodyChanelState extends State<BodyChanel> {
                           itemCount: listChaneles.length,
                           separatorBuilder: (context, index) => Divider(),
                           itemBuilder: (BuildContext context, int index) {
-                            Chanel chanel = listChaneles[index];
+                            Channel chanel = listChaneles[index];
                             return Slidable(
                               delegate: new SlidableDrawerDelegate(),
                               actionExtentRatio: 0.25,
@@ -261,11 +258,11 @@ class BodyChanelState extends State<BodyChanel> {
                                   color: Colors.blue,
                                   icon: Icons.archive,
                                   onTap: () {
-                                    DBProvider.db
-                                        .updateUnread(listChaneles[index].id);
+                                    ChanelDAO()
+                                        .unarchiveById(listChaneles[index].id);
                                     setState(() {
-                                      chaneles = getChaneles();
-                                      chaneles_archive = getArchive();
+                                      channels = getChaneles();
+                                      channelsArchived = getArchive();
                                     });
                                   },
                                 ),
@@ -275,22 +272,18 @@ class BodyChanelState extends State<BodyChanel> {
                                   caption: 'Важливі',
                                   color: Colors.yellow,
                                   icon: Icons.star_border,
-                                  onTap: () => {
-                                    setState(() {
-                                      DBProvider.db
-                                          .updateStar(listChaneles[index].id);
-                                    })
+                                  onTap: () {
+                                    ChanelDAO()
+                                        .starById(listChaneles[index].id);
                                   },
                                 ),
                                 new IconSlideAction(
                                   caption: 'Видалити',
                                   color: Colors.red,
                                   icon: Icons.delete,
-                                  onTap: () => {
-                                    setState(() {
-                                      DBProvider.db
-                                          .updateDelete(listChaneles[index].id);
-                                    })
+                                  onTap: () {
+                                    ChanelDAO()
+                                        .deleteById(listChaneles[index].id);
                                   },
                                 ),
                               ],
@@ -312,8 +305,11 @@ class BodyChanelState extends State<BodyChanel> {
                           },
                         ),
                       );
+                    default:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
                   }
-                  ;
                 },
               ),
             ),

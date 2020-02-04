@@ -7,7 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../contatns.dart';
-import '../models.dart';
+import '../models/profile.dart';
 
 class PageMain extends StatefulWidget {
   PageMainState createState() => PageMainState();

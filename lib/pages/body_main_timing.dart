@@ -3,6 +3,8 @@ import 'package:date_format/date_format.dart';
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/timing_dao.dart';
+import 'package:enterprise/models/models.dart';
+import 'package:enterprise/models/timing.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:enterprise/utils.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +13,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
-import '../models.dart';
+import '../models/profile.dart';
 
 class BodyMain extends StatefulWidget {
   final Profile profile;
@@ -143,15 +145,14 @@ class _TimingMainState extends State<TimingMain> {
           await TimingDAO().getOpenOperationByDateUserId(dayBegin, userID);
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
-        await DBProvider.db.updateTiming(timing);
+        await TimingDAO().update(timing);
       }
 
       listTiming =
           await TimingDAO().getOpenWorkdayByDateUserId(dayBegin, userID);
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
-        timing.endedAt = dateTimeNow;
-        await DBProvider.db.updateTiming(timing);
+        await TimingDAO().update(timing);
       }
     } else if (timingOperation == TIMING_STATUS_JOB ||
         timingOperation == TIMING_STATUS_LANCH ||
@@ -161,7 +162,7 @@ class _TimingMainState extends State<TimingMain> {
 
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
-        await DBProvider.db.updateTiming(timing);
+        await TimingDAO().update(timing);
       }
 
       Timing timing = Timing(
@@ -177,7 +178,7 @@ class _TimingMainState extends State<TimingMain> {
 
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
-        await DBProvider.db.updateTiming(timing);
+        await TimingDAO().update(timing);
       }
     }
 

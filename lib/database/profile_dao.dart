@@ -1,4 +1,4 @@
-import '../models.dart';
+import '../models/profile.dart';
 import 'core.dart';
 
 class ProfileDAO {

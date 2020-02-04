@@ -1,5 +1,7 @@
+import 'package:enterprise/models/timing.dart';
+
 import '../contatns.dart';
-import '../models.dart';
+import '../models/profile.dart';
 import 'core.dart';
 
 class TimingDAO {
@@ -113,7 +115,7 @@ class TimingDAO {
     return list;
   }
 
-  Future<List<Timing>> getTimingPeriod(
+  Future<List<Timing>> getPeriodByDatesUserId(
       List<DateTime> date, String userID) async {
     final db = await dbProvider.database;
 
@@ -140,7 +142,7 @@ class TimingDAO {
     return list;
   }
 
-  updateTiming(Timing timing) async {
+  update(Timing timing) async {
     final db = await dbProvider.database;
     timing.toUpload = true;
     timing.updatedAt = DateTime.now();
@@ -149,14 +151,14 @@ class TimingDAO {
     return res;
   }
 
-  updateTimingProcessed(int id, String extID) async {
+  updateProcessedById(int id, String extID) async {
     final db = await dbProvider.database;
     var res = await db.update("timing", {'to_upload': 0, 'ext_id': extID},
         where: "id = ?", whereArgs: [id]);
     return res;
   }
 
-  deleteAllTiming() async {
+  deleteAll() async {
     final db = await dbProvider.database;
     Future<int> raw = db.rawDelete("Delete * from timing");
     return raw;

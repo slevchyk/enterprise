@@ -4,7 +4,8 @@ import 'dart:io';
 import 'package:enterprise/contatns.dart';
 import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/profile_dao.dart';
-import 'package:enterprise/models.dart';
+import 'package:enterprise/database/timing_dao.dart';
+import 'package:enterprise/models/profile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -303,7 +304,7 @@ class PageSettingsState extends State<PageSettings> {
   }
 
   _clearTiming() async {
-    DBProvider.db.deleteAllTiming();
+    TimingDAO().deleteAll();
   }
 
   _deleteDB() async {

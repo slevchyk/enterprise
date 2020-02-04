@@ -1,9 +1,9 @@
 import 'package:charts_flutter/flutter.dart' as charts;
-//import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/contatns.dart';
-import 'package:enterprise/database/core.dart';
-import 'package:enterprise/models.dart';
+import 'package:enterprise/database/timing_dao.dart';
+import 'package:enterprise/models/models.dart';
+import 'package:enterprise/models/timing.dart';
 import 'package:enterprise/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -55,7 +55,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
         currentDay.millisecondsSinceEpoch < endPeriod.millisecondsSinceEpoch);
 
     List<Timing> listTiming =
-        await DBProvider.db.getTimingPeriod(listDate, userID);
+        await TimingDAO().getPeriodByDatesUserId(listDate, userID);
 
     for (var _timing in listTiming) {
       if (_timing.operation == TIMING_STATUS_WORKDAY) {
