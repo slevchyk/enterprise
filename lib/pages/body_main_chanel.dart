@@ -152,8 +152,8 @@ class BodyChannelState extends State<BodyChannel> {
           title: Text('Канал'),
           bottom: TabBar(
             tabs: <Widget>[
-              Tab(text: "New"),
-              Tab(text: "Archive"),
+              Tab(text: "Нові"),
+              Tab(text: "Архів"),
             ],
           ),
         ),
@@ -223,18 +223,29 @@ class BodyChannelState extends State<BodyChannel> {
                                   },
                                 ),
                               ],
-                              child: ListTile(
-                                title: Text(channel.title),
-                                isThreeLine: true,
-                                leading: CircleAvatar(
-                                  backgroundColor:
-                                      Theme.of(context).primaryColor,
-                                  child: Text('1C'),
-                                ),
-                                subtitle: Text(
-                                  channel.news,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.of(context).pushNamed(
+                                    '/channelHero',
+                                    arguments: channel,
+                                  );
+                                },
+                                child: Hero(
+                                  tag: "channel$channel.id",
+                                  child: ListTile(
+                                    title: Text(channel.title),
+                                    isThreeLine: true,
+                                    leading: CircleAvatar(
+                                      backgroundColor:
+                                          Theme.of(context).primaryColor,
+                                      child: Text('1C'),
+                                    ),
+                                    subtitle: Text(
+                                      channel.news,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                 ),
                               ),
                             );
@@ -349,6 +360,33 @@ class BodyChannelState extends State<BodyChannel> {
             _updateChannel();
           },
           child: Icon(Icons.update),
+        ),
+      ),
+    );
+  }
+}
+
+class ChannelHero extends StatefulWidget {
+  Channel channel;
+
+  ChannelHero({
+    this.channel,
+  });
+
+  @override
+  _ChannelHeroState createState() => _ChannelHeroState();
+}
+
+class _ChannelHeroState extends State<ChannelHero> {
+//  final Channel channel = widget.channel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        child: Hero(
+          tag: "channel$widget.channel.id",
+          child: Text(widget.channel.news),
         ),
       ),
     );
