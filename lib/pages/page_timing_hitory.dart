@@ -51,8 +51,8 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
       listDate.add(beginningDay);
 
       currentDay = currentDay.add(new Duration(days: 1));
-    } while (
-        currentDay.millisecondsSinceEpoch < endPeriod.millisecondsSinceEpoch);
+    } while (Utility.beginningOfDay(currentDay).millisecondsSinceEpoch <=
+        endPeriod.millisecondsSinceEpoch);
 
     List<Timing> listTiming =
         await TimingDAO().getPeriodByDatesUserId(listDate, userID);

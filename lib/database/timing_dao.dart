@@ -10,7 +10,11 @@ class TimingDAO {
     final db = await dbProvider.database;
     //get the biggest id in the table
     var table = await db.rawQuery("SELECT MAX(id)+1 as id FROM timing");
-    int id = table.first["id"];
+
+    if (timing.id == null) {
+      timing.id = table.first["id"];
+    }
+
     //insert to the table using the new id
     var raw = await db.rawInsert(
         'INSERT Into timing ('
@@ -23,7 +27,7 @@ class TimingDAO {
         ')'
         'VALUES (?,?,?,?,?,?)',
         [
-          id,
+          timing.id,
           timing.userID,
           timing.date.toIso8601String(),
           timing.operation,
@@ -38,6 +42,17 @@ class TimingDAO {
     final db = await dbProvider.database;
     var res = await db.query("timing", where: "id = ?", whereArgs: [id]);
     return res.isNotEmpty ? Timing.fromMap(res.first) : null;
+  }
+
+  Future<List<Timing>> getAll() async {
+    final db = await dbProvider.database;
+    var res = await db.query(
+      "timing",
+    );
+
+    List<Timing> list =
+        res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
+    return list;
   }
 
   Future<List<Timing>> getByDateUserId(DateTime date, String userID) async {
@@ -79,7 +94,7 @@ class TimingDAO {
     final db = await dbProvider.database;
     var res = await db.query(
       "timing",
-      where: "user_id=? and ended_at is null",
+      where: "user_id=? and ended_at is null and deleted_at is null",
       whereArgs: [userID],
       orderBy: "started_at DESC",
       limit: 1,

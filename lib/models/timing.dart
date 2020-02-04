@@ -115,7 +115,10 @@ class Timing {
         if (_timing.id == null || _timing.id == 0) {
           TimingDAO().insert(_timing);
         } else {
-          TimingDAO().update(_timing);
+          int res = await TimingDAO().update(_timing);
+          if (res == 0) {
+            TimingDAO().insert(_timing);
+          }
         }
       }
     }
