@@ -1,4 +1,5 @@
-import 'package:enterprise/db.dart';
+import 'package:enterprise/database/core.dart';
+import 'package:enterprise/database/profile_dao.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/body_main_chanel.dart';
 import 'package:enterprise/pages/body_main_timing.dart';
@@ -27,7 +28,8 @@ class PageMainState extends State<PageMain> {
     Profile _profile;
 
     if (_userID != "") {
-      _profile = await DBProvider.db.getProfile(_userID);
+//      _profile = await DBProvider.db.getProfile(_userID);
+      _profile = await ProfileDAO().getByUuid(_userID);
     }
 
     setState(() {

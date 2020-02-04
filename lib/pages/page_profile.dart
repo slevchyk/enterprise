@@ -1,6 +1,7 @@
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/contatns.dart';
-import 'package:enterprise/db.dart';
+import 'package:enterprise/database/core.dart';
+import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -82,7 +83,7 @@ class PageProfileState extends State<PageProfile> {
     Profile _profile;
 
     if (_userID != "") {
-      _profile = await DBProvider.db.getProfile(_userID);
+      _profile = await ProfileDAO().getByUuid(_userID);
     }
 
     if (_profile != null) {
@@ -205,7 +206,7 @@ class PageProfileState extends State<PageProfile> {
     file.copy(documentDirectory.path);
 
     _profile.photo = file.path;
-    await DBProvider.db.updateProfile(_profile);
+    await ProfileDAO().update(_profile);
 
     setState(() {
       profile = _profile;

@@ -2,7 +2,8 @@ import 'dart:io';
 
 //import 'package:flutter/cupertino.dart';
 import 'package:enterprise/contatns.dart';
-import 'package:enterprise/db.dart';
+import 'package:enterprise/database/core.dart';
+import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -298,7 +299,7 @@ class PageSettingsState extends State<PageSettings> {
   }
 
   _clearProfile() async {
-    DBProvider.db.deleteAllProfiles();
+    ProfileDAO().deleteAll();
   }
 
   _clearTiming() async {

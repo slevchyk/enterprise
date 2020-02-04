@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:enterprise/database/profile_dao.dart';
+import 'package:enterprise/database/timing_dao.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:enterprise/contatns.dart';
-import 'package:enterprise/db.dart';
+import 'package:enterprise/database/core.dart';
 import 'package:enterprise/utils.dart';
 import 'package:http/http.dart';
 import 'package:path_provider/path_provider.dart';
@@ -278,12 +280,12 @@ class Profile {
       prefs.setString(KEY_USER_PICTURE, file.path);
     }
 
-    Profile existProfile = await DBProvider.db.getProfile(profile.uuid);
+    Profile existProfile = await ProfileDAO().getByUuid(profile.uuid);
     if (existProfile == null) {
-      await DBProvider.db.newProfile(profile);
+      await ProfileDAO().insert(profile);
     } else {
       profile.id = existProfile.id;
-      await DBProvider.db.updateProfile(profile);
+      await ProfileDAO().update(profile);
     }
 
     if (profile != null) {
@@ -367,7 +369,7 @@ class Timing {
       };
 
   static upload(userID) async {
-    List<Timing> toUpload = await DBProvider.db.getTimingToUpload(userID);
+    List<Timing> toUpload = await TimingDAO().getToUploadByUserId(userID);
 
     Map<String, List<Map<String, dynamic>>> jsonData;
     List<Map<String, dynamic>> rows = [];
@@ -412,8 +414,8 @@ class Timing {
   }
 
   static void closePastOperation() async {
-    List<Timing> openOperation = await DBProvider.db
-        .getTimingOpenPastOperation(Utility.beginningOfDay(DateTime.now()));
+    List<Timing> openOperation = await TimingDAO()
+        .getOpenPastOperation(Utility.beginningOfDay(DateTime.now()));
 
     for (var _timimg in openOperation) {
       DateTime endDate = new DateTime(_timimg.startedAt.year,

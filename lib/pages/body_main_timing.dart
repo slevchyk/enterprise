@@ -1,7 +1,8 @@
 //import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/contatns.dart';
-import 'package:enterprise/db.dart';
+import 'package:enterprise/database/core.dart';
+import 'package:enterprise/database/timing_dao.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:enterprise/utils.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +66,7 @@ class _TimingMainState extends State<TimingMain> {
     final dateTimeNow = DateTime.now();
     final beginningDay = Utility.beginningOfDay(dateTimeNow);
 
-    return await DBProvider.db.getUserTiming(beginningDay, userID);
+    return await TimingDAO().getByDateUserId(beginningDay, userID);
   }
 
   Future<List<charts.Series<ChartData, String>>> _createChartData(
@@ -136,16 +137,17 @@ class _TimingMainState extends State<TimingMain> {
         startedAt: dateTimeNow,
       );
 
-      await DBProvider.db.newTiming(timing);
+      await TimingDAO().insert(timing);
     } else if (timingOperation == '') {
       List<Timing> listTiming =
-          await DBProvider.db.getTimingOpenOperation(dayBegin, userID);
+          await TimingDAO().getOpenOperationByDateUserId(dayBegin, userID);
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
         await DBProvider.db.updateTiming(timing);
       }
 
-      listTiming = await DBProvider.db.getTimingOpenWorkday(dayBegin, userID);
+      listTiming =
+          await TimingDAO().getOpenWorkdayByDateUserId(dayBegin, userID);
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
         timing.endedAt = dateTimeNow;
@@ -155,7 +157,7 @@ class _TimingMainState extends State<TimingMain> {
         timingOperation == TIMING_STATUS_LANCH ||
         timingOperation == TIMING_STATUS_BREAK) {
       List<Timing> listTiming =
-          await DBProvider.db.getTimingOpenOperation(dayBegin, userID);
+          await TimingDAO().getOpenOperationByDateUserId(dayBegin, userID);
 
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
@@ -168,10 +170,10 @@ class _TimingMainState extends State<TimingMain> {
           operation: timingOperation,
           startedAt: dateTimeNow);
 
-      await DBProvider.db.newTiming(timing);
+      await TimingDAO().insert(timing);
     } else if (timingOperation == TIMING_STATUS_STOP) {
       List<Timing> listTiming =
-          await DBProvider.db.getTimingOpenOperation(dayBegin, userID);
+          await TimingDAO().getOpenOperationByDateUserId(dayBegin, userID);
 
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
@@ -188,7 +190,7 @@ class _TimingMainState extends State<TimingMain> {
 
   void _setCurrentStatus(userID) async {
     String _currentTimeStatus =
-        await DBProvider.db.getTimingCurrentByUser(userID);
+        await TimingDAO().getCurrentOperationByUser(userID);
     setState(() {
       currentTimeStatus = _currentTimeStatus;
     });
