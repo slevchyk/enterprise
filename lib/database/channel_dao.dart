@@ -14,9 +14,9 @@ class ChannelDAO {
         'title,'
         'date,'
         'news,'
-        'star,'
-        'archive,'
-        'delete_at'
+        'starred_at,'
+        'archived_at,'
+        'deleted_at'
         ')'
         'VALUES (?,?,?,?,?,?,?,?)',
         [
@@ -50,14 +50,14 @@ class ChannelDAO {
   starById(int id) async {
     final db = await dbProvider.database;
     var res = await db.update(
-        "chanel", {"star": DateTime.now().toIso8601String()},
+        "chanel", {"starred_at": DateTime.now().toIso8601String()},
         where: "id = ? ", whereArgs: [id]);
     return res;
   }
 
   unstarById(int id) async {
     final db = await dbProvider.database;
-    var res = await db.update("chanel", {"star": null},
+    var res = await db.update("chanel", {"starred_at": null},
         where: "id = ? ", whereArgs: [id]);
     return res;
   }
@@ -65,14 +65,14 @@ class ChannelDAO {
   archiveById(int id) async {
     final db = await dbProvider.database;
     var res = await db.update(
-        "chanel", {"archive": DateTime.now().toIso8601String()},
+        "chanel", {"archived_at": DateTime.now().toIso8601String()},
         where: "id = ?", whereArgs: [id]);
     return res;
   }
 
   unarchiveById(int id) async {
     final db = await dbProvider.database;
-    var res = await db.update("chanel", {"archive": null},
+    var res = await db.update("chanel", {"archived_at": null},
         where: "id = ?", whereArgs: [id]);
     return res;
   }
@@ -80,7 +80,7 @@ class ChannelDAO {
   deleteById(int id) async {
     final db = await dbProvider.database;
     var res = await db.update(
-        "chanel", {"delete_at": DateTime.now().toIso8601String()},
+        "chanel", {"deleted_at": DateTime.now().toIso8601String()},
         where: "id = ?", whereArgs: [id]);
     return res;
   }
@@ -88,7 +88,7 @@ class ChannelDAO {
   Future<List<Channel>> getByUserId(String userID) async {
     final db = await dbProvider.database;
     var res = await db.query("chanel",
-        where: "user_id = ? and delete_at is null and archive is null",
+        where: "user_id = ? and deleted_at is null and archived_at is null",
         whereArgs: [userID]);
 
     List<Channel> list =
@@ -99,7 +99,7 @@ class ChannelDAO {
   Future<List<Channel>> getStarredByUserId(String userID) async {
     final db = await dbProvider.database;
     var res = await db.query("chanel",
-        where: "user_id = ? and star is not null", whereArgs: [userID]);
+        where: "user_id = ? and starred_at is not null", whereArgs: [userID]);
 
     List<Channel> list =
         res.isNotEmpty ? res.map((c) => Channel.fromMap(c)).toList() : [];
@@ -109,7 +109,7 @@ class ChannelDAO {
   Future<List<Channel>> getDeletedByUSerId(String userID) async {
     final db = await dbProvider.database;
     var res = await db.query("chanel",
-        where: "user_id = ? and delete_at is not null", whereArgs: [userID]);
+        where: "user_id = ? and deleted_at is not null", whereArgs: [userID]);
 
     List<Channel> list =
         res.isNotEmpty ? res.map((c) => Channel.fromMap(c)).toList() : [];
@@ -119,7 +119,7 @@ class ChannelDAO {
   Future<List<Channel>> getArchivedByUserId(String userID) async {
     final db = await dbProvider.database;
     var res = await db.query("chanel",
-        where: "user_id = ? and archive is not null and delete_at is null",
+        where: "user_id = ? and archived_at is not null and deleted_at is null",
         whereArgs: [userID]);
 
     List<Channel> list =
