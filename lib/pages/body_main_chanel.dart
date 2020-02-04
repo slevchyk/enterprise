@@ -230,7 +230,7 @@ class BodyChannelState extends State<BodyChannel> {
                                   );
                                 },
                                 child: Hero(
-                                  tag: "channel$channel.id",
+                                  tag: 'channel_' + channel.id.toString(),
                                   child: ListTile(
                                     title: Text(channel.title),
                                     isThreeLine: true,
@@ -382,8 +382,13 @@ class _ChannelHeroState extends State<ChannelHero> {
     return Center(
       child: Container(
         child: Hero(
-          tag: "channel$widget.channel.id",
-          child: Text(widget.channel.news),
+          tag: 'channel_' + widget.channel.id.toString(),
+          child: Center(
+            child: Container(
+              color: Colors.white,
+              child: Text(widget.channel.news),
+            ),
+          ),
         ),
       ),
     );
