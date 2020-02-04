@@ -20,6 +20,7 @@ class Timing {
   DateTime createdAt;
   DateTime updatedAt;
   DateTime deletedAt;
+  bool isModified;
 
   Timing({
     this.id,
@@ -33,6 +34,7 @@ class Timing {
     this.createdAt,
     this.updatedAt,
     this.deletedAt,
+    this.isModified,
   });
 
   factory Timing.fromMap(Map<String, dynamic> json) => new Timing(
@@ -55,6 +57,7 @@ class Timing {
         deletedAt: json["deleted_at"] != null
             ? DateTime.parse(json["deleted_at"])
             : null,
+        isModified: json["is_modified"] == 1 ? true : false,
       );
 
   Map<String, dynamic> toMap() => {
@@ -68,6 +71,7 @@ class Timing {
         "created_at": createdAt != null ? createdAt.toIso8601String() : null,
         "updated_at": updatedAt != null ? updatedAt.toIso8601String() : null,
         "deleted_at": deletedAt != null ? deletedAt.toIso8601String() : null,
+        "is_modified": isModified ? 1 : 0,
       };
 
   static upload(userID) async {
@@ -111,6 +115,8 @@ class Timing {
 
       for (var _timingMap in jsonData['processed']) {
         var _timing = Timing.fromMap(_timingMap);
+
+        _timing.isModified = false;
 
         if (_timing.id == null || _timing.id == 0) {
           TimingDAO().insert(_timing);

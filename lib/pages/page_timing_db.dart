@@ -9,24 +9,21 @@ class PageTimingDB extends StatefulWidget {
 }
 
 class _PageTimingDBState extends State<PageTimingDB> {
-  List<Timing> listTiming;
+  Future<List<Timing>> listTiming;
 
   @override
   void initState() {
-//    List<Timing> _listTiming = getTiming();
-    setState(() {
-      listTiming = getTiming();
-    });
+    listTiming = _getTiming();
   }
 
-  getTiming() async {
+  Future<List<Timing>> _getTiming() async {
     return await TimingDAO().getAll();
   }
 
-  Widget dataTable() {
+  Widget dataTable(_listTiming) {
     List<DataRow> dataRows = [];
 
-    for (var timing in listTiming) {
+    for (var timing in _listTiming) {
       dataRows.add(DataRow(cells: <DataCell>[
         DataCell(
           Text(timing.date.toIso8601String()),
@@ -79,7 +76,36 @@ class _PageTimingDBState extends State<PageTimingDB> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: dataTable(),
+      body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: FutureBuilder(
+              future: listTiming,
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                switch (snapshot.connectionState) {
+                  case ConnectionState.none:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  case ConnectionState.waiting:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  case ConnectionState.active:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  case ConnectionState.done:
+                    return dataTable(snapshot.data);
+                  default:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                }
+              }),
+        ),
+      ),
     );
   }
 }

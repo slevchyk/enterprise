@@ -23,9 +23,10 @@ class TimingDAO {
         'date,'
         'operation,'
         'started_at,'
-        'created_at'
+        'created_at,'
+        'is_modified'
         ')'
-        'VALUES (?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?)',
         [
           timing.id,
           timing.userID,
@@ -33,6 +34,7 @@ class TimingDAO {
           timing.operation,
           timing.startedAt.toIso8601String(),
           DateTime.now().toIso8601String(),
+          1
         ]);
     timing.id = raw;
     return raw;
@@ -83,7 +85,7 @@ class TimingDAO {
   Future<List<Timing>> getToUploadByUserId(String userID) async {
     final db = await dbProvider.database;
     var res = await db.query("timing",
-        where: "user_id = ? and ext_id is null", whereArgs: [userID]);
+        where: "user_id = ? and is_modified = 1", whereArgs: [userID]);
 
     List<Timing> list =
         res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
@@ -154,8 +156,9 @@ class TimingDAO {
     return list;
   }
 
-  update(Timing timing) async {
+  update(Timing timing, {bool isModified = true}) async {
     final db = await dbProvider.database;
+    timing.isModified = isModified;
     timing.updatedAt = DateTime.now();
     var res = await db.update("timing", timing.toMap(),
         where: "id = ?", whereArgs: [timing.id]);

@@ -375,15 +375,24 @@ class ChannelHero extends StatefulWidget {
 class _ChannelHeroState extends State<ChannelHero> {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        child: Hero(
-          tag: 'channel_' + widget.channel.id.toString(),
-          child: Center(
-            child: Container(
-              color: Colors.white,
-              child: Text(widget.channel.news),
-            ),
+    return Hero(
+      tag: 'channel_' + widget.channel.id.toString(),
+      child: Center(
+        child: Container(
+          padding: EdgeInsets.all(50.0),
+          child: Column(
+            children: <Widget>[
+              Container(
+                color: Colors.white,
+                child: Text(widget.channel.title),
+              ),
+              SingleChildScrollView(
+                child: Container(
+                  color: Colors.white,
+                  child: Text(widget.channel.news),
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -63,7 +63,8 @@ class DBProvider {
           'ended_at TEXT,'
           'created_at TEXT,'
           'updated_at TEXT,'
-          'deleted_at TEXT'
+          'deleted_at TEXT,'
+          'is_modified BIT'
           ')');
       await db.execute('CREATE TABLE timing_log ('
           'id INTEGER,'
