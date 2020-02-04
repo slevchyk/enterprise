@@ -112,7 +112,7 @@ class Timing {
       for (var _timingMap in jsonData['processed']) {
         var _timing = Timing.fromMap(_timingMap);
 
-        if (_timing.id == null) {
+        if (_timing.id == null || _timing.id == 0) {
           TimingDAO().insert(_timing);
         } else {
           TimingDAO().update(_timing);

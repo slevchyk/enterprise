@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:enterprise/models/contatns.dart';
 import 'package:enterprise/database/channel_dao.dart';
-import 'package:enterprise/database/core.dart';
 import 'package:enterprise/models/channel.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_main.dart';
@@ -367,7 +366,7 @@ class BodyChannelState extends State<BodyChannel> {
 }
 
 class ChannelHero extends StatefulWidget {
-  Channel channel;
+  final Channel channel;
 
   ChannelHero({
     this.channel,
@@ -378,8 +377,6 @@ class ChannelHero extends StatefulWidget {
 }
 
 class _ChannelHeroState extends State<ChannelHero> {
-//  final Channel channel = widget.channel;
-
   @override
   Widget build(BuildContext context) {
     return Center(
