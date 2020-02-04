@@ -25,15 +25,11 @@ class BodyChannel extends StatefulWidget {
 }
 
 class BodyChannelState extends State<BodyChannel> {
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _initWidgetState());
-  }
-
   Future<List<Channel>> channels;
   Future<List<Channel>> channelsArchived;
 
-  void _initWidgetState() {
+  @override
+  void initState() {
     channels = getChannels();
     channelsArchived = getArchived();
   }
