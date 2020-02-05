@@ -377,23 +377,22 @@ class _ChannelHeroState extends State<ChannelHero> {
   Widget build(BuildContext context) {
     return Hero(
       tag: 'channel_' + widget.channel.id.toString(),
-      child: Center(
-        child: Container(
-          padding: EdgeInsets.all(50.0),
-          child: Column(
-            children: <Widget>[
-              Container(
+      child: Container(
+        padding: EdgeInsets.all(50.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Container(
+              color: Colors.white,
+              child: Text(widget.channel.title),
+            ),
+            SingleChildScrollView(
+              child: Container(
                 color: Colors.white,
-                child: Text(widget.channel.title),
+                child: Text(widget.channel.news),
               ),
-              SingleChildScrollView(
-                child: Container(
-                  color: Colors.white,
-                  child: Text(widget.channel.news),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

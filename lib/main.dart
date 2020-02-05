@@ -12,7 +12,8 @@ class EnterpriseApp extends StatefulWidget {
 
 class EnterpriseAppState extends State<EnterpriseApp> {
   void initState() {
-    Timing.closePastOperation();
+    Timing.closePastTiming();
+    Timing.syncCurrent();
   }
 
   @override

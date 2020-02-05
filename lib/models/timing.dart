@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/timing_dao.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -74,7 +75,7 @@ class Timing {
         "is_modified": isModified ? 1 : 0,
       };
 
-  static upload(userID) async {
+  static sync(userID) async {
     List<Timing> toUpload = await TimingDAO().getToUploadByUserId(userID);
 
     Map<String, List<Map<String, dynamic>>> jsonData;
@@ -116,21 +117,72 @@ class Timing {
       for (var _timingMap in jsonData['processed']) {
         var _timing = Timing.fromMap(_timingMap);
 
-        _timing.isModified = false;
-
         if (_timing.id == null || _timing.id == 0) {
-          TimingDAO().insert(_timing);
+          TimingDAO().insert(_timing, isModified: false);
         } else {
-          int res = await TimingDAO().update(_timing);
-          if (res == 0) {
-            TimingDAO().insert(_timing);
+          Timing _existingTiming = await TimingDAO().getById(_timing.id);
+
+          if (_existingTiming == null) {
+            TimingDAO().insert(_timing, isModified: false);
+          } else {
+            TimingDAO().update(_timing, isModified: false);
           }
         }
       }
     }
   }
 
-  static void closePastOperation() async {
+  static syncCurrent() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final String _userID = prefs.getString(KEY_USER_ID) ?? "";
+
+    final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+    final String _serverDB = prefs.getString(KEY_SERVER_DATABASE) ?? "";
+
+    String date = formatDate(DateTime.now(), [yyyy, mm, dd]);
+
+    final String url =
+        'http://$_serverIP/$_serverDB/hs/m/timing?userid=$_userID&date=$date';
+
+    final credentials = '$_serverUser:$_serverPassword';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+      HttpHeaders.contentTypeHeader: "application/json",
+    };
+
+    Response response = await get(
+      url,
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonData = json.decode(response.body);
+
+      for (var _timingMap in jsonData['timing']) {
+        var _timing = Timing.fromMap(_timingMap);
+
+        if (_timing.id == null || _timing.id == 0) {
+          TimingDAO().insert(_timing, isModified: false);
+        } else {
+          Timing _existingTiming = await TimingDAO().getById(_timing.id);
+
+          if (_existingTiming == null) {
+            TimingDAO().insert(_timing, isModified: false);
+          } else {
+            TimingDAO().update(_timing, isModified: false);
+          }
+        }
+      }
+    }
+  }
+
+  static void closePastTiming() async {
     List<Timing> openOperation = await TimingDAO()
         .getOpenPastOperation(Utility.beginningOfDay(DateTime.now()));
 

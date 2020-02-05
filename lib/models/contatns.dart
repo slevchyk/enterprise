@@ -10,6 +10,8 @@ const String KEY_USER_PIN = "keyUserPin";
 const String KEY_USER_ID = "keyUserID";
 const String KEY_USER_PICTURE = "keyUserPicture";
 
+const String KEY_CHANNEL_OFFSET = "keyChannelOffset";
+
 const String CIVIL_STATUS_SINGLE = 'Single';
 const String CIVIL_STATUS_MERRIED = 'Married';
 const String CIVIL_STATUS_DIVORCED = 'Divorced';
