@@ -1,12 +1,13 @@
-import 'package:enterprise/db.dart';
+import 'package:enterprise/database/core.dart';
+import 'package:enterprise/database/profile_dao.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/body_main_chanel.dart';
 import 'package:enterprise/pages/body_main_timing.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../contatns.dart';
-import '../models.dart';
+import '../models/contatns.dart';
+import '../models/profile.dart';
 
 class PageMain extends StatefulWidget {
   PageMainState createState() => PageMainState();
@@ -27,7 +28,8 @@ class PageMainState extends State<PageMain> {
     Profile _profile;
 
     if (_userID != "") {
-      _profile = await DBProvider.db.getProfile(_userID);
+//      _profile = await DBProvider.db.getProfile(_userID);
+      _profile = await ProfileDAO().getByUuid(_userID);
     }
 
     setState(() {
@@ -42,7 +44,7 @@ class PageMainState extends State<PageMain> {
       case 0:
         return BodyMain(profile);
       case 1:
-        return BodyChanel(profile);
+        return BodyChannel(profile);
       default:
         return BodyMain(profile);
     }

@@ -1,6 +1,8 @@
-import 'package:enterprise/models.dart';
+import 'package:enterprise/models/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/route_generator.dart';
+
+import 'models/timing.dart';
 
 void main() => runApp(EnterpriseApp());
 
@@ -11,7 +13,6 @@ class EnterpriseApp extends StatefulWidget {
 class EnterpriseAppState extends State<EnterpriseApp> {
   void initState() {
     Timing.closePastOperation();
-    Timing.clearCurrentOperation();
   }
 
   @override
@@ -19,12 +20,20 @@ class EnterpriseAppState extends State<EnterpriseApp> {
     return MaterialApp(
       initialRoute: '/',
       onGenerateRoute: RouteGenerator.generateRoute,
+//      theme: ThemeData(
+//        primaryColor: Colors.pinkAccent.shade400,
+//        accentColor: Colors.pinkAccent.shade200,
+//        dividerColor: Colors.pinkAccent.shade700,
+//        primaryIconTheme: IconThemeData(
+//          color: Colors.pinkAccent.shade200,
+//        ),
+//      ),
       theme: ThemeData(
-        primaryColor: Colors.green.shade700,
-        accentColor: Colors.green.shade500,
-        dividerColor: Colors.green.shade900,
+        primaryColor: Colors.grey.shade800,
+        accentColor: Colors.grey.shade500,
+        dividerColor: Colors.grey.shade900,
         primaryIconTheme: IconThemeData(
-          color: Colors.green.shade500,
+          color: Colors.grey.shade500,
         ),
       ),
     );

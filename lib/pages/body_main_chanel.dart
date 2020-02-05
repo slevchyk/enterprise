@@ -1,28 +1,40 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:enterprise/contatns.dart';
-import 'package:enterprise/db.dart';
-import 'package:enterprise/models.dart';
+import 'package:enterprise/models/contatns.dart';
+import 'package:enterprise/database/channel_dao.dart';
+import 'package:enterprise/models/channel.dart';
+import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/pages/page_main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
-import '../models.dart';
+import '../models/profile.dart';
 
-class BodyChanel extends StatefulWidget {
+class BodyChannel extends StatefulWidget {
   final Profile profile;
 
-  BodyChanel(
+  BodyChannel(
     this.profile,
   );
 
-  BodyChanelState createState() => BodyChanelState();
+  BodyChannelState createState() => BodyChannelState();
 }
 
-class BodyChanelState extends State<BodyChanel> {
-  _downloadChanel(BuildContext context) async {
+class BodyChannelState extends State<BodyChannel> {
+  Future<List<Channel>> channels;
+  Future<List<Channel>> channelsArchived;
+
+  @override
+  void initState() {
+    channels = getChannels();
+    channelsArchived = getArchived();
+  }
+
+  _downloadChannel(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
 
     final String _ip = prefs.getString(KEY_SERVER_IP) ?? "";
@@ -32,7 +44,7 @@ class BodyChanelState extends State<BodyChanel> {
 
     final String _userID = prefs.get(KEY_USER_ID);
 
-    final String url = 'http://$_ip/$_db/hs/m/chanel?infocard=$_userID';
+    final String url = 'http://$_ip/$_db/hs/m/channel?userid=$_userID';
 
     final credentials = '$_user:$_password';
     final stringToBase64 = utf8.fuse(base64);
@@ -58,93 +70,331 @@ class BodyChanelState extends State<BodyChanel> {
 
     final jsonData = json.decode(body);
 
-    for (var jsonRow in jsonData["chanel"]) {
-      Chanel chanel = Chanel.fromMap(jsonRow);
-      chanel.userID = _userID;
+    for (var jsonRow in jsonData["channel"]) {
+      Channel channel = Channel.fromMap(jsonRow);
+      channel.userID = _userID;
 
-      Chanel existChanel = await DBProvider.db.getChanel(chanel.id);
+      Channel existChannel = await ChannelDAO().getById(channel.id);
 
-      if (existChanel != null) {
-        DBProvider.db.updateChanel(chanel);
+      if (existChannel != null) {
+        ChannelDAO().update(channel);
       } else {
-        DBProvider.db.newChanel(chanel);
+        ChannelDAO().insert(channel);
       }
     }
   }
 
-  _updateChanel() async {
-    await _downloadChanel(context);
-    chaneles = getChaneles();
+  _updateChannel() async {
+    await _downloadChannel(context);
+    channels = getChannels();
     setState(() {});
   }
 
-  Future<List<Chanel>> chaneles;
-
-  void initState() {
-    chaneles = getChaneles();
-  }
-
-  Future<List<Chanel>> getChaneles() async {
+  Future<List<Channel>> getChannels() async {
     final prefs = await SharedPreferences.getInstance();
 
     String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return DBProvider.db.getUserChanel(userID);
+    return ChannelDAO().getByUserId(userID);
+  }
+
+  Future<List<Channel>> getArchived() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String userID = prefs.getString(KEY_USER_ID) ?? "";
+    return ChannelDAO().getArchivedByUserId(userID);
+  }
+
+  Widget starSlideAction(Channel channel, int id) {
+    Widget iconSlideAction;
+
+    if (channel.starredAt != null) {
+      iconSlideAction = new IconSlideAction(
+        caption: 'Не Важливі',
+        color: Colors.yellow,
+        icon: Icons.star,
+        onTap: () {
+          ChannelDAO().unstarById(id);
+          setState(() {
+            channels = getChannels();
+            channelsArchived = getArchived();
+          });
+        },
+      );
+    } else {
+      iconSlideAction = new IconSlideAction(
+        caption: 'Важливі',
+        color: Colors.yellow,
+        icon: Icons.star_border,
+        onTap: () {
+          ChannelDAO().starById(id);
+          setState(() {
+            channels = getChannels();
+            channelsArchived = getArchived();
+          });
+        },
+      );
+    }
+
+    return iconSlideAction;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Канал'),
-      ),
-//      drawer: AppDrawer(widget.profile),
-      body: Container(
-//        color: Colors.blueGrey,
-          child: FutureBuilder(
-        future: chaneles,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            case ConnectionState.waiting:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            case ConnectionState.active:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            case ConnectionState.done:
-              var listChaneles = snapshot.data;
-              return ListView.separated(
-                itemCount: listChaneles.length,
-                separatorBuilder: (context, index) => Divider(),
-                itemBuilder: (BuildContext context, int index) {
-                  Chanel chanel = listChaneles[index];
-                  return ListTile(
-                    title: Text(chanel.title),
-                    isThreeLine: true,
-                    leading: CircleAvatar(
-                      child: Text('1C'),
-                    ),
-                    subtitle: Text(
-                      chanel.news,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  );
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Канал'),
+          bottom: TabBar(
+            tabs: <Widget>[
+              Tab(text: "Нові"),
+              Tab(text: "Архів"),
+            ],
+          ),
+        ),
+        drawer: AppDrawer(widget.profile),
+        body: TabBarView(
+          children: [
+            Container(
+              child: FutureBuilder(
+                future: channels,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.waiting:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.active:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.done:
+                      var listChanneles = snapshot.data;
+                      return Center(
+                        child: ListView.separated(
+                          itemCount: listChanneles.length,
+                          separatorBuilder: (context, index) => Divider(),
+                          itemBuilder: (BuildContext context, int index) {
+                            Channel channel = listChanneles[index];
+                            return Slidable(
+                              delegate: new SlidableDrawerDelegate(),
+                              actionExtentRatio: 0.25,
+                              actions: <Widget>[
+                                new IconSlideAction(
+                                  caption: 'Архівувати',
+                                  color: Colors.blue,
+                                  icon: Icons.archive,
+                                  onTap: () {
+                                    ChannelDAO()
+                                        .archiveById(listChanneles[index].id);
+                                    setState(() {
+                                      channels = getChannels();
+                                      channelsArchived = getArchived();
+                                    });
+                                  },
+                                ),
+                              ],
+                              secondaryActions: <Widget>[
+                                new IconSlideAction(
+                                  caption: 'Важливі',
+                                  color: Colors.yellow,
+                                  icon: Icons.star_border,
+                                  onTap: () {
+                                    ChannelDAO()
+                                        .starById(listChanneles[index].id);
+                                  },
+                                ),
+                                new IconSlideAction(
+                                  caption: 'Видалити',
+                                  color: Colors.red,
+                                  icon: Icons.delete,
+                                  onTap: () {
+                                    ChannelDAO()
+                                        .deleteById(listChanneles[index].id);
+                                  },
+                                ),
+                              ],
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.of(context).pushNamed(
+                                    '/channelHero',
+                                    arguments: channel,
+                                  );
+                                },
+                                child: Hero(
+                                  tag: 'channel_' + channel.id.toString(),
+                                  child: ListTile(
+                                    title: Text(channel.title),
+                                    isThreeLine: true,
+                                    leading: CircleAvatar(
+                                      backgroundColor:
+                                          Theme.of(context).primaryColor,
+                                      child: Text('1C'),
+                                    ),
+                                    subtitle: Text(
+                                      channel.news,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    default:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                  }
                 },
-              );
-          }
-        },
-      )),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _updateChanel();
-        },
-        child: Icon(Icons.update),
+              ),
+            ),
+            Container(
+              child: FutureBuilder(
+                future: channelsArchived,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.waiting:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.active:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.done:
+                      var listChanneles = snapshot.data;
+                      return Center(
+                        child: ListView.separated(
+                          itemCount: listChanneles.length,
+                          separatorBuilder: (context, index) => Divider(),
+                          itemBuilder: (BuildContext context, int index) {
+                            Channel channel = listChanneles[index];
+                            return Slidable(
+                              delegate: new SlidableDrawerDelegate(),
+                              actionExtentRatio: 0.25,
+                              actions: <Widget>[
+                                new IconSlideAction(
+                                  caption: 'Розархівувати',
+                                  color: Colors.blue,
+                                  icon: Icons.archive,
+                                  onTap: () {
+                                    ChannelDAO()
+                                        .unarchiveById(listChanneles[index].id);
+                                    setState(() {
+                                      channels = getChannels();
+                                      channelsArchived = getArchived();
+                                    });
+                                  },
+                                ),
+                              ],
+                              secondaryActions: <Widget>[
+                                new IconSlideAction(
+                                  caption: 'Важливі',
+                                  color: Colors.yellow,
+                                  icon: Icons.star_border,
+                                  onTap: () {
+                                    ChannelDAO()
+                                        .starById(listChanneles[index].id);
+                                    setState(() {
+                                      channels = getChannels();
+                                      channelsArchived = getArchived();
+                                    });
+                                  },
+                                ),
+                                new IconSlideAction(
+                                  caption: 'Видалити',
+                                  color: Colors.red,
+                                  icon: Icons.delete,
+                                  onTap: () {
+                                    ChannelDAO()
+                                        .deleteById(listChanneles[index].id);
+                                  },
+                                ),
+                              ],
+                              child: ListTile(
+                                title: Text(channel.title),
+                                isThreeLine: true,
+                                leading: CircleAvatar(
+                                  backgroundColor:
+                                      Theme.of(context).primaryColor,
+                                  child: Text('1C'),
+                                ),
+                                subtitle: Text(
+                                  channel.news,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    default:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            _updateChannel();
+          },
+          child: Icon(Icons.update),
+        ),
+      ),
+    );
+  }
+}
+
+class ChannelHero extends StatefulWidget {
+  final Channel channel;
+
+  ChannelHero({
+    this.channel,
+  });
+
+  @override
+  _ChannelHeroState createState() => _ChannelHeroState();
+}
+
+class _ChannelHeroState extends State<ChannelHero> {
+  @override
+  Widget build(BuildContext context) {
+    return Hero(
+      tag: 'channel_' + widget.channel.id.toString(),
+      child: Center(
+        child: Container(
+          padding: EdgeInsets.all(50.0),
+          child: Column(
+            children: <Widget>[
+              Container(
+                color: Colors.white,
+                child: Text(widget.channel.title),
+              ),
+              SingleChildScrollView(
+                child: Container(
+                  color: Colors.white,
+                  child: Text(widget.channel.news),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

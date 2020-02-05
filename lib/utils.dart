@@ -9,4 +9,8 @@ class Utility {
       fit: BoxFit.fill,
     );
   }
+
+  static DateTime beginningOfDay(DateTime dateTime) {
+    return DateTime(dateTime.year, dateTime.month, dateTime.day);
+  }
 }
