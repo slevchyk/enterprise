@@ -1,4 +1,5 @@
 import 'dart:convert';
+//import 'dart:html';
 import 'dart:io';
 
 import 'package:enterprise/models/contatns.dart';
@@ -77,6 +78,9 @@ class BodyChannelState extends State<BodyChannel> {
       Channel existChannel = await ChannelDAO().getById(channel.id);
 
       if (existChannel != null) {
+        channel.starredAt = existChannel.starredAt;
+        channel.deletedAt = existChannel.deletedAt;
+        channel.archivedAt = existChannel.archivedAt;
         ChannelDAO().update(channel);
       } else {
         ChannelDAO().insert(channel);
@@ -102,6 +106,13 @@ class BodyChannelState extends State<BodyChannel> {
 
     String userID = prefs.getString(KEY_USER_ID) ?? "";
     return ChannelDAO().getArchivedByUserId(userID);
+  }
+
+  Future<List<Channel>> getStarted() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String userID = prefs.getString(KEY_USER_ID) ?? "";
+    return ChannelDAO().getStarredByUserId(userID);
   }
 
   Widget starSlideAction(Channel channel, int id) {
@@ -199,15 +210,7 @@ class BodyChannelState extends State<BodyChannel> {
                                 ),
                               ],
                               secondaryActions: <Widget>[
-                                new IconSlideAction(
-                                  caption: 'Важливі',
-                                  color: Colors.yellow,
-                                  icon: Icons.star_border,
-                                  onTap: () {
-                                    ChannelDAO()
-                                        .starById(listChanneles[index].id);
-                                  },
-                                ),
+                                starSlideAction(channel, channel.id),
                                 new IconSlideAction(
                                   caption: 'Видалити',
                                   color: Colors.red,
@@ -220,25 +223,30 @@ class BodyChannelState extends State<BodyChannel> {
                               ],
                               child: InkWell(
                                 onTap: () {
-                                  Navigator.of(context).pushNamed(
-                                    '/channelHero',
-                                    arguments: channel,
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            ChannelHero(channel: channel)),
                                   );
                                 },
                                 child: Hero(
                                   tag: 'channel_' + channel.id.toString(),
-                                  child: ListTile(
-                                    title: Text(channel.title),
-                                    isThreeLine: true,
-                                    leading: CircleAvatar(
-                                      backgroundColor:
-                                          Theme.of(context).primaryColor,
-                                      child: Text('1C'),
-                                    ),
-                                    subtitle: Text(
-                                      channel.news,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+//                                    https://github.com/flutter/flutter/issues/34119
+                                  child: Material(
+                                    child: ListTile(
+                                      title: Text(channel.title),
+                                      isThreeLine: true,
+                                      leading: CircleAvatar(
+                                        backgroundColor:
+                                            Theme.of(context).primaryColor,
+                                        child: Text('1C'),
+                                      ),
+                                      subtitle: Text(
+                                        channel.news,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -299,19 +307,7 @@ class BodyChannelState extends State<BodyChannel> {
                                 ),
                               ],
                               secondaryActions: <Widget>[
-                                new IconSlideAction(
-                                  caption: 'Важливі',
-                                  color: Colors.yellow,
-                                  icon: Icons.star_border,
-                                  onTap: () {
-                                    ChannelDAO()
-                                        .starById(listChanneles[index].id);
-                                    setState(() {
-                                      channels = getChannels();
-                                      channelsArchived = getArchived();
-                                    });
-                                  },
-                                ),
+                                starSlideAction(channel, channel.id),
                                 new IconSlideAction(
                                   caption: 'Видалити',
                                   color: Colors.red,
@@ -375,14 +371,18 @@ class ChannelHero extends StatefulWidget {
 class _ChannelHeroState extends State<ChannelHero> {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        child: Hero(
-          tag: 'channel_' + widget.channel.id.toString(),
-          child: Center(
+    return Hero(
+      tag: 'channel_' + widget.channel.id.toString(),
+      child: Material(
+//        padding: EdgeInsets.all(16),
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(widget.channel.title),
+          ),
+          body: SingleChildScrollView(
             child: Container(
-              color: Colors.white,
-              child: Text(widget.channel.news),
+              padding: EdgeInsets.all(14),
+              child: Text(widget.channel.news, style: TextStyle(fontSize: 19)),
             ),
           ),
         ),

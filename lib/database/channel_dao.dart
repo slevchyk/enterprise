@@ -89,7 +89,8 @@ class ChannelDAO {
     final db = await dbProvider.database;
     var res = await db.query("chanel",
         where: "user_id = ? and deleted_at is null and archived_at is null",
-        whereArgs: [userID]);
+        whereArgs: [userID],
+        orderBy: "starred_at DESC");
 
     List<Channel> list =
         res.isNotEmpty ? res.map((c) => Channel.fromMap(c)).toList() : [];
@@ -120,7 +121,8 @@ class ChannelDAO {
     final db = await dbProvider.database;
     var res = await db.query("chanel",
         where: "user_id = ? and archived_at is not null and deleted_at is null",
-        whereArgs: [userID]);
+        whereArgs: [userID],
+        orderBy: "starred_at DESC");
 
     List<Channel> list =
         res.isNotEmpty ? res.map((c) => Channel.fromMap(c)).toList() : [];
