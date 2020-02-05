@@ -31,7 +31,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
     final prefs = await SharedPreferences.getInstance();
     String _userID = prefs.getString(KEY_USER_ID) ?? "";
 
-    operations = _getOperations(_userID);
+    operations = _getTiming(_userID);
     chartData = _createChartData(operations);
 
     setState(() {
@@ -39,7 +39,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
     });
   }
 
-  Future<List<Timing>> _getOperations(String userID) async {
+  Future<List<Timing>> _getTiming(String userID) async {
     List<Timing> result = [];
     DateTime currentDay = beginningPeriod;
     List<DateTime> listDate = [];
@@ -51,11 +51,11 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
       listDate.add(beginningDay);
 
       currentDay = currentDay.add(new Duration(days: 1));
-    } while (
-        currentDay.millisecondsSinceEpoch < endPeriod.millisecondsSinceEpoch);
+    } while (Utility.beginningOfDay(currentDay).millisecondsSinceEpoch <=
+        endPeriod.millisecondsSinceEpoch);
 
     List<Timing> listTiming =
-        await TimingDAO().getPeriodByDatesUserId(listDate, userID);
+        await TimingDAO().geUndeletedtPeriodByDatesUserId(listDate, userID);
 
     for (var _timing in listTiming) {
       if (_timing.operation == TIMING_STATUS_WORKDAY) {
@@ -245,7 +245,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                           beginningPeriod = picked;
                         });
 
-                        operations = _getOperations(userID);
+                        operations = _getTiming(userID);
                         chartData = _createChartData(operations);
                       }
                     },
@@ -274,7 +274,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                           endPeriod = picked;
                         });
 
-                        operations = _getOperations(userID);
+                        operations = _getTiming(userID);
                         chartData = _createChartData(operations);
                       }
                     },

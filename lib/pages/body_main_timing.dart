@@ -1,7 +1,5 @@
-//import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/models/contatns.dart';
-import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/timing_dao.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/timing.dart';
@@ -56,7 +54,7 @@ class _TimingMainState extends State<TimingMain> {
     String _userID = prefs.getString(KEY_USER_ID) ?? "";
 
     _setCurrentStatus(_userID);
-    operations = _getOperations(_userID);
+    operations = _getTiming(_userID);
     listChartData = _createChartData(operations);
 
     setState(() {
@@ -64,11 +62,11 @@ class _TimingMainState extends State<TimingMain> {
     });
   }
 
-  Future<List<Timing>> _getOperations(String userID) async {
+  Future<List<Timing>> _getTiming(String userID) async {
     final dateTimeNow = DateTime.now();
     final beginningDay = Utility.beginningOfDay(dateTimeNow);
 
-    return await TimingDAO().getByDateUserId(beginningDay, userID);
+    return await TimingDAO().getUndeletedByDateUserId(beginningDay, userID);
   }
 
   Future<List<charts.Series<ChartData, String>>> _createChartData(
@@ -123,7 +121,7 @@ class _TimingMainState extends State<TimingMain> {
     ];
   }
 
-  handleOperation(String timingOperation) async {
+  _handleTiming(String timingOperation) async {
     final dateTimeNow = DateTime.now();
     final dayBegin =
         new DateTime(dateTimeNow.year, dateTimeNow.month, dateTimeNow.day);
@@ -182,11 +180,27 @@ class _TimingMainState extends State<TimingMain> {
       }
     }
 
-    Timing.upload(userID);
-
+    // отримаємо поточний стан виходячи із записів в локальній базі
     _setCurrentStatus(userID);
-    operations = _getOperations(userID);
+    // прочитаємо записи локальної бази
+    operations = _getTiming(userID);
+    // відобразимо на кругові діаграмі актульні даті з локальної бази
     listChartData = _createChartData(operations);
+
+    // відправимо змінені дані в хмару і отримаємо актуалізуємо локальну базу
+    Timing.sync(userID);
+  }
+
+  // процедура актуалізації локальної бази даними з хмари
+  Future<void> _refreshTiming() async {
+    await Timing.syncCurrent();
+
+    // прочитаємо записи локальної бази
+    operations = _getTiming(userID);
+    // відобразимо на кругові діаграмі актульні даті з локальної бази
+    listChartData = _createChartData(operations);
+    // відправимо змінені дані в хмару і отримаємо актуалізуємо локальну базу
+    _setCurrentStatus(userID);
   }
 
   void _setCurrentStatus(userID) async {
@@ -195,6 +209,43 @@ class _TimingMainState extends State<TimingMain> {
     setState(() {
       currentTimeStatus = _currentTimeStatus;
     });
+  }
+
+  var _tapPosition;
+
+  void _showCustomMenu() {
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject();
+
+    showMenu(
+            context: context,
+            items: <PopupMenuEntry<String>>[PlusMinusEntry()],
+            position: RelativeRect.fromRect(
+                _tapPosition & Size(40, 40), // smaller rect, the touch area
+                Offset.zero & overlay.size // Bigger rect, the entire screen
+                ))
+        // This is how you handle user selection
+        .then<void>((String delta) {
+      // delta would be null if user taps on outside the popup menu
+      // (causing it to close without making selection)
+      if (delta == null) return;
+
+//      setState(() {
+//        _count = _count + delta;
+//      });
+    });
+
+    // Another option:
+    //
+    // final delta = await showMenu(...);
+    //
+    // Then process `delta` however you want.
+    // Remember to make the surrounding function `async`, that is:
+    //
+    // void _showCustomMenu() async { ... }
+  }
+
+  void _storePosition(TapDownDetails details) {
+    _tapPosition = details.globalPosition;
   }
 
   Widget rowIcon(String operation) {
@@ -219,14 +270,20 @@ class _TimingMainState extends State<TimingMain> {
 
     for (var timing in listTiming) {
       dataRows.add(DataRow(cells: <DataCell>[
-        DataCell(Row(
-          children: <Widget>[
-            rowIcon(timing.operation),
-            SizedBox(
-              width: 10.0,
-            ),
-            Text(OPERATION_ALIAS[timing.operation]),
-          ],
+        DataCell(GestureDetector(
+          // This does not give the tap position ...
+          onLongPress: _showCustomMenu,
+          // Have to remember it on tap-down.
+          onTapDown: _storePosition,
+          child: Row(
+            children: <Widget>[
+              rowIcon(timing.operation),
+              SizedBox(
+                width: 10.0,
+              ),
+              Text(OPERATION_ALIAS[timing.operation]),
+            ],
+          ),
         )),
         DataCell(Text(timing.startedAt != null
             ? formatDate(timing.startedAt, [hh, ':', nn, ':', ss])
@@ -259,27 +316,59 @@ class _TimingMainState extends State<TimingMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: <Widget>[
-          SliverAppBar(
-            title: Text('Хронометраж'),
-            pinned: true,
-            floating: false,
-            expandedHeight: 300.0,
-            actions: <Widget>[
-              IconButton(
-                icon: Icon(Icons.history),
-                onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    '/timinghistory',
-                    arguments: "",
-                  );
-                },
+      body: RefreshIndicator(
+        onRefresh: _refreshTiming,
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverAppBar(
+              title: Text('Хронометраж'),
+              pinned: true,
+              floating: false,
+              expandedHeight: 300.0,
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.history),
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(
+                      '/timinghistory',
+                      arguments: "",
+                    );
+                  },
+                ),
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                background: FutureBuilder(
+                    future: listChartData,
+                    builder: (BuildContext context, AsyncSnapshot snapshot) {
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.none:
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        case ConnectionState.waiting:
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        case ConnectionState.active:
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        case ConnectionState.done:
+                          return DonutAutoLabelChart(
+                            snapshot.data,
+                            animate: true,
+                          );
+                        default:
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                      }
+                    }),
               ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: FutureBuilder(
-                  future: listChartData,
+            ),
+            SliverFillRemaining(
+              child: FutureBuilder(
+                  future: operations,
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
                     switch (snapshot.connectionState) {
                       case ConnectionState.none:
@@ -295,10 +384,7 @@ class _TimingMainState extends State<TimingMain> {
                           child: CircularProgressIndicator(),
                         );
                       case ConnectionState.done:
-                        return DonutAutoLabelChart(
-                          snapshot.data,
-                          animate: true,
-                        );
+                        return dataTable(snapshot.data);
                       default:
                         return Center(
                           child: CircularProgressIndicator(),
@@ -306,38 +392,12 @@ class _TimingMainState extends State<TimingMain> {
                     }
                   }),
             ),
-          ),
-          SliverFillRemaining(
-            child: FutureBuilder(
-                future: operations,
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.none:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    case ConnectionState.waiting:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    case ConnectionState.active:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    case ConnectionState.done:
-                      return dataTable(snapshot.data);
-                    default:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                  }
-                }),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: TimingFAB(currentTimeStatus, (String value) {
         if (currentTimeStatus != value) {
-          handleOperation(value);
+          _handleTiming(value);
         }
       }),
     );
@@ -518,5 +578,39 @@ class DonutAutoLabelChart extends StatelessWidget {
             arcWidth: 100,
             startAngle: 30,
             arcRendererDecorators: [new charts.ArcLabelDecorator()]));
+  }
+}
+
+class PlusMinusEntry extends PopupMenuEntry<String> {
+  @override
+  double height = 100;
+//  // height doesn't matter, as long as we are not giving
+//  // initialValue to showMenu().
+//
+  @override
+  bool represents(String n) => n == '1' || n == '-1';
+
+  @override
+  PlusMinusEntryState createState() => PlusMinusEntryState();
+}
+
+class PlusMinusEntryState extends State<PlusMinusEntry> {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Expanded(child: FlatButton(onPressed: _plus1, child: Text('+1'))),
+        Expanded(child: FlatButton(onPressed: _minus1, child: Text('-1'))),
+      ],
+    );
+  }
+
+  void _plus1() {
+    // This is how you close the popup menu and return user selection.
+    Navigator.pop<int>(context, 1);
+  }
+
+  void _minus1() {
+    Navigator.pop<int>(context, -1);
   }
 }

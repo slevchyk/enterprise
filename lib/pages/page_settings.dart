@@ -6,6 +6,7 @@ import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/database/timing_dao.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/pages/page_timing_db.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -229,6 +230,17 @@ class PageSettingsState extends State<PageSettings> {
                         child: Text('delete db'),
                         color: Colors.blueGrey,
                       ),
+                      FlatButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => PageTimingDB()),
+                          );
+                        },
+                        child: Text('Timing DB'),
+                      ),
+//                      FlatButton()
                     ],
                   ),
                 ],

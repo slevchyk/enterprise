@@ -7,3 +7,13 @@ class ChartData {
     this.value,
   });
 }
+
+class UploadFile {
+  String name;
+  String data;
+
+  UploadFile({
+    this.name,
+    this.data,
+  });
+}
