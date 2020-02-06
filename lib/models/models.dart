@@ -1,10 +1,14 @@
+import 'dart:ui';
+
 class ChartData {
   String title;
   double value;
+  Color color;
 
   ChartData({
     this.title,
     this.value,
+    this.color,
   });
 }
 
