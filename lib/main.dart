@@ -29,13 +29,29 @@ class EnterpriseAppState extends State<EnterpriseApp> {
 //          color: Colors.pinkAccent.shade200,
 //        ),
 //      ),
+      // theme: ThemeData(
+      //   primaryColor: Colors.grey.shade800,
+      //   accentColor: Colors.grey.shade500,
+      //   dividerColor: Colors.grey.shade900,
+      //   primaryIconTheme: IconThemeData(
+      //     color: Colors.grey.shade500,
+      //   ),
+      // ),
       theme: ThemeData(
-        primaryColor: Colors.grey.shade800,
-        accentColor: Colors.grey.shade500,
-        dividerColor: Colors.grey.shade900,
-        primaryIconTheme: IconThemeData(
-          color: Colors.grey.shade500,
-        ),
+        darkPrimaryColor: Colors.color(#455A64);
+        primaryColor: Colors.color(#607D8B);
+lightPrimaryColor: Colors.color(#CFD8DC);
+textPrimaryColor:   Colors.color(#FFFFFF);
+accentColor:        Colors.color(#00BCD4);
+primaryTextColor:   Colors.color(#212121);
+secondaryTextColor: Colors.color(#757575);
+dividerColor:       Colors.color(#BDBDBD);
+        // primaryColor: Colors.grey.shade800,
+        // accentColor: Colors.grey.shade500,
+        // dividerColor: Colors.grey.shade900,
+        // primaryIconTheme: IconThemeData(
+        //   color: Colors.grey.shade500,
+        // ),
       ),
     );
   }
