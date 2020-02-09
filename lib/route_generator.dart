@@ -1,6 +1,7 @@
 import 'package:enterprise/pages/body_main_chanel.dart';
 import 'package:enterprise/pages/page_paydesk.dart';
 import 'package:enterprise/pages/page_timing_hitory.dart';
+import 'package:enterprise/pages/page_turnstile.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:enterprise/pages/page_profile.dart';
@@ -25,8 +26,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => PageSettings());
       case '/about':
         return MaterialPageRoute(builder: (_) => PageAbout());
-      case '/channelHero':
-        return MaterialPageRoute(builder: (_) => ChannelHero(channel: args));
+      case '/turnstile':
+        return MaterialPageRoute(builder: (_) => PageTurnstile());
       // Validation of correct data type
 //        if (args is String) {
 //          return MaterialPageRoute(

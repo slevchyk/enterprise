@@ -432,7 +432,7 @@ class PageProfileState extends State<PageProfile> {
                   builder: (FormFieldState<String> state) {
                     return InputDecorator(
                       decoration: InputDecoration(
-                        icon: Icon(FontAwesomeIcons.userFriends),
+                        icon: Icon(FontAwesomeIcons.ring),
                         hintText: 'оберіть із списку',
                         labelText: 'Сімейний стан',
                         helperText: 'оберіть одне із значень із спику',
