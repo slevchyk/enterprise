@@ -1,6 +1,5 @@
 import 'dart:io';
 
-//import 'package:flutter/cupertino.dart';
 import 'package:enterprise/models/contatns.dart';
 import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/profile_dao.dart';
@@ -343,7 +342,14 @@ class PageSettingsState extends State<PageSettings> {
 
     String requestJSON = json.encode(requestMap);
 
+    final username = SERVER_USER;
+    final password = SERVER_PASSWORD;
+    final credentials = '$username:$password';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
     Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
@@ -352,9 +358,31 @@ class PageSettingsState extends State<PageSettings> {
 
     String body = response.body;
 
+    if (response.statusCode == 200) {
+      Map<String, dynamic> responseJSON = json.decode(body);
+
+      _serverIPController.text = responseJSON["srv_ip"];
+      _serverUserController.text = responseJSON["srv_user"];
+      _serverPasswordController.text = responseJSON["srv_password"];
+
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Налаштування отримано'),
+        backgroundColor: Colors.green,
+      ));
+      return;
+    }
+
     if (response.statusCode == 400) {
       _scaffoldKey.currentState.showSnackBar(SnackBar(
         content: Text('Невірні параметри\n$body'),
+        backgroundColor: Colors.redAccent,
+      ));
+      return;
+    }
+
+    if (response.statusCode == 401) {
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Помилка сервера:\n$body'),
         backgroundColor: Colors.redAccent,
       ));
       return;
@@ -376,18 +404,10 @@ class PageSettingsState extends State<PageSettings> {
       return;
     }
 
-    if (response.statusCode == 200) {
-      Map<String, dynamic> responseJSON = json.decode(body);
-
-      _serverIPController.text = responseJSON["srv_ip"];
-      _serverUserController.text = responseJSON["srv_user"];
-      _serverPasswordController.text = responseJSON["srv_password"];
-
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Налаштування отримано'),
-        backgroundColor: Colors.green,
-      ));
-    }
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text('Не вдалось отримати налаштування'),
+      backgroundColor: Colors.green,
+    ));
   }
 }
 

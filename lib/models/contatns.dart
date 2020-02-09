@@ -1,7 +1,7 @@
 library constants;
 
-import 'package:charts_flutter/flutter.dart';
-import 'package:flutter/material.dart';
+const String SERVER_USER = "mobile";
+const String SERVER_PASSWORD = "Dq4fS^J&^nqQ(fg4";
 
 const String KEY_SERVER_IP = "keyServerIP";
 const String KEY_SERVER_DATABASE = "keyServerDatabase";
