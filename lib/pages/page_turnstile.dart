@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_nfc_reader/flutter_nfc_reader.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class PageTurnstile extends StatefulWidget {
   @override
@@ -15,6 +18,7 @@ class _PageTurnstileState extends State<PageTurnstile> {
   String _nfcTag = "";
   Stream<NfcData> _nfcStream = FlutterNfcReader.onTagDiscovered();
   NFCAvailability _nfcAvailability;
+  Profile _profile;
 
 //  Stream<NDEFMessage> _stream = NFC.readNDEF();
 
@@ -46,10 +50,13 @@ class _PageTurnstileState extends State<PageTurnstile> {
     return Material(
       child: Column(
         children: <Widget>[
-          Container(
-            padding: EdgeInsets.all(12.0),
-            child: Image.asset('assets/nfc_scan.png'),
-          ),
+          _nfcTag == ""
+              ? Container(
+                  height: _nfcTag == "" ? 200.0 : 0.0,
+                  padding: EdgeInsets.all(15.0),
+                  child: Image.asset('assets/nfc_scan.png'),
+                )
+              : SizedBox(),
           StreamBuilder<NfcData>(
             stream: _nfcStream,
             builder: (context, snapshot) {
@@ -63,7 +70,9 @@ class _PageTurnstileState extends State<PageTurnstile> {
                 dec = int.parse(_nfcTag);
               }
 
-              return _turnstile(dec);
+              _getProfileByInfoCard(dec);
+
+              return _turnstile();
             },
           ),
         ],
@@ -71,20 +80,46 @@ class _PageTurnstileState extends State<PageTurnstile> {
     );
   }
 
-  Widget _turnstile(int _nfcTag) {
-    Profile _profile;
+  _getProfileByInfoCard(int infoCard) async {
+    Profile _pfl = await ProfileDAO().getByInfoCard(infoCard);
+    setState(() {
+      _profile = _pfl;
+    });
+  }
 
-    if (_nfcTag == 0) {
-      return Center(
-        child: Text('Прикладіть вашу картку'),
-      );
-    }
-
-    ProfileDAO().getByInfoCard(_nfcTag).then((value) {
-      if (value != null) {
-        _profile = value;
+  Future _autoLogout() async {
+    return new Future.delayed(const Duration(seconds: 10), () {
+      if (_profile != null) {
+        setState(() {
+          _nfcTag = "";
+          _profile = null;
+        });
       }
     });
+  }
+
+  Widget _turnstile() {
+    if (_nfcTag == "") {
+      return Column(
+        children: <Widget>[
+          Icon(
+            Icons.keyboard_arrow_up,
+            size: 100.0,
+          ),
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 15.0),
+            child: Text(
+              'ПРИКЛАДІТЬ ВАШУ КАРТКУ ТУТ',
+              style: TextStyle(
+                fontSize: 30.0,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      );
+    }
 
     if (_profile == null) {
       return Center(
@@ -92,7 +127,10 @@ class _PageTurnstileState extends State<PageTurnstile> {
       );
     }
 
+//    _autoLogout();
+
     return Column(
+      mainAxisSize: MainAxisSize.max,
       children: <Widget>[
         Container(child: _getUserpic(_profile)),
         Text(_profile.firstName + ' ' + _profile.lastName),
@@ -100,14 +138,37 @@ class _PageTurnstileState extends State<PageTurnstile> {
           child: Text('Інфокарта: $_nfcTag'),
         ),
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
             RaisedButton(
               onPressed: () {},
-              child: Text('Вхід'),
+              padding: EdgeInsets.all(10.0),
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    FontAwesomeIcons.doorOpen,
+                  ),
+                  SizedBox(
+                    width: 10.0,
+                  ),
+                  Text('Вхід'),
+                ],
+              ),
             ),
             RaisedButton(
               onPressed: () {},
-              child: Text('Вихід'),
+              padding: EdgeInsets.all(10.0),
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    FontAwesomeIcons.doorClosed,
+                  ),
+                  SizedBox(
+                    width: 10.0,
+                  ),
+                  Text('Вихід'),
+                ],
+              ),
             ),
           ],
         )
@@ -127,7 +188,6 @@ class _PageTurnstileState extends State<PageTurnstile> {
         minRadius: 75,
         maxRadius: 100,
         backgroundImage: ExactAssetImage(profile.photo),
-//        child: Image.asset(profile.photo),
       );
     }
   }
