@@ -1,316 +1,359 @@
-import 'package:enterprise/contatns.dart';
-import 'package:enterprise/models.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class PagePayDesk extends StatefulWidget {
   @override
   _PagePayDeskState createState() => _PagePayDeskState();
 }
 
-
-  final _formKey = GlobalKey<FormState>();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _middleNameController = TextEditingController();
-  final _itnController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passportSeriesController = TextEditingController();
-  final _passportNumberController = TextEditingController();
-  final _passportIssuedController = TextEditingController();
-  final _passportDateController = TextEditingController();
-  final _civilStatusController = TextEditingController();
-  final _childrenController = TextEditingController();
-
-  bool isLoadingProfile = true;
-  PagePayDesk profile;
-
-setControllers(Profile _pfl) {
-  _firstNameController.text = _pfl.firstName;
-  _lastNameController.text = _pfl.lastName;
-  _middleNameController.text = _pfl.middleName;
-  _itnController.text = _pfl.itn;
-  _phoneController.text = _pfl.phone;
-  _emailController.text = _pfl.email;
-  _passportSeriesController.text = _pfl.passport.series;
-  _passportNumberController.text = _pfl.passport.number;
-  _passportIssuedController.text = _pfl.passport.issued;
-  _passportDateController.text = _pfl.passport.date;
-  _civilStatusController.text = _pfl.civilStatus;
-  _childrenController.text = _pfl.children;
-  _educationController.text = _pfl.education;
-}
-
 class _PagePayDeskState extends State<PagePayDesk> {
+
+  final _summController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: Center(
-        child: Text(
-          "Каса",
-          style: TextStyle(fontSize: 25.0),
-        ),
-      ),
-    );
-  }
-}
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text('Профіль'),
-    ),
-    body: ListView(
-      padding: EdgeInsets.all(10.0),
-      children: <Widget>[
-        Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                'Основне:',
-                style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
-              ),
-              TextFormField(
-                controller: _firstNameController,
+    return Scaffold(
+      body: Form(
+        child: Column(
+          children: <Widget>[
+          TextFormField(
+                controller: _summController,
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  icon: Icon(Icons.person),
-                  suffixIcon: _clearIconButton(_firstNameController),
-                  hintText: 'ваше ім\'я',
-                  labelText: 'Ім\'я *',
+                  icon: Icon(Icons.monetization_on),
+//                  suffixIcon: _clearIconButton(_firstNameController),
+                  hintText: 'сума згідно квитанції',
+                  labelText: 'Сумма*',
                 ),
                 validator: (value) {
                   if (value.isEmpty) return 'ви не вказали ім\'я';
                   return null;
                 },
-                onChanged: (value) {
-                  setState(() {});
-                },
+//                onChanged: (value) {
+//                  setState(() {});
+//                },
               ),
-              TextFormField(
-                controller: _lastNameController,
-                decoration: InputDecoration(
-                  icon: SizedBox(
-                    width: 24.0,
-                  ),
-                  suffixIcon: _clearIconButton(_lastNameController),
-                  hintText: 'ваше прізвище',
-                  labelText: 'Прізвище *',
-                ),
-                validator: (value) {
-                  if (value.isEmpty) return 'ви не вказали прізвище';
-                  return null;
-                },
-                onChanged: (value) {
-                  setState(() {});
-                },
-              ),
-              TextFormField(
-                controller: _middleNameController,
-                decoration: InputDecoration(
-                  icon: SizedBox(
-                    width: 24.0,
-                  ),
-                  suffixIcon: _clearIconButton(_middleNameController),
-                  hintText: 'по-батькові',
-                  labelText: 'По-батькові *',
-                ),
-                validator: (value) {
-                  if (value.isEmpty) return 'ви не вказали по-батькові';
-                  return null;
-                },
-                onChanged: (value) {
-                  setState(() {});
-                },
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              TextFormField(
-                controller: _itnController,
-                decoration: InputDecoration(
-                  icon: SizedBox(
-                    width: 24.0,
-                  ),
-                  labelText: 'ІПН',
-                  hintText: 'ваш ІПН (якщо немає, то серія і номер паспорта',
-                ),
-                validator: (value) {
-                  if (value.isEmpty) return 'ви не вказали ІПН/Паспорт';
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _phoneController,
-                decoration: InputDecoration(
-                  icon: Icon(Icons.phone),
-                  suffixIcon: _clearIconButton(_phoneController),
-                  hintText: 'номер вашого мобільного телефону',
-                  labelText: 'Телефон *',
-                ),
-                inputFormatters: [
-                  WhitelistingTextInputFormatter(RegExp("[+0-9]"))
-                ],
-                validator: (value) {
-                  if (value.isEmpty) return 'ви не вказали номер телефону';
-                  return null;
-                },
-                onChanged: (value) {
-                  setState(() {});
-                },
-                keyboardType: TextInputType.phone,
-              ),
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  icon: Icon(Icons.email),
-                  suffixIcon: _clearIconButton(_emailController),
-                  hintText: 'ваш email',
-                  labelText: 'Email *',
-                ),
-                validator: (value) {
-                  if (value.isEmpty) return 'ви не вказали email';
-                  return null;
-                },
-                onChanged: (value) {
-                  setState(() {});
-                },
-                keyboardType: TextInputType.emailAddress,
-              ),
-              SizedBox(height: 10.0),
-              Text(
-                'Паспорт:',
-                style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
-              ),
-              TextFormField(
-                controller: _passportSeriesController,
-                decoration: InputDecoration(
-                  icon: Icon(FontAwesomeIcons.passport),
-                  hintText: "перші дві літери паспорта",
-                  labelText: "Серія",
-                ),
-                validator: (value) {
-                  if (value.isEmpty) return 'ви не вказали серію паспорта';
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _passportNumberController,
-                decoration: InputDecoration(
-                  icon: SizedBox(
-                    width: 24.0,
-                  ),
-                  hintText: "останні шість цифер паспорта",
-                  labelText: "Номер",
-                ),
-                validator: (value) {
-                  if (value.isEmpty) return 'ви не вказали номер паспорта';
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _passportIssuedController,
-                decoration: InputDecoration(
-                  icon: SizedBox(
-                    width: 24.0,
-                  ),
-                  hintText: "установа якою виданий паспорт",
-                  labelText: "Ким виданий",
-                ),
-                validator: (value) {
-                  if (value.isEmpty)
-                    return 'ви не вказали ким виданий паспорт';
-                  return null;
-                },
-              ),
-              InkWell(
-                onTap: () {
-                  _selectDate(context, _passportDateController);
-                },
-                child: IgnorePointer(
-                  child: new TextFormField(
-                    controller: _passportDateController,
-                    decoration: new InputDecoration(
-                      icon: SizedBox(
-                        width: 24.0,
-                      ),
-                      hintText: 'дата коли виданий паспорт',
-                      labelText: 'Коли виданий',
-                    ),
-                    validator: (value) {
-                      if (value.isEmpty)
-                        return 'ви не вказали ким виданий паспорт';
-                      return null;
-                    },
-                    // maxLength: 10,
-                  ),
-                ),
-              ),
-              FormField<String>(
-                builder: (FormFieldState<String> state) {
-                  return InputDecorator(
-                    decoration: InputDecoration(
-                      icon: Icon(FontAwesomeIcons.userFriends),
-                      hintText: 'оберіть із спику',
-                      labelText: 'Сімейний стан',
-                      helperText: 'оберіть однк із значень із спику',
-                    ),
-                    isEmpty: false,
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _civilStatusController.text.isEmpty
-                            ? CS_OTHER
-                            : _civilStatusController.text,
-                        isDense: true,
-                        onChanged: (String newValue) {
-                          setState(() {
-                            _civilStatusController.text = newValue;
-//                              state.didChange(newValue);
-                          });
-                        },
-                        items: _getCivilStatuses(),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              TextFormField(
-                controller: _childrenController,
-                decoration: InputDecoration(
-                    icon: Icon(FontAwesomeIcons.baby),
-                    hintText: '12.03.2012, 23.09.2015',
-                    labelText: 'Дати народження дітей',
-                    helperText: 'запонвювати якшо є діти'),
-              ),
-              SizedBox(height: 20.0),
-              RaisedButton(
-                onPressed: () {
-                  if (_formKey.currentState.validate()) {
-                    Scaffold.of(context).showSnackBar(SnackBar(
-                      content: Text('Налаштування збережено'),
-                      backgroundColor: Colors.green,
-                    ));
-                  }
-                },
-                child: Text('Save'),
-                color: Colors.blue,
-                textColor: Colors.white,
-              ),
-            ],
-          ),
+          ],
         ),
-      ],
-    ),
-    floatingActionButton: FloatingActionButton(
-      child: Icon(Icons.update),
-      onPressed: () {
-        _downloadProfile(context);
-      },
-    ),
-  );
+
+      ),
+    );
+  }
 }
-}
+
+
+//import 'package:enterprise/contatns.dart';
+//import 'package:enterprise/models.dart';
+//import 'package:flutter/material.dart';
+//import 'package:flutter/services.dart';
+//import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+//
+//class PagePayDesk extends StatefulWidget {
+//  @override
+//  _PagePayDeskState createState() => _PagePayDeskState();
+//}
+//
+//
+//  final _formKey = GlobalKey<FormState>();
+//  final _firstNameController = TextEditingController();
+//  final _lastNameController = TextEditingController();
+//  final _middleNameController = TextEditingController();
+//  final _itnController = TextEditingController();
+//  final _phoneController = TextEditingController();
+//  final _emailController = TextEditingController();
+//  final _passportSeriesController = TextEditingController();
+//  final _passportNumberController = TextEditingController();
+//  final _passportIssuedController = TextEditingController();
+//  final _passportDateController = TextEditingController();
+//  final _civilStatusController = TextEditingController();
+//  final _childrenController = TextEditingController();
+//
+//  bool isLoadingProfile = true;
+//  PagePayDesk profile;
+//
+//setControllers(Profile _pfl) {
+//  _firstNameController.text = _pfl.firstName;
+//  _lastNameController.text = _pfl.lastName;
+//  _middleNameController.text = _pfl.middleName;
+//  _itnController.text = _pfl.itn;
+//  _phoneController.text = _pfl.phone;
+//  _emailController.text = _pfl.email;
+//  _passportSeriesController.text = _pfl.passport.series;
+//  _passportNumberController.text = _pfl.passport.number;
+//  _passportIssuedController.text = _pfl.passport.issued;
+//  _passportDateController.text = _pfl.passport.date;
+//  _civilStatusController.text = _pfl.civilStatus;
+//  _childrenController.text = _pfl.children;
+//  _educationController.text = _pfl.education;
+//}
+//
+//class _PagePayDeskState extends State<PagePayDesk> {
+//  @override
+//  Widget build(BuildContext context) {
+//    return Container(
+//      color: Colors.white,
+//      child: Center(
+//        child: Text(
+//          "Каса",
+//          style: TextStyle(fontSize: 25.0),
+//        ),
+//      ),
+//    );
+//  }
+//}
+//@override
+//Widget build(BuildContext context) {
+//  return Scaffold(
+//    appBar: AppBar(
+//      title: Text('Профіль'),
+//    ),
+//    body: ListView(
+//      padding: EdgeInsets.all(10.0),
+//      children: <Widget>[
+//        Form(
+//          key: _formKey,
+//          child: Column(
+//            crossAxisAlignment: CrossAxisAlignment.start,
+//            children: <Widget>[
+//              Text(
+//                'Основне:',
+//                style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+//              ),
+//              TextFormField(
+//                controller: _firstNameController,
+//                decoration: InputDecoration(
+//                  icon: Icon(Icons.person),
+//                  suffixIcon: _clearIconButton(_firstNameController),
+//                  hintText: 'ваше ім\'я',
+//                  labelText: 'Ім\'я *',
+//                ),
+//                validator: (value) {
+//                  if (value.isEmpty) return 'ви не вказали ім\'я';
+//                  return null;
+//                },
+//                onChanged: (value) {
+//                  setState(() {});
+//                },
+//              ),
+//              TextFormField(
+//                controller: _lastNameController,
+//                decoration: InputDecoration(
+//                  icon: SizedBox(
+//                    width: 24.0,
+//                  ),
+//                  suffixIcon: _clearIconButton(_lastNameController),
+//                  hintText: 'ваше прізвище',
+//                  labelText: 'Прізвище *',
+//                ),
+//                validator: (value) {
+//                  if (value.isEmpty) return 'ви не вказали прізвище';
+//                  return null;
+//                },
+//                onChanged: (value) {
+//                  setState(() {});
+//                },
+//              ),
+//              TextFormField(
+//                controller: _middleNameController,
+//                decoration: InputDecoration(
+//                  icon: SizedBox(
+//                    width: 24.0,
+//                  ),
+//                  suffixIcon: _clearIconButton(_middleNameController),
+//                  hintText: 'по-батькові',
+//                  labelText: 'По-батькові *',
+//                ),
+//                validator: (value) {
+//                  if (value.isEmpty) return 'ви не вказали по-батькові';
+//                  return null;
+//                },
+//                onChanged: (value) {
+//                  setState(() {});
+//                },
+//              ),
+//              SizedBox(
+//                height: 10,
+//              ),
+//              TextFormField(
+//                controller: _itnController,
+//                decoration: InputDecoration(
+//                  icon: SizedBox(
+//                    width: 24.0,
+//                  ),
+//                  labelText: 'ІПН',
+//                  hintText: 'ваш ІПН (якщо немає, то серія і номер паспорта',
+//                ),
+//                validator: (value) {
+//                  if (value.isEmpty) return 'ви не вказали ІПН/Паспорт';
+//                  return null;
+//                },
+//              ),
+//              TextFormField(
+//                controller: _phoneController,
+//                decoration: InputDecoration(
+//                  icon: Icon(Icons.phone),
+//                  suffixIcon: _clearIconButton(_phoneController),
+//                  hintText: 'номер вашого мобільного телефону',
+//                  labelText: 'Телефон *',
+//                ),
+//                inputFormatters: [
+//                  WhitelistingTextInputFormatter(RegExp("[+0-9]"))
+//                ],
+//                validator: (value) {
+//                  if (value.isEmpty) return 'ви не вказали номер телефону';
+//                  return null;
+//                },
+//                onChanged: (value) {
+//                  setState(() {});
+//                },
+//                keyboardType: TextInputType.phone,
+//              ),
+//              TextFormField(
+//                controller: _emailController,
+//                decoration: InputDecoration(
+//                  icon: Icon(Icons.email),
+//                  suffixIcon: _clearIconButton(_emailController),
+//                  hintText: 'ваш email',
+//                  labelText: 'Email *',
+//                ),
+//                validator: (value) {
+//                  if (value.isEmpty) return 'ви не вказали email';
+//                  return null;
+//                },
+//                onChanged: (value) {
+//                  setState(() {});
+//                },
+//                keyboardType: TextInputType.emailAddress,
+//              ),
+//              SizedBox(height: 10.0),
+//              Text(
+//                'Паспорт:',
+//                style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+//              ),
+//              TextFormField(
+//                controller: _passportSeriesController,
+//                decoration: InputDecoration(
+//                  icon: Icon(FontAwesomeIcons.passport),
+//                  hintText: "перші дві літери паспорта",
+//                  labelText: "Серія",
+//                ),
+//                validator: (value) {
+//                  if (value.isEmpty) return 'ви не вказали серію паспорта';
+//                  return null;
+//                },
+//              ),
+//              TextFormField(
+//                controller: _passportNumberController,
+//                decoration: InputDecoration(
+//                  icon: SizedBox(
+//                    width: 24.0,
+//                  ),
+//                  hintText: "останні шість цифер паспорта",
+//                  labelText: "Номер",
+//                ),
+//                validator: (value) {
+//                  if (value.isEmpty) return 'ви не вказали номер паспорта';
+//                  return null;
+//                },
+//              ),
+//              TextFormField(
+//                controller: _passportIssuedController,
+//                decoration: InputDecoration(
+//                  icon: SizedBox(
+//                    width: 24.0,
+//                  ),
+//                  hintText: "установа якою виданий паспорт",
+//                  labelText: "Ким виданий",
+//                ),
+//                validator: (value) {
+//                  if (value.isEmpty)
+//                    return 'ви не вказали ким виданий паспорт';
+//                  return null;
+//                },
+//              ),
+//              InkWell(
+//                onTap: () {
+//                  _selectDate(context, _passportDateController);
+//                },
+//                child: IgnorePointer(
+//                  child: new TextFormField(
+//                    controller: _passportDateController,
+//                    decoration: new InputDecoration(
+//                      icon: SizedBox(
+//                        width: 24.0,
+//                      ),
+//                      hintText: 'дата коли виданий паспорт',
+//                      labelText: 'Коли виданий',
+//                    ),
+//                    validator: (value) {
+//                      if (value.isEmpty)
+//                        return 'ви не вказали ким виданий паспорт';
+//                      return null;
+//                    },
+//                    // maxLength: 10,
+//                  ),
+//                ),
+//              ),
+//              FormField<String>(
+//                builder: (FormFieldState<String> state) {
+//                  return InputDecorator(
+//                    decoration: InputDecoration(
+//                      icon: Icon(FontAwesomeIcons.userFriends),
+//                      hintText: 'оберіть із спику',
+//                      labelText: 'Сімейний стан',
+//                      helperText: 'оберіть однк із значень із спику',
+//                    ),
+//                    isEmpty: false,
+//                    child: DropdownButtonHideUnderline(
+//                      child: DropdownButton<String>(
+//                        value: _civilStatusController.text.isEmpty
+//                            ? CS_OTHER
+//                            : _civilStatusController.text,
+//                        isDense: true,
+//                        onChanged: (String newValue) {
+//                          setState(() {
+//                            _civilStatusController.text = newValue;
+////                              state.didChange(newValue);
+//                          });
+//                        },
+//                        items: _getCivilStatuses(),
+//                      ),
+//                    ),
+//                  );
+//                },
+//              ),
+//              TextFormField(
+//                controller: _childrenController,
+//                decoration: InputDecoration(
+//                    icon: Icon(FontAwesomeIcons.baby),
+//                    hintText: '12.03.2012, 23.09.2015',
+//                    labelText: 'Дати народження дітей',
+//                    helperText: 'запонвювати якшо є діти'),
+//              ),
+//              SizedBox(height: 20.0),
+//              RaisedButton(
+//                onPressed: () {
+//                  if (_formKey.currentState.validate()) {
+//                    Scaffold.of(context).showSnackBar(SnackBar(
+//                      content: Text('Налаштування збережено'),
+//                      backgroundColor: Colors.green,
+//                    ));
+//                  }
+//                },
+//                child: Text('Save'),
+//                color: Colors.blue,
+//                textColor: Colors.white,
+//              ),
+//            ],
+//          ),
+//        ),
+//      ],
+//    ),
+//    floatingActionButton: FloatingActionButton(
+//      child: Icon(Icons.update),
+//      onPressed: () {
+//        _downloadProfile(context);
+//      },
+//    ),
+//  );
+//}
+//}
