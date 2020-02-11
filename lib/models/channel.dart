@@ -7,6 +7,7 @@ class Channel {
   DateTime starredAt;
   DateTime archivedAt;
   DateTime deletedAt;
+  String status;
 
   Channel({
     this.id,
@@ -17,6 +18,7 @@ class Channel {
     this.starredAt,
     this.archivedAt,
     this.deletedAt,
+    this.status,
   });
 
   factory Channel.fromMap(Map<String, dynamic> json) => new Channel(
@@ -33,6 +35,7 @@ class Channel {
         deletedAt: json["deleted_at"] != null
             ? DateTime.parse(json["deleted_at"])
             : null,
+        status: json["status"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -44,5 +47,6 @@ class Channel {
         "starred_at": starredAt != null ? starredAt.toIso8601String() : null,
         "archived_at": archivedAt != null ? archivedAt.toIso8601String() : null,
         "deleted_at": deletedAt != null ? deletedAt.toIso8601String() : null,
+        "status": status,
       };
 }
