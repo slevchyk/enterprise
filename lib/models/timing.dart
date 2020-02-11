@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/timing_dao.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -197,6 +198,19 @@ class Timing {
 
       _timing.endedAt = endDate;
       TimingDAO().update(_timing);
+    }
+  }
+
+  Color color() {
+    switch (operation) {
+      case TIMING_STATUS_JOB:
+        return Colors.indigo.shade300;
+      case TIMING_STATUS_LANCH:
+        return Colors.indigo.shade200;
+      case TIMING_STATUS_BREAK:
+        return Colors.indigo.shade100;
+      default:
+        return Colors.indigo.shade400;
     }
   }
 

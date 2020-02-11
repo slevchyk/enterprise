@@ -127,7 +127,7 @@ class _AppDrawerState extends State<AppDrawer> {
             },
           ),
           ListTile(
-            leading: Icon(FontAwesomeIcons.moneyBill),
+            leading: Icon(FontAwesomeIcons.cashRegister),
             title: Text('Каса'),
             onTap: () {
               Navigator.of(context).pushNamed(
@@ -142,6 +142,16 @@ class _AppDrawerState extends State<AppDrawer> {
             onTap: () {
               Navigator.of(context).pushNamed(
                 '/profile',
+                arguments: "",
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.play_circle_outline),
+            title: Text('Турнікет'),
+            onTap: () {
+              Navigator.of(context).pushNamed(
+                '/turnstile',
                 arguments: "",
               );
             },

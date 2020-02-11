@@ -1,6 +1,5 @@
 import 'dart:io';
 
-//import 'package:flutter/cupertino.dart';
 import 'package:enterprise/models/contatns.dart';
 import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/profile_dao.dart';
@@ -111,6 +110,18 @@ class PageSettingsState extends State<PageSettings> {
                   SizedBox(
                     height: 20.0,
                   ),
+                  FlatButton(
+                      child: Text('Get Settings'),
+                      onPressed: () {
+                        _getSettings(_scaffoldKey);
+                      },
+                      shape: RoundedRectangleBorder(
+                        borderRadius: new BorderRadius.circular(18.0),
+                        side: BorderSide(color: Theme.of(context).primaryColor),
+                      )),
+                  SizedBox(
+                    height: 20.0,
+                  ),
                   Text(
                     'Connection:',
                     style:
@@ -164,10 +175,10 @@ class PageSettingsState extends State<PageSettings> {
                         width: 24.0,
                       ),
                     ),
-                    validator: (value) {
-                      if (value.isEmpty) return 'не вказаний: Password';
-                      return null;
-                    },
+//                    validator: (value) {
+//                      if (value.isEmpty) return 'не вказаний: Password';
+//                      return null;
+//                    },
                   ),
                   SizedBox(height: 20.0),
                   RaisedButton(
@@ -325,6 +336,82 @@ class PageSettingsState extends State<PageSettings> {
 
   _deleteDB() async {
     DBProvider.db.deleteDB();
+  }
+
+  void _getSettings(GlobalKey<ScaffoldState> _scaffoldKey) async {
+    Map<String, String> requestMap = {
+      "phone": _userPhoneController.text,
+      "pin": _userPinController.text
+    };
+
+    String requestJSON = json.encode(requestMap);
+
+    final username = SERVER_USER;
+    final password = SERVER_PASSWORD;
+    final credentials = '$username:$password';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+      HttpHeaders.contentTypeHeader: "application/json",
+    };
+
+    String url = 'http://10.0.2.2:7132/api/getdbsettings';
+    Response response = await post(url, headers: headers, body: requestJSON);
+
+    String body = response.body;
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> responseJSON = json.decode(body);
+
+      _serverIPController.text = responseJSON["srv_ip"];
+      _serverUserController.text = responseJSON["srv_user"];
+      _serverPasswordController.text = responseJSON["srv_password"];
+
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Налаштування отримано'),
+        backgroundColor: Colors.green,
+      ));
+      return;
+    }
+
+    if (response.statusCode == 400) {
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Невірні параметри\n$body'),
+        backgroundColor: Colors.redAccent,
+      ));
+      return;
+    }
+
+    if (response.statusCode == 401) {
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Помилка сервера:\n$body'),
+        backgroundColor: Colors.redAccent,
+      ));
+      return;
+    }
+
+    if (response.statusCode == 404) {
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Не знайдено користувача з такими параметрами'),
+        backgroundColor: Colors.redAccent,
+      ));
+      return;
+    }
+
+    if (response.statusCode == 500) {
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Помилка сервера:\n$body'),
+        backgroundColor: Colors.redAccent,
+      ));
+      return;
+    }
+
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text('Не вдалось отримати налаштування'),
+      backgroundColor: Colors.green,
+    ));
   }
 }
 

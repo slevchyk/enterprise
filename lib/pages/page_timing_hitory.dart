@@ -101,16 +101,16 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
 
       switch (_timing.operation) {
         case TIMING_STATUS_JOB:
-          jobChartData
-              .add(new ChartData(title: strDate, value: _timing.duration));
+          jobChartData.add(new ChartData(
+              title: strDate, value: _timing.duration, color: _timing.color()));
           break;
         case TIMING_STATUS_LANCH:
-          lanchChartData
-              .add(new ChartData(title: strDate, value: _timing.duration));
+          lanchChartData.add(new ChartData(
+              title: strDate, value: _timing.duration, color: _timing.color()));
           break;
         case TIMING_STATUS_BREAK:
-          breakChartData
-              .add(new ChartData(title: strDate, value: _timing.duration));
+          breakChartData.add(new ChartData(
+              title: strDate, value: _timing.duration, color: _timing.color()));
           break;
         default:
           break;
@@ -121,21 +121,27 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
       // Blue bars with a lighter center color.
       new charts.Series<ChartData, String>(
         id: OPERATION_ALIAS[TIMING_STATUS_JOB],
-        domainFn: (ChartData timing, _) => timing.title,
-        measureFn: (ChartData timing, _) => timing.value,
         data: jobChartData,
+        domainFn: (ChartData record, _) => record.title,
+        measureFn: (ChartData record, _) => record.value,
+        colorFn: (ChartData record, _) =>
+            charts.ColorUtil.fromDartColor(record.color),
       ),
       new charts.Series<ChartData, String>(
         id: OPERATION_ALIAS[TIMING_STATUS_LANCH],
-        domainFn: (ChartData timing, _) => timing.title,
-        measureFn: (ChartData timing, _) => timing.value,
         data: lanchChartData,
+        domainFn: (ChartData record, _) => record.title,
+        measureFn: (ChartData record, _) => record.value,
+        colorFn: (ChartData record, _) =>
+            charts.ColorUtil.fromDartColor(record.color),
       ),
       new charts.Series<ChartData, String>(
         id: OPERATION_ALIAS[TIMING_STATUS_BREAK],
-        domainFn: (ChartData timing, _) => timing.title,
-        measureFn: (ChartData timing, _) => timing.value,
         data: breakChartData,
+        domainFn: (ChartData record, _) => record.title,
+        measureFn: (ChartData record, _) => record.value,
+        colorFn: (ChartData record, _) =>
+            charts.ColorUtil.fromDartColor(record.color),
       ),
     ];
   }

@@ -93,8 +93,8 @@ class _TimingMainState extends State<TimingMain> {
       int existIndex = _chartData
           .indexWhere((record) => record.title.contains(_timing.operation));
       if (existIndex == -1) {
-        _chartData
-            .add(new ChartData(title: _timing.operation, value: duration));
+        _chartData.add(new ChartData(
+            title: _timing.operation, value: duration, color: _timing.color()));
       } else {
         _chartData[existIndex].value += duration;
       }
@@ -111,13 +111,15 @@ class _TimingMainState extends State<TimingMain> {
 
     return [
       new charts.Series<ChartData, String>(
-        id: 'operation',
-        domainFn: (ChartData record, _) => record.title,
-        measureFn: (ChartData record, _) => record.value,
-        data: _chartData,
-        // Set a label accessor to control the text of the arc label.
-        labelAccessorFn: (ChartData row, _) => '${row.title}',
-      )
+          id: 'operation',
+          data: _chartData,
+          domainFn: (ChartData record, _) => record.title,
+          measureFn: (ChartData record, _) => record.value,
+
+          // Set a label accessor to control the text of the arc label.
+          labelAccessorFn: (ChartData record, _) => '${record.title}',
+          colorFn: (ChartData record, _) =>
+              charts.ColorUtil.fromDartColor(record.color)),
     ];
   }
 
@@ -195,12 +197,12 @@ class _TimingMainState extends State<TimingMain> {
   Future<void> _refreshTiming() async {
     await Timing.syncCurrent();
 
+    // відправимо змінені дані в хмару і отримаємо актуалізуємо локальну базу
+    _setCurrentStatus(userID);
     // прочитаємо записи локальної бази
     operations = _getTiming(userID);
     // відобразимо на кругові діаграмі актульні даті з локальної бази
     listChartData = _createChartData(operations);
-    // відправимо змінені дані в хмару і отримаємо актуалізуємо локальну базу
-    _setCurrentStatus(userID);
   }
 
   void _setCurrentStatus(userID) async {
@@ -286,10 +288,10 @@ class _TimingMainState extends State<TimingMain> {
           ),
         )),
         DataCell(Text(timing.startedAt != null
-            ? formatDate(timing.startedAt, [hh, ':', nn, ':', ss])
+            ? formatDate(timing.startedAt, [HH, ':', nn, ':', ss])
             : "")),
         DataCell(Text(timing.endedAt != null
-            ? formatDate(timing.endedAt, [hh, ':', nn, ':', ss])
+            ? formatDate(timing.endedAt, [HH, ':', nn, ':', ss])
             : "")),
       ]));
     }

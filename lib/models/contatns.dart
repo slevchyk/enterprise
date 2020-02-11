@@ -1,5 +1,11 @@
 library constants;
 
+const String APP_MODE_USER = "user";
+const String APP_MODE_TURNTILE = "turnstile";
+
+const String SERVER_USER = "mobile";
+const String SERVER_PASSWORD = "Dq4fS^J&^nqQ(fg4";
+
 const String KEY_SERVER_IP = "keyServerIP";
 const String KEY_SERVER_DATABASE = "keyServerDatabase";
 const String KEY_SERVER_USER = "keyServerUser";
