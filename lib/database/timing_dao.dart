@@ -119,6 +119,21 @@ class TimingDAO {
     return _timing != null ? _timing.operation : "";
   }
 
+  Future<List<Timing>> getTurnstileByDateUserId(
+      DateTime date, String userID) async {
+    final db = await dbProvider.database;
+    var res = await db.query(
+      "timing",
+      where: "user_id=? and date=? and operation=?",
+      whereArgs: [userID, date.toIso8601String(), TIMING_STATUS_WORKDAY],
+      orderBy: "started_at DESC",
+    );
+
+    List<Timing> list =
+        res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
+    return list;
+  }
+
   Future<List<Timing>> getOpenWorkdayByDateUserId(
       DateTime date, String userID) async {
     final db = await dbProvider.database;
