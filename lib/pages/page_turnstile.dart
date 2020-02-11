@@ -74,11 +74,18 @@ class _PageTurnstileState extends State<PageTurnstile> {
   Widget _turnstile(int _nfcTag) {
     Profile _profile;
 
+    if (_nfcTag == 0) {
+      return Center(
+        child: Text('Прикладіть вашу картку'),
+      );
+    }
+
     ProfileDAO().getByInfoCard(_nfcTag).then((value) {
       if (value != null) {
         _profile = value;
       }
     });
+
     if (_profile == null) {
       return Center(
         child: Text('Користувача з карткою $_nfcTag не знайдено'),

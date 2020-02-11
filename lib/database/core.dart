@@ -90,7 +90,8 @@ class DBProvider {
           'date TEXT,'
           'starred_at TEXT,'
           'archived_at TEXT,'
-          'deleted_at TEXT'
+          'deleted_at TEXT,'
+          'status TEXT'
           ')');
 //      await db.execute('CREATE TRIGGER log_timing_after_update'
 //          'AFTER UPDATE ON timing'
