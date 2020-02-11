@@ -62,6 +62,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_nfc_reader:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: master
+      resolved-ref: b496fd68d5ecef358f1b7e221e7baf39af650b4a
+      url: "git://github.com/matteocrippa/flutter-nfc-reader.git"
+    source: git
+    version: "0.1.1"
   flutter_slidable:
     dependency: "direct main"
     description:
@@ -76,6 +85,11 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.5"
+  flutter_web_plugins:
+    dependency: transitive
+    description: flutter
+    source: sdk
+    version: "0.0.0"
   font_awesome_flutter:
     dependency: "direct main"
     description:
@@ -118,13 +132,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.8"
-  nfc_in_flutter:
-    dependency: "direct main"
-    description:
-      name: nfc_in_flutter
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.3"
   path:
     dependency: transitive
     description:
@@ -159,7 +166,28 @@ packages:
       name: shared_preferences
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.3"
+    version: "0.5.6+1"
+  shared_preferences_macos:
+    dependency: transitive
+    description:
+      name: shared_preferences_macos
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.1+4"
+  shared_preferences_platform_interface:
+    dependency: transitive
+    description:
+      name: shared_preferences_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
+  shared_preferences_web:
+    dependency: transitive
+    description:
+      name: shared_preferences_web
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.2+3"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -216,4 +244,4 @@ packages:
     version: "2.0.8"
 sdks:
   dart: ">=2.6.0 <3.0.0"
-  flutter: ">=1.10.1 <2.0.0"
+  flutter: ">=1.12.13+hotfix.4 <2.0.0"

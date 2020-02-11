@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:ui';
 
+import 'package:enterprise/database/profile_dao.dart';
+import 'package:enterprise/models/profile.dart';
 import 'package:flutter/material.dart';
-import 'package:nfc_in_flutter/nfc_in_flutter.dart';
+import 'package:flutter_nfc_reader/flutter_nfc_reader.dart';
 
 class PageTurnstile extends StatefulWidget {
   @override
@@ -9,79 +12,28 @@ class PageTurnstile extends StatefulWidget {
 }
 
 class _PageTurnstileState extends State<PageTurnstile> {
-  bool _supportsNFC = false;
-  Stream<NDEFMessage> _stream = NFC.readNDEF(once: false);
   String _nfcTag = "";
+  Stream<NfcData> _nfcStream = FlutterNfcReader.onTagDiscovered();
+  NFCAvailability _nfcAvailability;
+
+//  Stream<NDEFMessage> _stream = NFC.readNDEF();
 
   @override
   void initState() {
     super.initState();
-    // Check if the device supports NFC reading
-    NFC.isNDEFSupported.then((bool isSupported) {
-      setState(() {
-        _supportsNFC = isSupported;
-      });
 
-      if (isSupported) {
-        _stream.listen((NDEFMessage message) {
-          setState(() {
-            _nfcTag = message.data;
-          });
-          print("records: ${message.records.length}");
-        });
-      }
+    FlutterNfcReader.checkNFCAvailability().then((value) {
+      setState(() {
+        _nfcAvailability = value;
+      });
     });
   }
-//  bool _supportsNFC = false;
-//  bool _reading = false;
-//  StreamSubscription<NDEFMessage> _stream;
-//
-//  @override
-//  void initState() {
-//    super.initState();
-//    // Check if the device supports NFC reading
-//    NFC.isNDEFSupported.then((bool isSupported) {
-//      setState(() {
-//        _supportsNFC = isSupported;
-//      });
-//    });
-//  }
 
   @override
   Widget build(BuildContext context) {
-    return _supportsNFC ? _page() : _nfcNotSupported();
-//    if (!_supportsNFC) {
-//      return RaisedButton(
-//        child: const Text("You device does not support NFC"),
-//        onPressed: null,
-//      );
-//    }
-//
-//    return RaisedButton(
-//        child: Text(_reading ? "Stop reading" : "Start reading"),
-//        onPressed: () {
-//          if (_reading) {
-//            _stream?.cancel();
-//            setState(() {
-//              _reading = false;
-//            });
-//          } else {
-//            setState(() {
-//              _reading = true;
-//              // Start reading using NFC.readNDEF()
-//              _stream = NFC
-//                  .readNDEF(
-//                once: true,
-//                throwOnUserCancel: false,
-//              )
-//                  .listen((NDEFMessage message) {
-//                print("read NDEF message: ${message.payload}");
-//              }, onError: (e) {
-//                // Check error handling guide below
-//              });
-//            });
-//          }
-//        });
+    return _nfcAvailability == NFCAvailability.available
+        ? _page()
+        : _nfcNotSupported();
   }
 
   Widget _nfcNotSupported() {
@@ -91,8 +43,85 @@ class _PageTurnstileState extends State<PageTurnstile> {
   }
 
   Widget _page() {
-    return Container(
-      child: Text('NFC tag: $_nfcTag'),
+    return Material(
+      child: Column(
+        children: <Widget>[
+          Container(
+            padding: EdgeInsets.all(12.0),
+            child: Image.asset('assets/nfc_scan.png'),
+          ),
+          StreamBuilder<NfcData>(
+            stream: _nfcStream,
+            builder: (context, snapshot) {
+              if (snapshot != null && snapshot.hasData) {
+                _nfcTag = snapshot.data.id.toString();
+              }
+
+              int dec = 0;
+
+              if (_nfcTag.isNotEmpty) {
+                dec = int.parse(_nfcTag);
+              }
+
+              return _turnstile(dec);
+            },
+          ),
+        ],
+      ),
     );
+  }
+
+  Widget _turnstile(int _nfcTag) {
+    Profile _profile;
+
+    ProfileDAO().getByInfoCard(_nfcTag).then((value) {
+      if (value != null) {
+        _profile = value;
+      }
+    });
+    if (_profile == null) {
+      return Center(
+        child: Text('Користувача з карткою $_nfcTag не знайдено'),
+      );
+    }
+
+    return Column(
+      children: <Widget>[
+        Container(child: _getUserpic(_profile)),
+        Text(_profile.firstName + ' ' + _profile.lastName),
+        SingleChildScrollView(
+          child: Text('Інфокарта: $_nfcTag'),
+        ),
+        Row(
+          children: <Widget>[
+            RaisedButton(
+              onPressed: () {},
+              child: Text('Вхід'),
+            ),
+            RaisedButton(
+              onPressed: () {},
+              child: Text('Вихід'),
+            ),
+          ],
+        )
+      ],
+    );
+  }
+
+  Widget _getUserpic(profile) {
+    if (profile == null || profile.photo == '') {
+      return CircleAvatar(
+        minRadius: 75,
+        maxRadius: 100,
+        child: Text('фото'),
+      );
+    } else {
+      return CircleAvatar(
+        minRadius: 75,
+        maxRadius: 100,
+        backgroundImage: ExactAssetImage(profile.photo),
+//        child: Image.asset(profile.photo),
+      );
+    }
   }
 }

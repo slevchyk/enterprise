@@ -1,7 +1,7 @@
 library constants;
 
 const String APP_MODE_USER = "user";
-const String APP_MODE_TURNTILE = "turnstile";
+const String APP_MODE_TURNSTILE = "turnstile";
 
 const String SERVER_USER = "mobile";
 const String SERVER_PASSWORD = "Dq4fS^J&^nqQ(fg4";
@@ -36,9 +36,17 @@ const String TIMING_STATUS_LANCH = 'Lanch';
 const String TIMING_STATUS_BREAK = 'Break';
 const String TIMING_STATUS_STOP = 'Stop';
 
-const Map<String, String> OPERATION_ALIAS = {
+const Map<String, String> TIMING_ALIAS = {
   TIMING_STATUS_WORKDAY: "Турнікет",
   TIMING_STATUS_JOB: "Робота",
   TIMING_STATUS_LANCH: "Обід",
   TIMING_STATUS_BREAK: "Перерва",
+};
+
+const String SEX_MALE = "male";
+const String SEX_FEMALE = "female";
+
+const Map<String, String> SEX_ALIAS = {
+  SEX_FEMALE: "жіноча",
+  SEX_MALE: "чоловіча",
 };

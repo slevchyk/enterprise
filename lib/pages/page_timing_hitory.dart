@@ -120,7 +120,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
     return [
       // Blue bars with a lighter center color.
       new charts.Series<ChartData, String>(
-        id: OPERATION_ALIAS[TIMING_STATUS_JOB],
+        id: TIMING_ALIAS[TIMING_STATUS_JOB],
         data: jobChartData,
         domainFn: (ChartData record, _) => record.title,
         measureFn: (ChartData record, _) => record.value,
@@ -128,7 +128,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
             charts.ColorUtil.fromDartColor(record.color),
       ),
       new charts.Series<ChartData, String>(
-        id: OPERATION_ALIAS[TIMING_STATUS_LANCH],
+        id: TIMING_ALIAS[TIMING_STATUS_LANCH],
         data: lanchChartData,
         domainFn: (ChartData record, _) => record.title,
         measureFn: (ChartData record, _) => record.value,
@@ -136,7 +136,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
             charts.ColorUtil.fromDartColor(record.color),
       ),
       new charts.Series<ChartData, String>(
-        id: OPERATION_ALIAS[TIMING_STATUS_BREAK],
+        id: TIMING_ALIAS[TIMING_STATUS_BREAK],
         data: breakChartData,
         domainFn: (ChartData record, _) => record.title,
         measureFn: (ChartData record, _) => record.value,
@@ -159,7 +159,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                   : ""),
             ),
             DataCell(
-              Text(OPERATION_ALIAS[timing.operation]),
+              Text(TIMING_ALIAS[timing.operation]),
             ),
             DataCell(
               Text(timing.duration.toStringAsFixed(2)),

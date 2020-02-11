@@ -12,29 +12,33 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^0.1.2
-  shared_preferences: ^0.4.3
+#  shared_preferences: ^0.4.3
+  shared_preferences: 0.5.6+1
   http: ^0.12.0+2
-  sqflite: any
-  path_provider: any
-  font_awesome_flutter: any
+  sqflite: ^1.2.0
+  path_provider: ^1.6.0
+  font_awesome_flutter: ^8.5.0
   date_format: ^1.0.8
   flutter_speed_dial: ^1.2.5
   charts_flutter: ^0.8.1
 #  cloud_firestore: ^0.13.0+1
   flutter_slidable: ^0.4.9
   file_picker: ^1.4.3+2
-  nfc_in_flutter: ^2.0.3
+  flutter_nfc_reader:
+    git:
+      url: git://github.com/matteocrippa/flutter-nfc-reader.git
+      ref: master
+#  nfc_in_flutter: ^2.0.3
 
 
 dev_dependenfcies:
   flutter_test:
     sdk: flutter
 
-assets:
-  - assets/
-
 flutter:
   uses-material-design: true
+  assets:
+    - assets/
 
 module:
   androidX: true

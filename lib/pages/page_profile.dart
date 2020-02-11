@@ -1,6 +1,5 @@
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/models/contatns.dart';
-import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:file_picker/file_picker.dart';
@@ -8,10 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart';
-import 'dart:convert';
 import 'dart:io';
-import 'package:path/path.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class PageProfile extends StatefulWidget {
@@ -30,6 +26,7 @@ class PageProfileState extends State<PageProfile> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _middleNameController = TextEditingController();
+  final _sexController = TextEditingController();
   final _itnController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
@@ -48,6 +45,7 @@ class PageProfileState extends State<PageProfile> {
   final _languagesController = TextEditingController();
   final _disabilityController = TextEditingController();
   final _pensionerController = TextEditingController();
+  final _infoCardController = TextEditingController();
 
   bool isLoadingProfile = true;
   Profile profile;
@@ -56,6 +54,7 @@ class PageProfileState extends State<PageProfile> {
     _firstNameController.text = _pfl.firstName;
     _lastNameController.text = _pfl.lastName;
     _middleNameController.text = _pfl.middleName;
+    _sexController.text = _pfl.sex;
     _itnController.text = _pfl.itn;
     _phoneController.text = _pfl.phone;
     _emailController.text = _pfl.email;
@@ -74,6 +73,7 @@ class PageProfileState extends State<PageProfile> {
     _languagesController.text = _pfl.languages;
     _disabilityController.text = _pfl.disability;
     _pensionerController.text = _pfl.pensioner;
+    _infoCardController.text = _pfl.infoCard.toString();
   }
 
   _getSettings() async {
@@ -166,7 +166,7 @@ class PageProfileState extends State<PageProfile> {
     return _list;
   }
 
-  List<DropdownMenuItem<int>> _getEdications() {
+  List<DropdownMenuItem<int>> _getEducations() {
     List<DropdownMenuItem<int>> _list = [];
     _educations.forEach((k, v) {
       _list.add(
@@ -213,6 +213,42 @@ class PageProfileState extends State<PageProfile> {
     });
   }
 
+  Widget _sexChoiceChip(String _sex, Color _color, IconData _icon) {
+    return ChoiceChip(
+      padding: EdgeInsets.all(5.0),
+      label: Row(
+        children: <Widget>[
+          Icon(
+            _icon,
+            color: _sexController.text == _sex
+                ? Colors.white
+                : Theme.of(context).iconTheme.color,
+          ),
+          SizedBox(
+            width: 5.0,
+          ),
+          Text(
+            SEX_ALIAS[_sex],
+            style: TextStyle(
+              color: _sexController.text == _sex
+                  ? Colors.white
+                  : Theme.of(context).textTheme.title.color,
+            ),
+          ),
+        ],
+      ),
+      backgroundColor:
+          _sexController.text == "" ? _color : Colors.grey.shade100,
+      selectedColor: Colors.green,
+      selected: _sexController.text == _sex,
+      onSelected: (bool value) {
+        setState(() {
+          _sexController.text = value ? _sex : "";
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -242,350 +278,425 @@ class PageProfileState extends State<PageProfile> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'Основне:',
-                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+                  'Основне',
+                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
                 ),
-//                _firstNameController
-                TextFormField(
-                  controller: _firstNameController,
-                  decoration: InputDecoration(
-                    icon: Icon(Icons.person),
-                    suffixIcon: _clearIconButton(_firstNameController),
-                    hintText: 'ваше ім\'я',
-                    labelText: 'Ім\'я *',
-                  ),
-                  validator: (value) {
-                    if (value.isEmpty) return 'ви не вказали ім\'я';
-                    return null;
-                  },
-                  onChanged: (value) {
-                    setState(() {});
-                  },
-                ),
-//                _lastNameController
-                TextFormField(
-                  controller: _lastNameController,
-                  decoration: InputDecoration(
-                    icon: SizedBox(
-                      width: 24.0,
-                    ),
-                    suffixIcon: _clearIconButton(_lastNameController),
-                    hintText: 'ваше прізвище',
-                    labelText: 'Прізвище *',
-                  ),
-                  validator: (value) {
-                    if (value.isEmpty) return 'ви не вказали прізвище';
-                    return null;
-                  },
-                  onChanged: (value) {
-                    setState(() {});
-                  },
-                ),
-                TextFormField(
-                  controller: _middleNameController,
-                  decoration: InputDecoration(
-                    icon: SizedBox(
-                      width: 24.0,
-                    ),
-                    suffixIcon: _clearIconButton(_middleNameController),
-                    hintText: 'по-батькові',
-                    labelText: 'По-батькові *',
-                  ),
-                  validator: (value) {
-                    if (value.isEmpty) return 'ви не вказали по-батькові';
-                    return null;
-                  },
-                  onChanged: (value) {
-                    setState(() {});
-                  },
-                ),
-                TextFormField(
-                  controller: _itnController,
-                  decoration: InputDecoration(
-                    icon: SizedBox(
-                      width: 24.0,
-                    ),
-                    labelText: 'ІПН',
-                    hintText: 'ваш ІПН (якщо немає, то серія і номер паспорта',
-                  ),
-                  validator: (value) {
-                    if (value.isEmpty) return 'ви не вказали ІПН/Паспорт';
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _phoneController,
-                  decoration: InputDecoration(
-                    icon: Icon(Icons.phone),
-                    suffixIcon: _clearIconButton(_phoneController),
-                    hintText: 'номер вашого мобільного телефону',
-                    labelText: 'Телефон *',
-                  ),
-                  inputFormatters: [
-                    WhitelistingTextInputFormatter(RegExp("[+0-9]"))
-                  ],
-                  validator: (value) {
-                    if (value.isEmpty) return 'ви не вказали номер телефону';
-                    return null;
-                  },
-                  onChanged: (value) {
-                    setState(() {});
-                  },
-                  keyboardType: TextInputType.phone,
-                ),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    icon: Icon(Icons.email),
-                    suffixIcon: _clearIconButton(_emailController),
-                    hintText: 'ваш email',
-                    labelText: 'Email *',
-                  ),
-                  validator: (value) {
-                    if (value.isEmpty) return 'ви не вказали email';
-                    return null;
-                  },
-                  onChanged: (value) {
-                    setState(() {});
-                  },
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                SizedBox(
-                  height: 25.0,
-                ),
-                Text(
-                  'Паспорт:',
-                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
-                ),
-                TextFormField(
-                  controller: _passportSeriesController,
-                  decoration: InputDecoration(
-                    icon: Icon(FontAwesomeIcons.passport),
-                    hintText: "перші дві літери паспорта",
-                    labelText: "Серія",
-                  ),
-                  validator: (value) {
-                    if (value.isEmpty) return 'ви не вказали серію паспорта';
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _passportNumberController,
-                  decoration: InputDecoration(
-                    icon: SizedBox(
-                      width: 24.0,
-                    ),
-                    hintText: "останні шість цифер паспорта",
-                    labelText: "Номер",
-                  ),
-                  validator: (value) {
-                    if (value.isEmpty) return 'ви не вказали номер паспорта';
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _passportIssuedController,
-                  decoration: InputDecoration(
-                    icon: SizedBox(
-                      width: 24.0,
-                    ),
-                    hintText: "установа якою виданий паспорт",
-                    labelText: "Ким виданий",
-                  ),
-                  validator: (value) {
-                    if (value.isEmpty)
-                      return 'ви не вказали ким виданий паспорт';
-                    return null;
-                  },
-                ),
-                InkWell(
-                  onTap: () {
-                    _selectDate(context, _passportDateController);
-                  },
-                  child: IgnorePointer(
-                    child: new TextFormField(
-                      controller: _passportDateController,
-                      decoration: new InputDecoration(
-                        icon: SizedBox(
-                          width: 24.0,
-                        ),
-                        hintText: 'дата коли виданий паспорт',
-                        labelText: 'Коли виданий',
-                      ),
-                      validator: (value) {
-                        if (value.isEmpty)
-                          return 'ви не вказали ким виданий паспорт';
-                        return null;
-                      },
-                      // maxLength: 10,
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 25.0,
-                ),
-                Text(
-                  'Сімейні дані:',
-                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
-                ),
-                FormField<String>(
-                  builder: (FormFieldState<String> state) {
-                    return InputDecorator(
-                      decoration: InputDecoration(
-                        icon: Icon(FontAwesomeIcons.ring),
-                        hintText: 'оберіть із списку',
-                        labelText: 'Сімейний стан',
-                        helperText: 'оберіть одне із значень із спику',
-                      ),
-                      isEmpty: false,
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _civilStatusController.text.isEmpty
-                              ? CIVIL_STATUS_OTHER
-                              : _civilStatusController.text,
-                          isDense: true,
-                          onChanged: (String newValue) {
-                            setState(() {
-                              _civilStatusController.text = newValue;
-                            });
+                Container(
+                    margin: EdgeInsets.only(left: 20.0),
+                    child: Column(
+                      children: <Widget>[
+                        TextFormField(
+                          controller: _firstNameController,
+                          decoration: InputDecoration(
+                            icon: Icon(Icons.person),
+                            suffixIcon: _clearIconButton(_firstNameController),
+                            hintText: 'ваше ім\'я',
+                            labelText: 'Ім\'я *',
+                          ),
+                          validator: (value) {
+                            if (value.isEmpty) return 'ви не вказали ім\'я';
+                            return null;
                           },
-                          items: _getCivilStatuses(),
+                          onChanged: (value) {
+                            setState(() {});
+                          },
                         ),
-                      ),
-                    );
-                  },
-                ),
-                TextFormField(
-                  controller: _childrenController,
-                  decoration: InputDecoration(
-                      icon: Icon(FontAwesomeIcons.baby),
-                      hintText: '12.03.2012, 23.09.2015',
-                      labelText: 'Дати народження дітей',
-                      helperText: 'заповнювати якщо є діти'),
-                ),
+                        TextFormField(
+                          controller: _lastNameController,
+                          decoration: InputDecoration(
+                            icon: SizedBox(
+                              width: 24.0,
+                            ),
+                            suffixIcon: _clearIconButton(_lastNameController),
+                            hintText: 'ваше прізвище',
+                            labelText: 'Прізвище *',
+                          ),
+                          validator: (value) {
+                            if (value.isEmpty) return 'ви не вказали прізвище';
+                            return null;
+                          },
+                          onChanged: (value) {
+                            setState(() {});
+                          },
+                        ),
+                        TextFormField(
+                          controller: _middleNameController,
+                          decoration: InputDecoration(
+                            icon: SizedBox(
+                              width: 24.0,
+                            ),
+                            suffixIcon: _clearIconButton(_middleNameController),
+                            hintText: 'по-батькові',
+                            labelText: 'По-батькові *',
+                          ),
+                          validator: (value) {
+                            if (value.isEmpty)
+                              return 'ви не вказали по-батькові';
+                            return null;
+                          },
+                          onChanged: (value) {
+                            setState(() {});
+                          },
+                        ),
+                        FormField<String>(
+                            builder: (FormFieldState<String> state) {
+                          return InputDecorator(
+                            decoration: InputDecoration(
+                              icon: Icon(FontAwesomeIcons.venusMars),
+                              border: InputBorder.none,
+                              labelText: 'Стать',
+                            ),
+                            child: Row(
+                              children: <Widget>[
+                                _sexChoiceChip(
+                                    SEX_FEMALE,
+                                    Colors.pinkAccent.shade100,
+                                    FontAwesomeIcons.female),
+                                SizedBox(
+                                  width: 10.0,
+                                ),
+                                _sexChoiceChip(
+                                    SEX_MALE,
+                                    Colors.blueAccent.shade100,
+                                    FontAwesomeIcons.male)
+                              ],
+                            ),
+                          );
+                        }),
+                        TextFormField(
+                          controller: _phoneController,
+                          decoration: InputDecoration(
+                            icon: Icon(Icons.phone),
+                            suffixIcon: _clearIconButton(_phoneController),
+                            hintText: 'номер вашого мобільного телефону',
+                            labelText: 'Телефон *',
+                          ),
+                          inputFormatters: [
+                            WhitelistingTextInputFormatter(RegExp("[+0-9]"))
+                          ],
+                          validator: (value) {
+                            if (value.isEmpty)
+                              return 'ви не вказали номер телефону';
+                            return null;
+                          },
+                          onChanged: (value) {
+                            setState(() {});
+                          },
+                          keyboardType: TextInputType.phone,
+                        ),
+                        TextFormField(
+                          controller: _emailController,
+                          decoration: InputDecoration(
+                            icon: Icon(Icons.email),
+                            suffixIcon: _clearIconButton(_emailController),
+                            hintText: 'ваш email',
+                            labelText: 'Email *',
+                          ),
+                          validator: (value) {
+                            if (value.isEmpty) return 'ви не вказали email';
+                            return null;
+                          },
+                          onChanged: (value) {
+                            setState(() {});
+                          },
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                      ],
+                    )),
                 SizedBox(
-                  height: 25.0,
+                  height: 24.0,
                 ),
                 Text(
-                  'Освіта і інше:',
-                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+                  'Документи',
+                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
                 ),
-                TextFormField(
-                  controller: _positionController,
-                  decoration: InputDecoration(
-                    icon: Icon(Icons.work),
-                    hintText: 'ваша посада',
-                    labelText: 'Посада',
+                Container(
+                    margin: EdgeInsets.only(left: 20.0),
+                    child: Column(
+                      children: <Widget>[
+                        TextFormField(
+                          controller: _itnController,
+                          decoration: InputDecoration(
+                            icon: Icon(FontAwesomeIcons.file),
+                            labelText: 'ІПН',
+                            hintText:
+                                'ваш ІПН (якщо немає, то серія і номер паспорта',
+                          ),
+                          validator: (value) {
+                            if (value.isEmpty)
+                              return 'ви не вказали ІПН/Паспорт';
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _passportSeriesController,
+                          decoration: InputDecoration(
+                            icon: Icon(FontAwesomeIcons.passport),
+                            hintText: "перші дві літери паспорта",
+                            labelText: "Серія",
+                          ),
+                          validator: (value) {
+                            if (value.isEmpty)
+                              return 'ви не вказали серію паспорта';
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _passportNumberController,
+                          decoration: InputDecoration(
+                            icon: SizedBox(
+                              width: 24.0,
+                            ),
+                            hintText: "останні шість цифер паспорта",
+                            labelText: "Номер",
+                          ),
+                          validator: (value) {
+                            if (value.isEmpty)
+                              return 'ви не вказали номер паспорта';
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _passportIssuedController,
+                          decoration: InputDecoration(
+                            icon: SizedBox(
+                              width: 24.0,
+                            ),
+                            hintText: "установа якою виданий паспорт",
+                            labelText: "Ким виданий",
+                          ),
+                          validator: (value) {
+                            if (value.isEmpty)
+                              return 'ви не вказали ким виданий паспорт';
+                            return null;
+                          },
+                        ),
+                        InkWell(
+                          onTap: () {
+                            _selectDate(context, _passportDateController);
+                          },
+                          child: IgnorePointer(
+                            child: new TextFormField(
+                              controller: _passportDateController,
+                              decoration: new InputDecoration(
+                                icon: SizedBox(
+                                  width: 24.0,
+                                ),
+                                hintText: 'дата коли виданий паспорт',
+                                labelText: 'Коли виданий',
+                              ),
+                              validator: (value) {
+                                if (value.isEmpty)
+                                  return 'ви не вказали ким виданий паспорт';
+                                return null;
+                              },
+                              // maxLength: 10,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )),
+                SizedBox(
+                  height: 24.0,
+                ),
+                Text(
+                  'Сім\'я',
+                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                ),
+                Container(
+                  margin: EdgeInsets.only(left: 20.0),
+                  child: Column(
+                    children: <Widget>[
+                      FormField<String>(
+                        builder: (FormFieldState<String> state) {
+                          return InputDecorator(
+                            decoration: InputDecoration(
+                              icon: Icon(FontAwesomeIcons.ring),
+                              hintText: 'оберіть із списку',
+                              labelText: 'Сімейний стан',
+                              helperText: 'оберіть одне із значень із спику',
+                            ),
+                            isEmpty: false,
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _civilStatusController.text.isEmpty
+                                    ? CIVIL_STATUS_OTHER
+                                    : _civilStatusController.text,
+                                isDense: true,
+                                onChanged: (String newValue) {
+                                  setState(() {
+                                    _civilStatusController.text = newValue;
+                                  });
+                                },
+                                items: _getCivilStatuses(),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      TextFormField(
+                        controller: _childrenController,
+                        decoration: InputDecoration(
+                            icon: Icon(FontAwesomeIcons.baby),
+                            hintText: '12.03.2012, 23.09.2015',
+                            labelText: 'Дати народження дітей',
+                            helperText: 'заповнювати якщо є діти'),
+                      ),
+                    ],
                   ),
                 ),
-                FormField<String>(
-                  builder: (FormFieldState<String> state) {
-                    return InputDecorator(
-                      decoration: InputDecoration(
-                        icon: Icon(Icons.school),
-                        hintText: 'оберіть із списку',
-                        labelText: 'Освіта',
-                        helperText: 'оберіть одне із значень із спику',
+                SizedBox(
+                  height: 24.0,
+                ),
+                Text(
+                  'Освіта',
+                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                ),
+                Container(
+                  margin: EdgeInsets.only(left: 20.0),
+                  child: Column(
+                    children: <Widget>[
+                      FormField<String>(
+                        builder: (FormFieldState<String> state) {
+                          return InputDecorator(
+                            decoration: InputDecoration(
+                              icon: Icon(Icons.school),
+                              hintText: 'оберіть із списку',
+                              labelText: 'Освіта',
+                              helperText: 'оберіть одне із значень із спику',
+                            ),
+                            isEmpty: false,
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<int>(
+                                value: _educationController.text.isEmpty
+                                    ? EDUCATION_OTHER
+                                    : int.parse(_educationController.text),
+                                isDense: true,
+                                onChanged: (int newValue) {
+                                  setState(() {
+                                    _educationController.text =
+                                        newValue.toString();
+                                  });
+                                },
+                                items: _getEducations(),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      isEmpty: false,
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<int>(
-                          value: _educationController.text.isEmpty
-                              ? EDUCATION_OTHER
-                              : int.parse(_educationController.text),
-                          isDense: true,
-                          onChanged: (int newValue) {
-                            setState(() {
-                              _educationController.text = newValue.toString();
-                            });
-                          },
-                          items: _getEdications(),
+                      TextFormField(
+                        controller: _specialtyController,
+                        decoration: InputDecoration(
+                          icon: SizedBox(
+                            width: 24.0,
+                          ),
+                          hintText: 'спеціальність за дипломом',
+                          labelText: 'Спеціальність',
                         ),
                       ),
-                    );
-                  },
-                ),
-                TextFormField(
-                  controller: _specialtyController,
-                  decoration: InputDecoration(
-                    icon: SizedBox(
-                      width: 24.0,
-                    ),
-                    hintText: 'спеціальність за дипломом',
-                    labelText: 'Спеціальність',
+                      TextFormField(
+                        controller: _additionalEducationController,
+                        decoration: InputDecoration(
+                          icon: SizedBox(
+                            width: 24.0,
+                          ),
+                          labelText: 'Додаткова освіта',
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                TextFormField(
-                  controller: _additionalEducationController,
-                  decoration: InputDecoration(
-                    icon: SizedBox(
-                      width: 24.0,
-                    ),
-                    labelText: 'Додаткова освіта',
+                SizedBox(
+                  height: 24.0,
+                ),
+                Text(
+                  'Інше',
+                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                ),
+                Container(
+                  margin: EdgeInsets.only(left: 20.0),
+                  child: Column(
+                    children: <Widget>[
+                      TextFormField(
+                        controller: _positionController,
+                        decoration: InputDecoration(
+                          icon: Icon(Icons.work),
+                          hintText: 'ваша посада',
+                          labelText: 'Посада',
+                        ),
+                      ),
+                      TextFormField(
+                        controller: _skillsController,
+                        decoration: InputDecoration(
+                            icon: SizedBox(
+                              width: 24.0,
+                            ),
+                            labelText: 'Навики',
+                            hintText: 'професійні та інші навики'),
+                      ),
+                      TextFormField(
+                        controller: _languagesController,
+                        decoration: InputDecoration(
+                            icon: Icon(Icons.language),
+                            labelText: 'Знання мов',
+                            hintText: 'іноземні мови'),
+                      ),
+                      TextFormField(
+                        controller: _lastWorkPlaceController,
+                        decoration: InputDecoration(
+                            icon: Icon(FontAwesomeIcons.building),
+                            labelText: 'Останнє місце роботи',
+                            hintText: 'місто, компанія, посада'),
+                      ),
+                      FormField<String>(
+                        builder: (FormFieldState<String> state) {
+                          return InputDecorator(
+                            decoration: InputDecoration(
+                              icon: Icon(FontAwesomeIcons.wheelchair),
+                            ),
+                            child: SwitchListTile(
+                                title: Text('Відомість про інвалідність'),
+                                value: _disabilityController.text == 'true',
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    value == true
+                                        ? _disabilityController.text = 'true'
+                                        : _disabilityController.text = 'false';
+                                  });
+                                }),
+                          );
+                        },
+                      ),
+                      FormField<String>(
+                        builder: (FormFieldState<String> state) {
+                          return InputDecorator(
+                            decoration: InputDecoration(
+                              icon: Icon(FontAwesomeIcons.blind),
+                            ),
+                            child: SwitchListTile(
+                                title: Text('Пенсіонер'),
+                                value: _pensionerController.text == 'true',
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    value == true
+                                        ? _pensionerController.text = 'true'
+                                        : _pensionerController.text = 'false';
+                                  });
+                                }),
+                          );
+                        },
+                      ),
+                      TextFormField(
+                        controller: _infoCardController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          icon: Icon(FontAwesomeIcons.idCard),
+                          labelText: 'Інфокартка',
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                TextFormField(
-                  controller: _skillsController,
-                  decoration: InputDecoration(
-                      icon: SizedBox(
-                        width: 24.0,
-                      ),
-                      labelText: 'Навики',
-                      hintText: 'професійні та інші навики'),
-                ),
-                TextFormField(
-                  controller: _languagesController,
-                  decoration: InputDecoration(
-                      icon: Icon(Icons.language),
-                      labelText: 'Знання мов',
-                      hintText: 'іноземні мови'),
-                ),
-                TextFormField(
-                  controller: _lastWorkPlaceController,
-                  decoration: InputDecoration(
-                      icon: Icon(FontAwesomeIcons.building),
-                      labelText: 'Останнє місце роботи',
-                      hintText: 'місто, компанія, посада'),
-                ),
-                FormField<String>(
-                  builder: (FormFieldState<String> state) {
-                    return InputDecorator(
-                      decoration: InputDecoration(
-                        icon: Icon(FontAwesomeIcons.wheelchair),
-                      ),
-                      child: SwitchListTile(
-                          title: Text('Відомість про інвалідність'),
-                          value: _disabilityController.text == 'true',
-                          onChanged: (bool value) {
-                            setState(() {
-                              value == true
-                                  ? _disabilityController.text = 'true'
-                                  : _disabilityController.text = 'false';
-                            });
-                          }),
-                    );
-                  },
-                ),
-                FormField<String>(
-                  builder: (FormFieldState<String> state) {
-                    return InputDecorator(
-                      decoration: InputDecoration(
-                        icon: Icon(FontAwesomeIcons.blind),
-                      ),
-                      child: SwitchListTile(
-                          title: Text('Пенсіонер'),
-                          value: _pensionerController.text == 'true',
-                          onChanged: (bool value) {
-                            setState(() {
-                              value == true
-                                  ? _pensionerController.text = 'true'
-                                  : _pensionerController.text = 'false';
-                            });
-                          }),
-                    );
-                  },
-                ),
-
                 SizedBox(height: 20.0),
                 RaisedButton(
                   onPressed: () {
@@ -615,5 +726,38 @@ class PageProfileState extends State<PageProfile> {
         },
       ),
     );
+  }
+}
+
+class ProfileTitle extends SliverPersistentHeaderDelegate {
+  final double minSize;
+  final double maxSize;
+  final Widget child;
+
+  ProfileTitle({
+    this.minSize,
+    this.maxSize,
+    this.child,
+  });
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    // TODO: implement build
+    return child;
+  }
+
+  @override
+  // TODO: implement maxExtent
+  double get maxExtent => maxSize;
+
+  @override
+  // TODO: implement minExtent
+  double get minExtent => minSize;
+
+  @override
+  bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
+    // TODO: implement shouldRebuild
+    return false;
   }
 }

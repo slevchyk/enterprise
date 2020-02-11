@@ -1,31 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:enterprise/database/profile_dao.dart';
-import 'package:enterprise/database/timing_dao.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:enterprise/models/contatns.dart';
-import 'package:enterprise/database/core.dart';
-import 'package:enterprise/utils.dart';
 import 'package:http/http.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-//Profile profileFromJson(String str) {
-//  final jsonData = json.decode(str);
-//  return Profile.fromMap(jsonData);
-//}
-
-//Profile profileFromJsonApi(String str) {
-//  final jsonData = json.decode(str);
-//  return Profile.fromMap(jsonData["application"]);
-//}
-
-//String profiletToJson(Profile data) {
-//  final dyn = data.toMap();
-//  return json.encode(dyn);
-//}
 
 class Profile {
   int id;
@@ -57,37 +39,40 @@ class Profile {
   String languages;
   String disability;
   String pensioner;
+  int infoCard;
 
-  Profile(
-      {this.id,
-      this.uuid,
-      this.firstName,
-      this.lastName,
-      this.middleName,
-      this.phone,
-      this.itn,
-      this.email,
-      this.photo,
-      this.photoData,
-      this.sex,
-      this.blocked,
-      this.passportType,
-      this.passportSeries,
-      this.passportNumber,
-      this.passportIssued,
-      this.passportDate,
-      this.passportExpiry,
-      this.civilStatus,
-      this.children,
-      this.position,
-      this.education,
-      this.specialty,
-      this.additionalEducation,
-      this.lastWorkPlace,
-      this.skills,
-      this.languages,
-      this.disability,
-      this.pensioner});
+  Profile({
+    this.id,
+    this.uuid,
+    this.firstName,
+    this.lastName,
+    this.middleName,
+    this.phone,
+    this.itn,
+    this.email,
+    this.photo,
+    this.photoData,
+    this.sex,
+    this.blocked,
+    this.passportType,
+    this.passportSeries,
+    this.passportNumber,
+    this.passportIssued,
+    this.passportDate,
+    this.passportExpiry,
+    this.civilStatus,
+    this.children,
+    this.position,
+    this.education,
+    this.specialty,
+    this.additionalEducation,
+    this.lastWorkPlace,
+    this.skills,
+    this.languages,
+    this.disability,
+    this.pensioner,
+    this.infoCard,
+  });
 
   factory Profile.fromMap(Map<String, dynamic> json) => new Profile(
         id: json["id"],
@@ -119,6 +104,7 @@ class Profile {
         languages: json["languages"],
         disability: json["disability"],
         pensioner: json["pensioner"],
+        infoCard: json["info_card"],
       );
 
   factory Profile.fromDB(Map<String, dynamic> json) => new Profile(
@@ -150,6 +136,7 @@ class Profile {
         languages: json["languages"],
         disability: json["disability"],
         pensioner: json["pensioner"],
+        infoCard: json["info_card"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -182,6 +169,7 @@ class Profile {
         "languages": languages,
         "disability": disability,
         "pensioner": pensioner,
+        "info_card": infoCard,
       };
 
   Map<String, dynamic> toDB() => {
@@ -213,6 +201,7 @@ class Profile {
         "languages": languages,
         "disability": disability,
         "pensioner": pensioner,
+        "info_card": infoCard,
       };
 
   static Future<Profile> download(GlobalKey<ScaffoldState> _scaffoldKey) async {

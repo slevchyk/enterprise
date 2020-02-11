@@ -101,7 +101,7 @@ class _TimingMainState extends State<TimingMain> {
     }
 
     for (var _record in _chartData) {
-      _record.title = OPERATION_ALIAS[_record.title] +
+      _record.title = TIMING_ALIAS[_record.title] +
           ' - ' +
           _record.value.toStringAsFixed(2) +
           ' год';
@@ -283,7 +283,7 @@ class _TimingMainState extends State<TimingMain> {
               SizedBox(
                 width: 10.0,
               ),
-              Text(OPERATION_ALIAS[timing.operation]),
+              Text(TIMING_ALIAS[timing.operation]),
             ],
           ),
         )),

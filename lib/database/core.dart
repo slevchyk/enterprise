@@ -51,7 +51,8 @@ class DBProvider {
           "skills TEXT,"
           "languages TEXT,"
           "disability BIT,"
-          "pensioner BIT"
+          "pensioner BIT,"
+          "info_card INTEGER"
           ")");
       await db.execute('CREATE TABLE timing ('
           'id INTEGER PRIMARY KEY,'

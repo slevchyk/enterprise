@@ -39,9 +39,10 @@ class ProfileDAO {
         'skills,'
         'languages,'
         'disability,'
-        'pensioner'
+        'pensioner,'
+        'info_card'
         ')'
-        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
           id,
           newProfile.uuid,
@@ -70,7 +71,8 @@ class ProfileDAO {
           newProfile.skills,
           newProfile.languages,
           newProfile.disability,
-          newProfile.pensioner
+          newProfile.pensioner,
+          newProfile.infoCard,
         ]);
     return raw;
   }
@@ -103,6 +105,13 @@ class ProfileDAO {
   Future<Profile> getByUuid(String uuid) async {
     final db = await dbProvider.database;
     var res = await db.query("profile", where: "uuid = ?", whereArgs: [uuid]);
+    return res.isNotEmpty ? Profile.fromDB(res.first) : null;
+  }
+
+  Future<Profile> getByInfoCard(int infoCard) async {
+    final db = await dbProvider.database;
+    var res = await db
+        .query("profile", where: "info_card = ?", whereArgs: [infoCard]);
     return res.isNotEmpty ? Profile.fromDB(res.first) : null;
   }
 
