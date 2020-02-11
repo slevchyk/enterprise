@@ -28,6 +28,8 @@ class PageSettingsState extends State<PageSettings> {
   final _serverPasswordController = TextEditingController();
   final _serverDBController = TextEditingController();
 
+  int _IDMax;
+
   bool _readOnly = true;
 
   void initState() {
@@ -262,6 +264,8 @@ class PageSettingsState extends State<PageSettings> {
     _serverDBController.text = prefs.getString(KEY_SERVER_DATABASE) ?? "";
     _serverUserController.text = prefs.getString(KEY_SERVER_USER) ?? "";
     _serverPasswordController.text = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+
+    _IDMax = prefs.getInt(KEY_IDMAX) ?? "";
   }
 
   _saveSettings() async {

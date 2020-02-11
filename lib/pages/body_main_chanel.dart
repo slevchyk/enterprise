@@ -28,11 +28,13 @@ class BodyChannel extends StatefulWidget {
 class BodyChannelState extends State<BodyChannel> {
   Future<List<Channel>> channels;
   Future<List<Channel>> channelsArchived;
+  Future<List<Channel>> channelsStatus;
 
   @override
   void initState() {
     channels = getChannels();
     channelsArchived = getArchived();
+    channelsStatus = getChannels();
   }
 
   _downloadChannel(BuildContext context) async {
@@ -45,7 +47,10 @@ class BodyChannelState extends State<BodyChannel> {
 
     final String _userID = prefs.get(KEY_USER_ID);
 
-    final String url = 'http://$_ip/$_db/hs/m/channel?userid=$_userID';
+    int _maxID = prefs.getInt(KEY_IDMAX) ?? 0;
+
+    final String url =
+        'http://$_ip/$_db/hs/m/channel?userid=$_userID&idmax=$_maxID';
 
     final credentials = '$_user:$_password';
     final stringToBase64 = utf8.fuse(base64);
@@ -74,7 +79,9 @@ class BodyChannelState extends State<BodyChannel> {
     for (var jsonRow in jsonData["channel"]) {
       Channel channel = Channel.fromMap(jsonRow);
       channel.userID = _userID;
-
+//      if (_maxID < jsonRow["IDMax"]) {
+//        _maxID = jsonRow["IDMax"];
+//      }
       Channel existChannel = await ChannelDAO().getById(channel.id);
 
       if (existChannel != null) {
@@ -86,11 +93,14 @@ class BodyChannelState extends State<BodyChannel> {
         ChannelDAO().insert(channel);
       }
     }
+    prefs.setInt(KEY_IDMAX, _maxID);
   }
 
   _updateChannel() async {
     await _downloadChannel(context);
     channels = getChannels();
+    channelsArchived = getArchived();
+    channelsStatus = getChannels();
     setState(() {});
   }
 
@@ -98,7 +108,7 @@ class BodyChannelState extends State<BodyChannel> {
     final prefs = await SharedPreferences.getInstance();
 
     String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return ChannelDAO().getByUserId(userID);
+    return ChannelDAO().getByUserIdType(userID);
   }
 
   Future<List<Channel>> getArchived() async {
@@ -128,6 +138,7 @@ class BodyChannelState extends State<BodyChannel> {
           setState(() {
             channels = getChannels();
             channelsArchived = getArchived();
+            channelsStatus = getChannels();
           });
         },
       );
@@ -141,6 +152,7 @@ class BodyChannelState extends State<BodyChannel> {
           setState(() {
             channels = getChannels();
             channelsArchived = getArchived();
+            channelsStatus = getChannels();
           });
         },
       );
@@ -152,13 +164,14 @@ class BodyChannelState extends State<BodyChannel> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text('Канал'),
           bottom: TabBar(
             tabs: <Widget>[
               Tab(text: "Нові"),
+              Tab(text: "Статуси"),
               Tab(text: "Архів"),
             ],
           ),
@@ -205,6 +218,7 @@ class BodyChannelState extends State<BodyChannel> {
                                     setState(() {
                                       channels = getChannels();
                                       channelsArchived = getArchived();
+                                      channelsStatus = getChannels();
                                     });
                                   },
                                 ),
@@ -265,6 +279,88 @@ class BodyChannelState extends State<BodyChannel> {
             ),
             Container(
               child: FutureBuilder(
+                future: channelsStatus,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.waiting:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.active:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.done:
+                      var listChanneles = snapshot.data;
+                      return Center(
+                        child: ListView.separated(
+                          itemCount: listChanneles.length,
+                          separatorBuilder: (context, index) => Divider(),
+                          itemBuilder: (BuildContext context, int index) {
+                            Channel channel = listChanneles[index];
+                            return Slidable(
+                              delegate: new SlidableDrawerDelegate(),
+                              actionExtentRatio: 0.25,
+                              actions: <Widget>[
+                                new IconSlideAction(
+                                  caption: 'Розархівувати',
+                                  color: Colors.blue,
+                                  icon: Icons.archive,
+                                  onTap: () {
+                                    ChannelDAO()
+                                        .unarchiveById(listChanneles[index].id);
+                                    setState(() {
+                                      channels = getChannels();
+                                      channelsArchived = getArchived();
+                                      channelsStatus = getChannels();
+                                    });
+                                  },
+                                ),
+                              ],
+                              secondaryActions: <Widget>[
+                                starSlideAction(channel, channel.id),
+                                new IconSlideAction(
+                                  caption: 'Видалити',
+                                  color: Colors.red,
+                                  icon: Icons.delete,
+                                  onTap: () {
+                                    ChannelDAO()
+                                        .deleteById(listChanneles[index].id);
+                                  },
+                                ),
+                              ],
+                              child: ListTile(
+                                title: Text(channel.title),
+                                isThreeLine: true,
+                                leading: CircleAvatar(
+                                  backgroundColor:
+                                      Theme.of(context).primaryColor,
+                                  child: Text('РC'),
+                                ),
+                                subtitle: Text(
+                                  channel.news,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    default:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                  }
+                },
+              ),
+            ),
+            Container(
+              child: FutureBuilder(
                 future: channelsArchived,
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
                   switch (snapshot.connectionState) {
@@ -302,6 +398,7 @@ class BodyChannelState extends State<BodyChannel> {
                                     setState(() {
                                       channels = getChannels();
                                       channelsArchived = getArchived();
+                                      channelsStatus = getChannels();
                                     });
                                   },
                                 ),
