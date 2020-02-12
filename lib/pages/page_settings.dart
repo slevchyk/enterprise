@@ -251,6 +251,12 @@ class PageSettingsState extends State<PageSettings> {
                         },
                         child: Text('Timing DB'),
                       ),
+                      FlatButton(
+                        onPressed: () {
+                          Profile.downloadAll();
+                        },
+                        child: Text('Download all profiles'),
+                      ),
 //                      FlatButton()
                     ],
                   ),
@@ -288,7 +294,7 @@ class PageSettingsState extends State<PageSettings> {
     prefs.setString(KEY_SERVER_USER, _serverUserController.text);
     prefs.setString(KEY_SERVER_PASSWORD, _serverPasswordController.text);
 
-    Profile profile = await Profile.download(_scaffoldKey);
+    Profile profile = await Profile.downloadByPhonePin(_scaffoldKey);
     if (profile != null) {
       prefs.setString(KEY_USER_ID, profile.uuid);
     }

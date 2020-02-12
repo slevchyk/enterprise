@@ -32,9 +32,10 @@ class TimingDAO {
         'created_at,'
         'updated_at,'
         'deleted_at,'
-        'is_modified'
+        'is_modified,'
+        'is_turnstile'
         ')'
-        'VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
         [
           timing.id,
           timing.extID,
@@ -47,6 +48,7 @@ class TimingDAO {
           timing.updatedAt != null ? timing.updatedAt.toIso8601String() : null,
           timing.deletedAt != null ? timing.deletedAt.toIso8601String() : null,
           isModified ? 1 : 0,
+          timing.isTurnstile ? 1 : 0,
         ]);
     timing.id = raw;
     return raw;
@@ -105,6 +107,17 @@ class TimingDAO {
     return list;
   }
 
+  Future<List<Timing>> getToUploadTurnstile() async {
+    final db = await dbProvider.database;
+    var res = await db.query("timing",
+        where: "operation = ? and is_modified = 1",
+        whereArgs: [TIMING_STATUS_WORKDAY]);
+
+    List<Timing> list =
+        res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
+    return list;
+  }
+
   Future<String> getCurrentOperationByUser(String userID) async {
     final db = await dbProvider.database;
     var res = await db.query(
@@ -124,7 +137,7 @@ class TimingDAO {
     final db = await dbProvider.database;
     var res = await db.query(
       "timing",
-      where: "user_id=? and date=? and operation=?",
+      where: "user_id=? and date=? and operation=? and deleted_at is null",
       whereArgs: [userID, date.toIso8601String(), TIMING_STATUS_WORKDAY],
       orderBy: "started_at DESC",
     );
