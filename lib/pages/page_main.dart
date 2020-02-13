@@ -1,5 +1,7 @@
 import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/profile_dao.dart';
+import 'package:enterprise/models/channel.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/body_main_chanel.dart';
 import 'package:enterprise/pages/body_main_timing.dart';
@@ -14,12 +16,23 @@ class PageMain extends StatefulWidget {
 }
 
 class PageMainState extends State<PageMain> {
+  FirebaseMessaging _fcm = FirebaseMessaging();
+  Profile profile;
+
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _getSettings());
-  }
 
-  Profile profile;
+    _fcm.configure(onMessage: (Map<String, dynamic> message) async {
+      _onMessage(message);
+    }, onResume: (Map<String, dynamic> message) async {
+      _onMessage(message);
+    }, onLaunch: (Map<String, dynamic> message) async {
+      _onMessage(message);
+    });
+
+    _fcm.requestNotificationPermissions();
+  }
 
   _getSettings() async {
     final prefs = await SharedPreferences.getInstance();
@@ -74,6 +87,25 @@ class PageMainState extends State<PageMain> {
         ],
       ),
     );
+  }
+
+  _onMessage(Map<String, dynamic> message) {
+    if (message['data']['page'] == "channel") {
+      Channel channel = Channel(
+        title: message['data']['title'],
+        news: message['data']['news'],
+      );
+
+      Navigator.of(context).pushNamed(
+        "/channel/detail",
+        arguments: channel,
+      );
+    }
+
+    Scaffold.of(context).showSnackBar(SnackBar(
+      content: Text(message['notification']['title']),
+      backgroundColor: Colors.green,
+    ));
   }
 }
 

@@ -1,34 +1,34 @@
 {
   "project_info": {
-    "project_number": "1009643672171",
-    "firebase_url": "https://enterprise-b252a.firebaseio.com",
-    "project_id": "enterprise-b252a",
-    "storage_bucket": "enterprise-b252a.appspot.com"
+    "project_number": "487980733812",
+    "firebase_url": "https://willingwork-43b10.firebaseio.com",
+    "project_id": "willingwork-43b10",
+    "storage_bucket": "willingwork-43b10.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1009643672171:android:59a56d65dc8e215192572e",
+        "mobilesdk_app_id": "1:487980733812:android:9877844f9bf986579d4821",
         "android_client_info": {
           "package_name": "com.intellectcase.enterprise"
         }
       },
       "oauth_client": [
         {
-          "client_id": "1009643672171-8ahdcn4eudoabkonjjmagfuo5jfbq5rv.apps.googleusercontent.com",
+          "client_id": "487980733812-r861cv06rhd7ifb112got4aqtfo6rsco.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBZjk3CTJBXC953voG0g7-aGqz94iviat4"
+          "current_key": "AIzaSyASMGNrwlizSpr5x_ZtUBWHyDy9eubTb30"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1009643672171-8ahdcn4eudoabkonjjmagfuo5jfbq5rv.apps.googleusercontent.com",
+              "client_id": "487980733812-r861cv06rhd7ifb112got4aqtfo6rsco.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
