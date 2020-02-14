@@ -11,12 +11,12 @@ const String KEY_SERVER_DATABASE = "keyServerDatabase";
 const String KEY_SERVER_USER = "keyServerUser";
 const String KEY_SERVER_PASSWORD = "keyServerPassword";
 
-const String KEY_IDMAX = "keyIDMAX";
-
 const String KEY_USER_PHONE = "keyUserPhone";
 const String KEY_USER_PIN = "keyUserPin";
 const String KEY_USER_ID = "keyUserID";
 const String KEY_USER_PICTURE = "keyUserPicture";
+
+const String KEY_CHANNEL_UPDATE_ID = "keyChannelUpdateID";
 
 const String CIVIL_STATUS_SINGLE = 'Single';
 const String CIVIL_STATUS_MERRIED = 'Married';

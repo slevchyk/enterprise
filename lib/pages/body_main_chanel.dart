@@ -47,17 +47,17 @@ class BodyChannelState extends State<BodyChannel> {
 
     final String _userID = prefs.get(KEY_USER_ID);
 
-    int _maxID = prefs.getInt(KEY_IDMAX) ?? 0;
+    int _updateID = prefs.getInt(KEY_CHANNEL_UPDATE_ID) ?? 0;
 
     final String url =
-        'http://$_ip/$_db/hs/m/channel?userid=$_userID&idmax=$_maxID';
+        'http://$_ip/$_db/hs/m/channel?userid=$_userID&idmax=$_updateID';
 
     final credentials = '$_user:$_password';
     final stringToBase64 = utf8.fuse(base64);
     final encodedCredentials = stringToBase64.encode(credentials);
 
-    int countnewchanel = 0;
-    int countnewstatus = 0;
+    int countMessages = 0;
+    int countStatuses = 0;
 
     Map<String, String> headers = {
       HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
@@ -65,9 +65,7 @@ class BodyChannelState extends State<BodyChannel> {
 
     Response response = await get(url, headers: headers);
 
-    int statusCode = response.statusCode;
-
-    if (statusCode != 200) {
+    if (response.statusCode != 200) {
       Scaffold.of(context).showSnackBar(SnackBar(
         content: Text('Не вдалось отримати дані'),
         backgroundColor: Colors.redAccent,
@@ -80,33 +78,22 @@ class BodyChannelState extends State<BodyChannel> {
     final jsonData = json.decode(body);
 
     for (var jsonRow in jsonData["channel"]) {
-      Channel channel = Channel.fromMap(jsonRow);
-      channel.userID = _userID;
-      if (_maxID < jsonRow["IDMax"]) {
-        _maxID = jsonRow["IDMax"];
-      }
-      Channel existChannel = await ChannelDAO().getById(channel.id);
+      Channel _channel = Channel.fromMap(jsonRow);
 
-      if (existChannel != null) {
-        if (jsonRow["status"] == CHANNEL_TYPE_MESSAGE) {
-          countnewchanel = countnewchanel + 1;
-        } else {
-          countnewstatus = countnewstatus + 1;
-        }
-        channel.starredAt = existChannel.starredAt;
-        channel.deletedAt = existChannel.deletedAt;
-        channel.archivedAt = existChannel.archivedAt;
-        ChannelDAO().update(channel);
+      _channel.userID = _userID;
+      if (_updateID < jsonRow["update_id"]) {
+        _updateID = jsonRow["update_id"];
+      }
+
+      await _channel.processDownloads();
+
+      if (_channel.type == CHANNEL_TYPE_MESSAGE) {
+        countMessages++;
       } else {
-        if (jsonRow["status"] == CHANNEL_TYPE_MESSAGE) {
-          countnewchanel = countnewchanel + 1;
-        } else {
-          countnewstatus = countnewstatus + 1;
-        }
-        ChannelDAO().insert(channel);
+        countStatuses++;
       }
     }
-    prefs.setInt(KEY_IDMAX, _maxID);
+    prefs.setInt(KEY_CHANNEL_UPDATE_ID, _updateID);
   }
 
   _updateChannel() async {

@@ -17,6 +17,7 @@ class PageMain extends StatefulWidget {
 
 class PageMainState extends State<PageMain> {
   FirebaseMessaging _fcm = FirebaseMessaging();
+  GlobalKey<ScaffoldState> _globalKey = GlobalKey<ScaffoldState>();
   Profile profile;
 
   void initState() {
@@ -24,11 +25,11 @@ class PageMainState extends State<PageMain> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _getSettings());
 
     _fcm.configure(onMessage: (Map<String, dynamic> message) async {
-      _onMessage(message);
+      _onMessage(_globalKey, message);
     }, onResume: (Map<String, dynamic> message) async {
-      _onMessage(message);
+      _onResume(message);
     }, onLaunch: (Map<String, dynamic> message) async {
-      _onMessage(message);
+      _onLaunch(message);
     });
 
     _fcm.requestNotificationPermissions();
@@ -66,6 +67,7 @@ class PageMainState extends State<PageMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _globalKey,
       body: getBody(_currentIndex),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -89,22 +91,96 @@ class PageMainState extends State<PageMain> {
     );
   }
 
-  _onMessage(Map<String, dynamic> message) {
-    Map<String, dynamic> _data = message['data'];
+  _onMessage(
+      GlobalKey<ScaffoldState> _globalKey, Map<String, dynamic> message) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String userID = prefs.get(KEY_USER_ID);
+
+    Map<dynamic, dynamic> _data = message['data'];
 
     if (_data['notification_type'] == "channel") {
-      Channel channel = Channel.fromMap(_data);
+      Channel channel = Channel(
+        id: int.parse(_data['id']),
+        userID: userID,
+        type: _data['type'],
+        title: _data['title'],
+        news: _data['news'],
+      );
+
+      channel.processDownloads();
+
+      showDialog(
+        context: _globalKey.currentContext,
+        builder: (context) => AlertDialog(
+          content: ListTile(
+            title: Text(_data['title']),
+            subtitle: Text(_data['news']),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Закрити'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            FlatButton(
+              child: Text('Переглянути'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context)
+                    .pushNamed("/channel/detail", arguments: channel);
+              },
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  _onResume(Map<String, dynamic> message) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String userID = prefs.get(KEY_USER_ID);
+
+    Map<dynamic, dynamic> _data = message['data'];
+
+    if (_data['notification_type'] == "channel") {
+      Channel channel = Channel(
+        id: int.parse(_data['id']),
+        userID: userID,
+        type: _data['type'],
+        title: _data['title'],
+        news: _data['news'],
+      );
+
+      channel.processDownloads();
 
       Navigator.of(context).pushNamed(
         "/channel/detail",
         arguments: channel,
       );
     }
+  }
 
-    Scaffold.of(context).showSnackBar(SnackBar(
-      content: Text(_data['title']),
-      backgroundColor: Colors.green,
-    ));
+  _onLaunch(Map<String, dynamic> message) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String userID = prefs.get(KEY_USER_ID);
+
+    Map<dynamic, dynamic> _data = message['data'];
+
+    if (_data['notification_type'] == "channel") {
+      Channel channel = Channel(
+        id: int.parse(_data['id']),
+        userID: userID,
+        type: _data['type'],
+        title: _data['title'],
+        news: _data['news'],
+      );
+
+      channel.processDownloads();
+
+      Navigator.of(context).pushNamed(
+        "/channel/detail",
+        arguments: channel,
+      );
+    }
   }
 }
 

@@ -1,3 +1,8 @@
+import 'package:enterprise/database/channel_dao.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'contatns.dart';
+
 class Channel {
   int id;
   String userID;
@@ -50,4 +55,17 @@ class Channel {
         "archived_at": archivedAt != null ? archivedAt.toIso8601String() : null,
         "deleted_at": deletedAt != null ? deletedAt.toIso8601String() : null,
       };
+
+  processDownloads() async {
+    Channel existChannel = await ChannelDAO().getById(this.id);
+
+    if (existChannel != null) {
+      this.starredAt = existChannel.starredAt;
+      this.deletedAt = existChannel.deletedAt;
+      this.archivedAt = existChannel.archivedAt;
+      ChannelDAO().update(this);
+    } else {
+      ChannelDAO().insert(this);
+    }
+  }
 }
