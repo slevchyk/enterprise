@@ -31,7 +31,7 @@ class ChannelDAO {
               ? chanel.archivedAt.toIso8601String()
               : null,
           chanel.deletedAt != null ? chanel.deletedAt.toIso8601String() : null,
-          chanel.status,
+          chanel.type,
         ]);
     return raw;
   }

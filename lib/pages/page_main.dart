@@ -90,11 +90,10 @@ class PageMainState extends State<PageMain> {
   }
 
   _onMessage(Map<String, dynamic> message) {
-    if (message['data']['page'] == "channel") {
-      Channel channel = Channel(
-        title: message['data']['title'],
-        news: message['data']['news'],
-      );
+    Map<String, dynamic> _data = message['data'];
+
+    if (_data['notification_type'] == "channel") {
+      Channel channel = Channel.fromMap(_data);
 
       Navigator.of(context).pushNamed(
         "/channel/detail",
@@ -103,7 +102,7 @@ class PageMainState extends State<PageMain> {
     }
 
     Scaffold.of(context).showSnackBar(SnackBar(
-      content: Text(message['notification']['title']),
+      content: Text(_data['title']),
       backgroundColor: Colors.green,
     ));
   }
