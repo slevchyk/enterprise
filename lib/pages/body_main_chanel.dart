@@ -498,7 +498,6 @@ class ChannelHero extends StatefulWidget {
 }
 
 class _ChannelHeroState extends State<ChannelHero> {
-  @override
   Widget build(BuildContext context) {
     return Hero(
       tag: 'channel_' + widget.channel.id.toString(),

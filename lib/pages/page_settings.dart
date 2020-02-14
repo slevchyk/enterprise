@@ -6,6 +6,7 @@ import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/database/timing_dao.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_timing_db.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,6 +30,7 @@ class PageSettingsState extends State<PageSettings> {
 
   bool _readOnly = true;
 
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _readSettings());
@@ -251,6 +253,18 @@ class PageSettingsState extends State<PageSettings> {
                         },
                         child: Text('Timing DB'),
                       ),
+                      FlatButton(
+                        onPressed: () {
+                          Profile.downloadAll();
+                        },
+                        child: Text('Download all profiles'),
+                      ),
+                      FlatButton(
+                        onPressed: () {
+                          _sendFireBaseToken();
+                        },
+                        child: Text('Send fb token'),
+                      ),
 //                      FlatButton()
                     ],
                   ),
@@ -288,7 +302,7 @@ class PageSettingsState extends State<PageSettings> {
     prefs.setString(KEY_SERVER_USER, _serverUserController.text);
     prefs.setString(KEY_SERVER_PASSWORD, _serverPasswordController.text);
 
-    Profile profile = await Profile.download(_scaffoldKey);
+    Profile profile = await Profile.downloadByPhonePin(_scaffoldKey);
     if (profile != null) {
       prefs.setString(KEY_USER_ID, profile.uuid);
     }
@@ -408,6 +422,35 @@ class PageSettingsState extends State<PageSettings> {
       content: Text('Не вдалось отримати налаштування'),
       backgroundColor: Colors.green,
     ));
+  }
+
+  _sendFireBaseToken() async {
+    FirebaseMessaging _fcm = FirebaseMessaging();
+    String token = await _fcm.getToken();
+
+    final prefs = await SharedPreferences.getInstance();
+    final userID = prefs.getString(KEY_USER_ID);
+
+    Map<String, String> requestMap = {
+      "user_id": userID,
+      "token": token,
+    };
+
+    String requestJSON = json.encode(requestMap);
+
+    final username = SERVER_USER;
+    final password = SERVER_PASSWORD;
+    final credentials = '$username:$password';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+      HttpHeaders.contentTypeHeader: "application/json",
+    };
+
+    String url = 'http://10.0.2.2:7133/api/token';
+    Response response = await post(url, headers: headers, body: requestJSON);
   }
 }
 

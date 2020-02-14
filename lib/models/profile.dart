@@ -204,7 +204,8 @@ class Profile {
         "info_card": infoCard,
       };
 
-  static Future<Profile> download(GlobalKey<ScaffoldState> _scaffoldKey) async {
+  static Future<Profile> downloadByPhonePin(
+      GlobalKey<ScaffoldState> _scaffoldKey) async {
     Profile profile;
 
     final prefs = await SharedPreferences.getInstance();
@@ -218,7 +219,7 @@ class Profile {
     final String _userPin = prefs.get(KEY_USER_PIN);
 
     final String url =
-        'http://$_serverIP/$_serverDB/hs/m/profile?phone=$_userPhone&pin=$_userPin';
+        'http://$_serverIP/$_serverDB/hs/m/profile?action=user&phone=$_userPhone&pin=$_userPin';
 
     final credentials = '$_serverUser:$_serverPassord';
     final stringToBase64 = utf8.fuse(base64);
@@ -290,5 +291,109 @@ class Profile {
     }
 
     return profile;
+  }
+
+  static Future<Profile> downloadByInfoCard(String infoCard) async {
+    Profile profile;
+
+    final prefs = await SharedPreferences.getInstance();
+
+    final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _serverPawssord = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+    final String _serverDB = prefs.getString(KEY_SERVER_DATABASE) ?? "";
+
+    final String url =
+        'http://$_serverIP/$_serverDB/hs/m/profile?action=card&infocard=$infoCard';
+
+    final credentials = '$_serverUser:$_serverPawssord';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+    };
+
+    Response response = await get(url, headers: headers);
+
+    int statusCode = response.statusCode;
+
+    if (statusCode != 200) {
+      return profile;
+    }
+
+    String body = utf8.decode(response.bodyBytes);
+
+    var jsonData = json.decode(body);
+
+    if (jsonData['status'] != 200) {
+      return profile;
+    }
+
+    profile = Profile.fromMap(jsonData["application"]);
+
+    if (profile.photo != '') {
+      final documentDirectory = await getApplicationDocumentsDirectory();
+      File file = new File(join(documentDirectory.path, profile.photo));
+
+      var base64Photo = profile.photoData;
+      base64Photo = base64Photo.replaceAll("\r", "");
+      base64Photo = base64Photo.replaceAll("\n", "");
+
+      final _bytePhoto = base64Decode(base64Photo);
+      file.writeAsBytes(_bytePhoto);
+
+      profile.photo = file.path;
+      prefs.setString(KEY_USER_PICTURE, file.path);
+    }
+
+    Profile existProfile = await ProfileDAO().getByUuid(profile.uuid);
+    if (existProfile == null) {
+      await ProfileDAO().insert(profile);
+    } else {
+      profile.id = existProfile.id;
+      await ProfileDAO().update(profile);
+    }
+
+    return profile;
+  }
+
+  static downloadAll() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _serverPassord = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+    final String _serverDB = prefs.getString(KEY_SERVER_DATABASE) ?? "";
+
+    final String url = 'http://$_serverIP/$_serverDB/hs/m/profile?action=all';
+
+    final credentials = '$_serverUser:$_serverPassord';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+    };
+
+    Response response = await get(url, headers: headers);
+
+    int statusCode = response.statusCode;
+
+    if (statusCode != 200) {
+      return;
+    }
+
+    String body = utf8.decode(response.bodyBytes);
+
+    var jsonData = json.decode(body);
+
+    if (jsonData['status'] != 200) {
+      return;
+    }
+
+    for (var jsonRow in jsonData["cards"]) {
+      downloadByInfoCard(jsonRow["info_card"]);
+    }
   }
 }

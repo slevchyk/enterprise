@@ -99,7 +99,7 @@ class PageProfileState extends State<PageProfile> {
   }
 
   _downloadProfile(BuildContext context) async {
-    Profile profile = await Profile.download(_scaffoldKey);
+    Profile profile = await Profile.downloadByPhonePin(_scaffoldKey);
 
     setState(() {
       if (profile != null) {
