@@ -1,6 +1,7 @@
 # Miscellaneous
 *.json
 *.class
+*.json
 *.log
 *.pyc
 *.swp

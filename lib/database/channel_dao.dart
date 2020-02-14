@@ -87,11 +87,12 @@ class ChannelDAO {
     return res;
   }
 
-  Future<List<Channel>> getByUserIdType(String userID) async {
+  Future<List<Channel>> getByUserIdType(String userID, String status) async {
     final db = await dbProvider.database;
     var res = await db.query("chanel",
-        where: "user_id = ?  and deleted_at is null and archived_at is null",
-        whereArgs: [userID],
+        where:
+            "user_id = ? and status = ? and deleted_at is null and archived_at is null",
+        whereArgs: [userID, status],
         orderBy: "starred_at DESC");
 
     List<Channel> list =
