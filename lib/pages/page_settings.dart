@@ -367,7 +367,7 @@ class PageSettingsState extends State<PageSettings> {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    String url = 'http://10.0.2.2:7132/api/getdbsettings';
+    String url = 'http://95.217.41.66:8811/api/getdbsettings';
     Response response = await post(url, headers: headers, body: requestJSON);
 
     String body = response.body;
@@ -449,7 +449,7 @@ class PageSettingsState extends State<PageSettings> {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    String url = 'http://10.0.2.2:7133/api/token';
+    String url = 'http://95.217.41.66:8822/api/token';
     Response response = await post(url, headers: headers, body: requestJSON);
   }
 }

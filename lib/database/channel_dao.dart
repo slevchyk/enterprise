@@ -11,27 +11,27 @@ class ChannelDAO {
         'INSERT Into chanel ('
         'id,'
         'user_id,'
-        'title,'
+        'type,'
         'date,'
+        'title,'
         'news,'
         'starred_at,'
         'archived_at,'
-        'deleted_at,'
-        'status'
+        'deleted_at'
         ')'
         'VALUES (?,?,?,?,?,?,?,?,?)',
         [
           chanel.id,
           chanel.userID,
-          chanel.title,
+          chanel.type,
           chanel.date != null ? chanel.date.toIso8601String() : null,
+          chanel.title,
           chanel.news,
           chanel.starredAt != null ? chanel.starredAt.toIso8601String() : null,
           chanel.archivedAt != null
               ? chanel.archivedAt.toIso8601String()
               : null,
           chanel.deletedAt != null ? chanel.deletedAt.toIso8601String() : null,
-          chanel.type,
         ]);
     return raw;
   }
@@ -87,12 +87,12 @@ class ChannelDAO {
     return res;
   }
 
-  Future<List<Channel>> getByUserIdType(String userID, String status) async {
+  Future<List<Channel>> getByUserIdType(String userID, String type) async {
     final db = await dbProvider.database;
     var res = await db.query("chanel",
         where:
-            "user_id = ? and status = ? and deleted_at is null and archived_at is null",
-        whereArgs: [userID, status],
+            "user_id = ? and type = ? and deleted_at is null and archived_at is null",
+        whereArgs: [userID, type],
         orderBy: "starred_at DESC");
 
     List<Channel> list =
