@@ -265,13 +265,13 @@ class Timing {
   Color color() {
     switch (operation) {
       case TIMING_STATUS_JOB:
-        return Colors.indigo.shade300;
+        return Colors.green.shade600;
       case TIMING_STATUS_LANCH:
-        return Colors.indigo.shade200;
+        return Colors.green.shade500;
       case TIMING_STATUS_BREAK:
-        return Colors.indigo.shade100;
+        return Colors.green.shade400;
       default:
-        return Colors.indigo.shade400;
+        return Colors.green.shade400;
     }
   }
 

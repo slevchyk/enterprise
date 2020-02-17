@@ -1,7 +1,6 @@
 # Miscellaneous
 *.json
 *.class
-*.json
 *.log
 *.pyc
 *.swp
@@ -31,6 +30,8 @@ pubspec.lock
 .pub-cache/
 .pub/
 /build/
+
+**/android/app/google-services.json
 
 # Android related
 **/android/**/gradle-wrapper.jar

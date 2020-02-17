@@ -24,11 +24,11 @@ class EnterpriseAppState extends State<EnterpriseApp> {
       initialRoute: '/',
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
-        primaryColorDark: Color(0xFF455A64),
-        primaryColor: Color(0xFF607D8B),
-        primaryColorLight: Color(0xFFCFD8DC),
-        accentColor: Colors.teal.shade700,
-        dividerColor: Color(0xFFBDBDBD),
+        primaryColorDark: Colors.grey.shade700,
+        primaryColor: Colors.grey.shade600,
+        primaryColorLight: Colors.grey.shade100,
+        accentColor: Colors.lightGreen.shade700,
+        dividerColor: Colors.grey.shade400,
       ),
     );
   }

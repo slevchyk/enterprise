@@ -19,6 +19,10 @@ class TimingDAO {
       timing.createdAt = DateTime.now();
     }
 
+    if (timing.isTurnstile == null) {
+      timing.isTurnstile = false;
+    }
+
     //insert to the table using the new id
     var raw = await db.rawInsert(
         'INSERT Into timing ('
