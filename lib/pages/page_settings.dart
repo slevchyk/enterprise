@@ -356,9 +356,11 @@ class PageSettingsState extends State<PageSettings> {
 
     String requestJSON = json.encode(requestMap);
 
-    final username = SERVER_USER;
-    final password = SERVER_PASSWORD;
-    final credentials = '$username:$password';
+    final _srvIP = SERVER_IP;
+    final _srvUsername = SERVER_USER;
+    final _srvPassword = SERVER_PASSWORD;
+
+    final credentials = '$_srvUsername:$_srvPassword';
     final stringToBase64 = utf8.fuse(base64);
     final encodedCredentials = stringToBase64.encode(credentials);
 
@@ -367,7 +369,7 @@ class PageSettingsState extends State<PageSettings> {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    String url = 'http://95.217.41.66:8811/api/getdbsettings';
+    String url = 'http://$_srvIP/api/getdbsettings';
     Response response = await post(url, headers: headers, body: requestJSON);
 
     String body = response.body;

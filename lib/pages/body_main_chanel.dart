@@ -32,6 +32,8 @@ class BodyChannelState extends State<BodyChannel> {
 
   @override
   void initState() {
+    super.initState();
+
     channels = getChannels(CHANNEL_TYPE_MESSAGE);
     channelsArchived = getArchived();
     channelsStatus = getChannels(CHANNEL_TYPE_STATUS);
@@ -40,19 +42,18 @@ class BodyChannelState extends State<BodyChannel> {
   _downloadChannel(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
 
-    final String _ip = prefs.getString(KEY_SERVER_IP) ?? "";
-    final String _user = prefs.getString(KEY_SERVER_USER) ?? "";
-    final String _password = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
-    final String _db = prefs.getString(KEY_SERVER_DATABASE) ?? "";
+    final String _srvIP = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String _srvUser = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _srvPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
 
     final String _userID = prefs.get(KEY_USER_ID);
 
     int _updateID = prefs.getInt(KEY_CHANNEL_UPDATE_ID) ?? 0;
 
     final String url =
-        'http://$_ip/$_db/hs/m/channel?userid=$_userID&idmax=$_updateID';
+        'http://$_srvIP/api/channel?userid=$_userID&offset=$_updateID';
 
-    final credentials = '$_user:$_password';
+    final credentials = '$_srvUser:$_srvPassword';
     final stringToBase64 = utf8.fuse(base64);
     final encodedCredentials = stringToBase64.encode(credentials);
 
@@ -77,7 +78,7 @@ class BodyChannelState extends State<BodyChannel> {
 
     final jsonData = json.decode(body);
 
-    for (var jsonRow in jsonData["channel"]) {
+    for (var jsonRow in jsonData) {
       Channel _channel = Channel.fromMap(jsonRow);
 
       _channel.userID = _userID;
@@ -170,7 +171,7 @@ class BodyChannelState extends State<BodyChannel> {
           title: Text('Канал'),
           bottom: TabBar(
             tabs: <Widget>[
-              Tab(text: "Нові"),
+              Tab(text: "Новини"),
               Tab(text: "Статуси"),
               Tab(text: "Архів"),
             ],

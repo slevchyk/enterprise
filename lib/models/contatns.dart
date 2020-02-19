@@ -3,6 +3,7 @@ library constants;
 const String APP_MODE_USER = "user";
 const String APP_MODE_TURNSTILE = "turnstile";
 
+const String SERVER_IP = "95.217.41.66:8811";
 const String SERVER_USER = "mobile";
 const String SERVER_PASSWORD = "Dq4fS^J&^nqQ(fg4";
 
