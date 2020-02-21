@@ -15,7 +15,7 @@ class EnterpriseAppState extends State<EnterpriseApp> {
     super.initState();
 
     Timing.closePastTiming();
-    Timing.syncCurrent();
+    Timing.downloadByDate(DateTime.now());
   }
 
   @override

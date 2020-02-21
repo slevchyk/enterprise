@@ -9,10 +9,10 @@ class TimingDAO {
   insert(Timing timing, {bool isModified = true}) async {
     final db = await dbProvider.database;
     //get the biggest id in the table
-    var table = await db.rawQuery("SELECT MAX(id)+1 as id FROM timing");
+    var table = await db.rawQuery("SELECT MAX(mob_id)+1 as mob_id FROM timing");
 
-    if (timing.id == null) {
-      timing.id = table.first["id"];
+    if (timing.mobID == null || timing.mobID == 0) {
+      timing.mobID = table.first["mob_id"];
     }
 
     if (timing.createdAt == null) {
@@ -27,10 +27,11 @@ class TimingDAO {
     var raw = await db.rawInsert(
         'INSERT Into timing ('
         'id,'
-        'ext_id,'
+        'mob_id,'
+        'acc_id,'
         'user_id,'
         'date,'
-        'operation,'
+        'status,'
         'started_at,'
         'ended_at,'
         'created_at,'
@@ -39,13 +40,14 @@ class TimingDAO {
         'is_modified,'
         'is_turnstile'
         ')'
-        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
           timing.id,
-          timing.extID,
+          timing.mobID,
+          timing.accID,
           timing.userID,
           timing.date.toIso8601String(),
-          timing.operation,
+          timing.status,
           timing.startedAt != null ? timing.startedAt.toIso8601String() : null,
           timing.endedAt != null ? timing.endedAt.toIso8601String() : null,
           timing.createdAt != null ? timing.createdAt.toIso8601String() : null,
@@ -54,8 +56,15 @@ class TimingDAO {
           isModified ? 1 : 0,
           timing.isTurnstile ? 1 : 0,
         ]);
-    timing.id = raw;
+    timing.mobID = raw;
     return raw;
+  }
+
+  getByMobId(int mob_id) async {
+    final db = await dbProvider.database;
+    var res =
+        await db.query("timing", where: "mob_id = ?", whereArgs: [mob_id]);
+    return res.isNotEmpty ? Timing.fromMap(res.first) : null;
   }
 
   getById(int id) async {
@@ -82,6 +91,7 @@ class TimingDAO {
       "timing",
       where: "date=? and user_id=? and deleted_at is null",
       whereArgs: [date.toIso8601String(), userID],
+      orderBy: "started_at",
     );
 
     List<Timing> list =
@@ -89,11 +99,11 @@ class TimingDAO {
     return list;
   }
 
-  Future<List<Timing>> getOpenOperationByDateUserId(
+  Future<List<Timing>> getOpenStatusByDateUserId(
       DateTime date, String userID) async {
     final db = await dbProvider.database;
     var res = await db.query("timing",
-        where: "user_id=? and date=? and operation<>? and ended_at is null",
+        where: "user_id=? and date=? and status<>? and ended_at is null",
         whereArgs: [userID, date.toIso8601String(), TIMING_STATUS_WORKDAY]);
 
     List<Timing> list =
@@ -114,7 +124,7 @@ class TimingDAO {
   Future<List<Timing>> getToUploadTurnstile() async {
     final db = await dbProvider.database;
     var res = await db.query("timing",
-        where: "operation = ? and is_modified = 1",
+        where: "status = ? and is_modified = 1",
         whereArgs: [TIMING_STATUS_WORKDAY]);
 
     List<Timing> list =
@@ -122,7 +132,7 @@ class TimingDAO {
     return list;
   }
 
-  Future<String> getCurrentOperationByUser(String userID) async {
+  Future<String> getCurrentStatusByUser(String userID) async {
     final db = await dbProvider.database;
     var res = await db.query(
       "timing",
@@ -133,7 +143,7 @@ class TimingDAO {
     );
 
     Timing _timing = res.isNotEmpty ? Timing.fromMap(res.first) : null;
-    return _timing != null ? _timing.operation : "";
+    return _timing != null ? _timing.status : "";
   }
 
   Future<List<Timing>> getTurnstileByDateUserId(
@@ -141,7 +151,7 @@ class TimingDAO {
     final db = await dbProvider.database;
     var res = await db.query(
       "timing",
-      where: "user_id=? and date=? and operation=? and deleted_at is null",
+      where: "user_id=? and date=? and status=? and deleted_at is null",
       whereArgs: [userID, date.toIso8601String(), TIMING_STATUS_WORKDAY],
       orderBy: "started_at DESC",
     );
@@ -155,7 +165,7 @@ class TimingDAO {
       DateTime date, String userID) async {
     final db = await dbProvider.database;
     var res = await db.query("timing",
-        where: "user_id=? and date=? and operation=? and ended_at is null",
+        where: "user_id=? and date=? and status=? and ended_at is null",
         whereArgs: [userID, date.toIso8601String(), TIMING_STATUS_WORKDAY]);
 
     List<Timing> list =
@@ -163,7 +173,7 @@ class TimingDAO {
     return list;
   }
 
-  Future<List<Timing>> getOpenPastOperation(DateTime date) async {
+  Future<List<Timing>> getOpenPastStatus(DateTime date) async {
     final db = await dbProvider.database;
     var res = await db.query("timing",
         where: "date <> ? and ended_at is null",
@@ -195,14 +205,23 @@ class TimingDAO {
         where:
             "date in ($dateCondition) and user_id = ? and deleted_at is null",
         whereArgs: conditionValues,
-        orderBy: 'date ASC, operation ASC');
+        orderBy: 'date ASC, status ASC');
 
     List<Timing> list =
         res.isNotEmpty ? res.map((c) => Timing.fromMap(c)).toList() : [];
     return list;
   }
 
-  update(Timing timing, {bool isModified = true}) async {
+  updateByMobID(Timing timing, {bool isModified = true}) async {
+    final db = await dbProvider.database;
+    timing.isModified = isModified;
+    timing.updatedAt = DateTime.now();
+    var res = await db.update("timing", timing.toMap(),
+        where: "mob_id = ?", whereArgs: [timing.mobID]);
+    return res;
+  }
+
+  updateByID(Timing timing, {bool isModified = true}) async {
     final db = await dbProvider.database;
     timing.isModified = isModified;
     timing.updatedAt = DateTime.now();

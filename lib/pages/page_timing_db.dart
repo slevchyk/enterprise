@@ -32,7 +32,7 @@ class _PageTimingDBState extends State<PageTimingDB> {
           Text(timing.userID),
         ),
         DataCell(
-          Text(timing.operation),
+          Text(timing.status),
         ),
         DataCell(
           Text(timing.startedAt != null

@@ -41,9 +41,10 @@ class TimingMain extends StatefulWidget {
 class _TimingMainState extends State<TimingMain> {
   String currentTimeStatus = '';
   String userID;
-  Future<List<Timing>> operations;
+  Future<List<Timing>> statuses;
   Future<List<charts.Series<ChartData, String>>> listChartData;
 
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _initWidgetState());
@@ -54,8 +55,8 @@ class _TimingMainState extends State<TimingMain> {
     String _userID = prefs.getString(KEY_USER_ID) ?? "";
 
     _setCurrentStatus(_userID);
-    operations = _getTiming(_userID);
-    listChartData = _createChartData(operations);
+    statuses = _getTiming(_userID);
+    listChartData = _createChartData(statuses);
 
     setState(() {
       userID = _userID;
@@ -76,7 +77,7 @@ class _TimingMainState extends State<TimingMain> {
     double timingHours = 0.0;
 
     for (var _timing in _listTiming) {
-      if (_timing.operation == TIMING_STATUS_WORKDAY) {
+      if (_timing.status == TIMING_STATUS_WORKDAY) {
         continue;
       }
 
@@ -91,10 +92,10 @@ class _TimingMainState extends State<TimingMain> {
       timingHours += duration;
 
       int existIndex = _chartData
-          .indexWhere((record) => record.title.contains(_timing.operation));
+          .indexWhere((record) => record.title.contains(_timing.status));
       if (existIndex == -1) {
         _chartData.add(new ChartData(
-            title: _timing.operation, value: duration, color: _timing.color()));
+            title: _timing.status, value: duration, color: _timing.color()));
       } else {
         _chartData[existIndex].value += duration;
       }
@@ -111,7 +112,7 @@ class _TimingMainState extends State<TimingMain> {
 
     return [
       new charts.Series<ChartData, String>(
-          id: 'operation',
+          id: 'status',
           data: _chartData,
           domainFn: (ChartData record, _) => record.title,
           measureFn: (ChartData record, _) => record.value,
@@ -123,7 +124,7 @@ class _TimingMainState extends State<TimingMain> {
     ];
   }
 
-  _handleTiming(String timingOperation) async {
+  _handleTiming(String timingStatus) async {
     final dateTimeNow = DateTime.now();
     final dayBegin =
         new DateTime(dateTimeNow.year, dateTimeNow.month, dateTimeNow.day);
@@ -131,83 +132,83 @@ class _TimingMainState extends State<TimingMain> {
     final prefs = await SharedPreferences.getInstance();
     String userID = prefs.getString(KEY_USER_ID) ?? "";
 
-    if (timingOperation == TIMING_STATUS_WORKDAY) {
+    if (timingStatus == TIMING_STATUS_WORKDAY) {
       Timing timing = Timing(
         date: dayBegin,
         userID: userID,
-        operation: timingOperation,
+        status: timingStatus,
         startedAt: dateTimeNow,
       );
 
       await TimingDAO().insert(timing);
-    } else if (timingOperation == '') {
+    } else if (timingStatus == '') {
       List<Timing> listTiming =
-          await TimingDAO().getOpenOperationByDateUserId(dayBegin, userID);
+          await TimingDAO().getOpenStatusByDateUserId(dayBegin, userID);
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
-        await TimingDAO().update(timing);
+        await TimingDAO().updateByMobID(timing);
       }
 
       listTiming =
           await TimingDAO().getOpenWorkdayByDateUserId(dayBegin, userID);
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
-        await TimingDAO().update(timing);
+        await TimingDAO().updateByMobID(timing);
       }
-    } else if (timingOperation == TIMING_STATUS_JOB ||
-        timingOperation == TIMING_STATUS_LANCH ||
-        timingOperation == TIMING_STATUS_BREAK) {
+    } else if (timingStatus == TIMING_STATUS_JOB ||
+        timingStatus == TIMING_STATUS_LANCH ||
+        timingStatus == TIMING_STATUS_BREAK) {
       List<Timing> listTiming =
-          await TimingDAO().getOpenOperationByDateUserId(dayBegin, userID);
+          await TimingDAO().getOpenStatusByDateUserId(dayBegin, userID);
 
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
-        await TimingDAO().update(timing);
+        await TimingDAO().updateByMobID(timing);
       }
 
       Timing timing = Timing(
           date: dayBegin,
           userID: userID,
-          operation: timingOperation,
+          status: timingStatus,
           startedAt: dateTimeNow);
 
       await TimingDAO().insert(timing);
-    } else if (timingOperation == TIMING_STATUS_STOP) {
+    } else if (timingStatus == TIMING_STATUS_STOP) {
       List<Timing> listTiming =
-          await TimingDAO().getOpenOperationByDateUserId(dayBegin, userID);
+          await TimingDAO().getOpenStatusByDateUserId(dayBegin, userID);
 
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
-        await TimingDAO().update(timing);
+        await TimingDAO().updateByMobID(timing);
       }
     }
 
     // отримаємо поточний стан виходячи із записів в локальній базі
     _setCurrentStatus(userID);
     // прочитаємо записи локальної бази
-    operations = _getTiming(userID);
+    statuses = _getTiming(userID);
     // відобразимо на кругові діаграмі актульні даті з локальної бази
-    listChartData = _createChartData(operations);
+    listChartData = _createChartData(statuses);
 
     // відправимо змінені дані в хмару і отримаємо актуалізуємо локальну базу
-    Timing.sync(userID);
+    Timing.upload(userID);
   }
 
   // процедура актуалізації локальної бази даними з хмари
   Future<void> _refreshTiming() async {
-    await Timing.syncCurrent();
+    await Timing.downloadByDate(DateTime.now());
 
     // відправимо змінені дані в хмару і отримаємо актуалізуємо локальну базу
     _setCurrentStatus(userID);
     // прочитаємо записи локальної бази
-    operations = _getTiming(userID);
+    statuses = _getTiming(userID);
     // відобразимо на кругові діаграмі актульні даті з локальної бази
-    listChartData = _createChartData(operations);
+    listChartData = _createChartData(statuses);
   }
 
   void _setCurrentStatus(userID) async {
     String _currentTimeStatus =
-        await TimingDAO().getCurrentOperationByUser(userID);
+        await TimingDAO().getCurrentStatusByUser(userID);
     setState(() {
       currentTimeStatus = _currentTimeStatus;
     });
@@ -250,8 +251,8 @@ class _TimingMainState extends State<TimingMain> {
     _tapPosition = details.globalPosition;
   }
 
-  Widget rowIcon(String operation) {
-    switch (operation) {
+  Widget rowIcon(String status) {
+    switch (status) {
       case TIMING_STATUS_WORKDAY:
         return Icon(FontAwesomeIcons.building);
       case TIMING_STATUS_JOB:
@@ -279,11 +280,11 @@ class _TimingMainState extends State<TimingMain> {
           onTapDown: _storePosition,
           child: Row(
             children: <Widget>[
-              rowIcon(timing.operation),
+              rowIcon(timing.status),
               SizedBox(
                 width: 10.0,
               ),
-              Text(TIMING_ALIAS[timing.operation]),
+              Text(TIMING_ALIAS[timing.status]),
             ],
           ),
         )),
@@ -370,7 +371,7 @@ class _TimingMainState extends State<TimingMain> {
             ),
             SliverFillRemaining(
               child: FutureBuilder(
-                  future: operations,
+                  future: statuses,
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
                     switch (snapshot.connectionState) {
                       case ConnectionState.none:

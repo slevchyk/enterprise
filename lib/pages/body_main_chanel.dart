@@ -216,8 +216,8 @@ class BodyChannelState extends State<BodyChannel> {
                                     color: Colors.blue,
                                     icon: Icons.archive,
                                     onTap: () {
-                                      ChannelDAO()
-                                          .archiveById(listChanneles[index].id);
+                                      ChannelDAO().archiveById(
+                                          listChanneles[index].mobID);
                                       setState(() {
                                         channels =
                                             getChannels(CHANNEL_TYPE_MESSAGE);
@@ -235,8 +235,8 @@ class BodyChannelState extends State<BodyChannel> {
                                     color: Colors.red,
                                     icon: Icons.delete,
                                     onTap: () {
-                                      ChannelDAO()
-                                          .deleteById(listChanneles[index].id);
+                                      ChannelDAO().deleteById(
+                                          listChanneles[index].mobID);
                                     },
                                   ),
                                 ],
@@ -319,8 +319,8 @@ class BodyChannelState extends State<BodyChannel> {
                                     color: Colors.blue,
                                     icon: Icons.archive,
                                     onTap: () {
-                                      ChannelDAO()
-                                          .archiveById(listChanneles[index].id);
+                                      ChannelDAO().archiveById(
+                                          listChanneles[index].mobID);
                                       setState(() {
                                         channels =
                                             getChannels(CHANNEL_TYPE_MESSAGE);
@@ -338,8 +338,8 @@ class BodyChannelState extends State<BodyChannel> {
                                     color: Colors.red,
                                     icon: Icons.delete,
                                     onTap: () {
-                                      ChannelDAO()
-                                          .deleteById(listChanneles[index].id);
+                                      ChannelDAO().deleteById(
+                                          listChanneles[index].mobID);
                                     },
                                   ),
                                 ],
@@ -407,7 +407,7 @@ class BodyChannelState extends State<BodyChannel> {
                                     icon: Icons.archive,
                                     onTap: () {
                                       ChannelDAO().unarchiveById(
-                                          listChanneles[index].id);
+                                          listChanneles[index].mobID);
                                       setState(() {
                                         channels =
                                             getChannels(CHANNEL_TYPE_MESSAGE);
@@ -425,8 +425,8 @@ class BodyChannelState extends State<BodyChannel> {
                                     color: Colors.red,
                                     icon: Icons.delete,
                                     onTap: () {
-                                      ChannelDAO()
-                                          .deleteById(listChanneles[index].id);
+                                      ChannelDAO().deleteById(
+                                          listChanneles[index].mobID);
                                     },
                                   ),
                                 ],
