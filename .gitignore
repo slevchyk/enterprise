@@ -1,3 +1,7 @@
+#keys
+**/android/app/google-services.json
+**/android/key.properties
+
 # Miscellaneous
 *.json
 *.class
@@ -30,9 +34,6 @@ pubspec.lock
 .pub-cache/
 .pub/
 /build/
-
-**/android/app/google-services.json
-**/android/key.properties
 
 # Android related
 **/android/**/gradle-wrapper.jar
