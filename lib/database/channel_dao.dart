@@ -100,16 +100,6 @@ class ChannelDAO {
     return list;
   }
 
-  Future<List<Channel>> getStarredByUserId(String userID) async {
-    final db = await dbProvider.database;
-    var res = await db.query("chanel",
-        where: "user_id = ? and starred_at is not null", whereArgs: [userID]);
-
-    List<Channel> list =
-        res.isNotEmpty ? res.map((c) => Channel.fromMap(c)).toList() : [];
-    return list;
-  }
-
   Future<List<Channel>> getDeletedByUSerId(String userID) async {
     final db = await dbProvider.database;
     var res = await db.query("chanel",
