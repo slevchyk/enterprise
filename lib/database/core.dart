@@ -33,6 +33,7 @@ class DBProvider {
           "last_name TEXT,"
           "middle_name TEXT,"
           "phone TEXT,"
+          "birthday TEXT,"
           "itn TEXT,"
           "email TEXT,"
           "gender TEXT,"

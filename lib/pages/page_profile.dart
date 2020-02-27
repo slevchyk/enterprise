@@ -29,7 +29,6 @@ class PageProfileState extends State<PageProfile> {
   bool isEditing;
   bool isLoadingProfile = true;
   Profile profile;
-  String userID;
 
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -37,6 +36,7 @@ class PageProfileState extends State<PageProfile> {
   final _genderController = TextEditingController();
   final _itnController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _birthdayController = TextEditingController();
   final _emailController = TextEditingController();
   final _passportTypeController = TextEditingController();
   final _passportSeriesController = TextEditingController();
@@ -57,20 +57,27 @@ class PageProfileState extends State<PageProfile> {
   bool _isDisability;
   final _infoCardController = TextEditingController();
 
-  setControllers(Profile _pfl) {
+  void setControllers(Profile _pfl) {
     _firstNameController.text = _pfl.firstName;
     _lastNameController.text = _pfl.lastName;
     _middleNameController.text = _pfl.middleName;
     _genderController.text = _pfl.gender;
     _itnController.text = _pfl.itn;
     _phoneController.text = _pfl.phone;
+    _birthdayController.text = _pfl.birthday != null
+        ? formatDate(_pfl.birthday, [dd, '-', mm, '-', yyyy])
+        : "";
     _emailController.text = _pfl.email;
     _passportTypeController.text = _pfl.passportType;
     _passportNumberController.text = _pfl.passportNumber;
     _passportSeriesController.text = _pfl.passportSeries;
     _passportIssuedController.text = _pfl.passportIssued;
-    _passportDateController.text = _pfl.passportDate;
-    _passportExpiryController.text = _pfl.passportExpiry;
+    _passportDateController.text = _pfl.passportDate != null
+        ? formatDate(_pfl.passportDate, [dd, '-', mm, '-', yyyy])
+        : "";
+    _passportExpiryController.text = _pfl.passportExpiry != null
+        ? formatDate(_pfl.passportExpiry, [dd, '-', mm, '-', yyyy])
+        : "";
     _civilStatusController.text = _pfl.civilStatus;
     _childrenController.text = _pfl.children;
     _jobPositionController.text = _pfl.jobPosition;
@@ -85,7 +92,7 @@ class PageProfileState extends State<PageProfile> {
     _infoCardController.text = _pfl.infoCard.toString();
   }
 
-  _getProfileFromDB() async {
+  void _getProfileFromDB() async {
     final prefs = await SharedPreferences.getInstance();
 
     String _userID = prefs.getString(KEY_USER_ID) ?? "";
@@ -100,12 +107,13 @@ class PageProfileState extends State<PageProfile> {
         setControllers(_profile);
         profile = _profile;
         isLoadingProfile = false;
-        userID = _userID;
       });
     } else {
       setState(() {
+        profile = Profile(
+          userID: _userID,
+        );
         isLoadingProfile = false;
-        userID = _userID;
       });
     }
   }
@@ -132,20 +140,6 @@ class PageProfileState extends State<PageProfile> {
               textController.clear();
             });
           });
-  }
-
-  Future _selectDate(
-      BuildContext context, TextEditingController textController) async {
-    DateTime picked = await showDatePicker(
-        context: context,
-        firstDate: new DateTime(1991),
-        initialDate: new DateTime.now(),
-        lastDate: new DateTime(DateTime.now().year + 1));
-
-    if (picked != null)
-      setState(() {
-        textController.text = formatDate(picked, [yyyy, '-', mm, '-', dd]);
-      });
   }
 
   List<DropdownMenuItem<String>> _getCivilStatuses() {
@@ -177,7 +171,7 @@ class PageProfileState extends State<PageProfile> {
   }
 
   Widget _userPhoto(profile) {
-    if (profile == null || profile.photo == '') {
+    if (profile == null || profile.photo == null || profile.photo == '') {
       return CircleAvatar(
         minRadius: 75,
         maxRadius: 100,
@@ -413,6 +407,41 @@ class PageProfileState extends State<PageProfile> {
                             setState(() {});
                           },
                           keyboardType: TextInputType.phone,
+                        ),
+                        InkWell(
+                          onTap: () async {
+                            DateTime picked = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(DateTime.now().year - 80),
+                                initialDate: profile.birthday != null
+                                    ? profile.birthday
+                                    : DateTime.now(),
+                                lastDate: DateTime(DateTime.now().year + 1));
+
+                            if (picked != null)
+                              setState(() {
+                                profile.birthday = picked;
+                                _birthdayController.text = formatDate(
+                                    picked, [dd, '-', mm, '-', yyyy]);
+                              });
+                          },
+                          child: IgnorePointer(
+                            child: new TextFormField(
+                              controller: _birthdayController,
+                              decoration: new InputDecoration(
+                                icon: Icon(FontAwesomeIcons.birthdayCake),
+                                labelText: 'Дата народження',
+                              ),
+                              validator: (value) {
+                                if (_passportTypeController.text ==
+                                        PASSPORT_TYPE_ID &&
+                                    value.isEmpty)
+                                  return 'ви не вказали дату свого народження';
+                                return null;
+                              },
+                              // maxLength: 10,
+                            ),
+                          ),
                         ),
                         TextFormField(
                           controller: _emailController,
@@ -766,8 +795,21 @@ class PageProfileState extends State<PageProfile> {
             },
           ),
           InkWell(
-            onTap: () {
-              _selectDate(context, _passportExpiryController);
+            onTap: () async {
+              DateTime picked = await showDatePicker(
+                  context: context,
+                  firstDate: DateTime(DateTime.now().year - 10),
+                  initialDate: profile.passportDate != null
+                      ? profile.passportExpiry
+                      : DateTime.now(),
+                  lastDate: DateTime(DateTime.now().year + 10));
+
+              if (picked != null)
+                setState(() {
+                  profile.passportExpiry = picked;
+                  _passportExpiryController.text =
+                      formatDate(picked, [dd, '-', mm, '-', yyyy]);
+                });
             },
             child: IgnorePointer(
               child: new TextFormField(
@@ -845,8 +887,21 @@ class PageProfileState extends State<PageProfile> {
             },
           ),
           InkWell(
-            onTap: () {
-              _selectDate(context, _passportDateController);
+            onTap: () async {
+              DateTime picked = await showDatePicker(
+                  context: context,
+                  firstDate: new DateTime(1991),
+                  initialDate: profile.passportDate != null
+                      ? profile.passportDate
+                      : DateTime.now(),
+                  lastDate: new DateTime(DateTime.now().year + 1));
+
+              if (picked != null)
+                setState(() {
+                  profile.passportDate = picked;
+                  _passportDateController.text =
+                      formatDate(picked, [dd, '-', mm, '-', yyyy]);
+                });
             },
             child: IgnorePointer(
               child: new TextFormField(
@@ -873,19 +928,20 @@ class PageProfileState extends State<PageProfile> {
   }
 
   void _saveProfile(GlobalKey<ScaffoldState> _scaffoldKey) async {
-    if (userID == "") {
+    if (profile.userID == "") {
       return;
     }
 
     Profile _profile = Profile(
       blocked: profile?.blocked,
-      userID: userID,
+      userID: profile.userID,
       pin: profile?.pin,
       infoCard: profile?.infoCard,
       firstName: _firstNameController.text,
       lastName: _lastNameController.text,
       middleName: _lastNameController.text,
       phone: _phoneController.text,
+      birthday: profile.birthday,
       itn: _itnController.text,
       email: _emailController.text,
       gender: _genderController.text,
@@ -893,8 +949,8 @@ class PageProfileState extends State<PageProfile> {
       passportSeries: _passportSeriesController.text,
       passportNumber: _passportNumberController.text,
       passportIssued: _passportIssuedController.text,
-      passportDate: _passportDateController.text,
-      passportExpiry: _passportExpiryController.text,
+      passportDate: profile.passportDate,
+      passportExpiry: profile.passportExpiry,
       civilStatus: _civilStatusController.text,
       children: _childrenController.text,
       jobPosition: _jobPositionController.text,
@@ -915,7 +971,13 @@ class PageProfileState extends State<PageProfile> {
       ProfileDAO().update(_profile);
     }
 
-    _profile.upload(_scaffoldKey);
+    _profile.upload(_scaffoldKey).then((value) {
+      if (value) {
+        setState(() {
+          isEditing = false;
+        });
+      }
+    });
   }
 }
 

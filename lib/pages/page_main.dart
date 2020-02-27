@@ -202,7 +202,9 @@ class AppDrawer extends StatefulWidget {
 
 class _AppDrawerState extends State<AppDrawer> {
   Widget getUserpic() {
-    if (widget.profile == null || widget.profile.photo == '') {
+    if (widget.profile == null ||
+        widget.profile.photo == null ||
+        widget.profile.photo == '') {
       return CircleAvatar(
         child: Text('фото'),
       );

@@ -19,6 +19,7 @@ class Profile {
   String lastName;
   String middleName;
   String phone;
+  DateTime birthday;
   String itn;
   String email;
   String gender;
@@ -26,8 +27,8 @@ class Profile {
   String passportSeries;
   String passportNumber;
   String passportIssued;
-  String passportDate;
-  String passportExpiry;
+  DateTime passportDate;
+  DateTime passportExpiry;
   String civilStatus;
   String children;
   String jobPosition;
@@ -52,6 +53,7 @@ class Profile {
     this.lastName,
     this.middleName,
     this.phone,
+    this.birthday,
     this.itn,
     this.email,
     this.gender,
@@ -87,6 +89,9 @@ class Profile {
         lastName: json["last_name"],
         middleName: json["middle_name"],
         phone: json["phone"],
+        birthday: json["birthday"] != null && json["birthday"] != ""
+            ? DateTime.parse(json["birthday"])
+            : null,
         itn: json["itn"],
         email: json["email"],
         gender: json["gender"],
@@ -94,8 +99,14 @@ class Profile {
         passportSeries: json["passport_series"],
         passportNumber: json["passport_number"],
         passportIssued: json["passport_issued"],
-        passportDate: json["passport_date"],
-        passportExpiry: json["passport_expiry"],
+        passportDate:
+            json["passport_date"] != null && json["passport_date"] != ""
+                ? DateTime.parse(json["passport_date"])
+                : null,
+        passportExpiry:
+            json["passport_expiry"] != null && json["passport_expiry"] != ""
+                ? DateTime.parse(json["passport_expiry"])
+                : null,
         civilStatus: json["civil_status"],
         children: json["children"],
         jobPosition: json["job_position"],
@@ -127,6 +138,7 @@ class Profile {
         "last_name": lastName,
         "middle_name": middleName,
         "phone": phone,
+        "birthday": birthday != null ? birthday.toIso8601String() : null,
         "itn": itn,
         "email": email,
         "gender": gender,
@@ -134,8 +146,10 @@ class Profile {
         "passport_series": passportSeries,
         "passport_number": passportNumber,
         "passport_issued": passportIssued,
-        "passport_date": passportDate,
-        "passport_expiry": passportExpiry,
+        "passport_date":
+            passportDate != null ? passportDate.toIso8601String() : null,
+        "passport_expiry":
+            passportExpiry != null ? passportExpiry.toIso8601String() : null,
         "civil_status": civilStatus,
         "children": children,
         "job_position": jobPosition,
@@ -235,7 +249,7 @@ class Profile {
     return profile;
   }
 
-  void upload(GlobalKey<ScaffoldState> _scaffoldKey) async {
+  Future<bool> upload(GlobalKey<ScaffoldState> _scaffoldKey) async {
     final prefs = await SharedPreferences.getInstance();
 
     final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
@@ -261,15 +275,19 @@ class Profile {
     int statusCode = response.statusCode;
 
     if (statusCode == 200) {
-      Scaffold.of(_scaffoldKey.currentContext).showSnackBar(SnackBar(
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
         content: Text('ваш профіль оновлено'),
         backgroundColor: Colors.green,
       ));
+
+      return true;
     } else {
-      Scaffold.of(_scaffoldKey.currentContext).showSnackBar(SnackBar(
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
         content: Text('не вдалось поновити профіль'),
         backgroundColor: Colors.redAccent,
       ));
+
+      return false;
     }
   }
 
