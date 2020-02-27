@@ -84,3 +84,6 @@ Map<String, String> passportTypesAlias = {
   PASSPORT_TYPE_ORIGINAL: "паспорт",
   PASSPORT_TYPE_ID: "ID картка",
 };
+
+const String HELPDESK_STATUS_UNPROCESSED = "unprocessed";
+const String HELPDESK_STATUS_PROCESSED = "processed";

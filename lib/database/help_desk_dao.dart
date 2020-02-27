@@ -48,10 +48,12 @@ class HelpdeskDAO {
     return res;
   }
 
-  Future<List<Helpdesk>> getByUserIdType(String userID) async {
+  Future<List<Helpdesk>> getByUserIdType(String userID, String status) async {
     final db = await dbProvider.database;
-    var res =
-        await db.query("helpdesk", where: "user_id = ?", whereArgs: [userID]);
+    var res = await db.query("helpdesk",
+        where: "user_id = ? and status = ? ",
+        whereArgs: [userID, status],
+        orderBy: "date DESC");
 
     List<Helpdesk> list =
         res.isNotEmpty ? res.map((c) => Helpdesk.fromMap(c)).toList() : [];
