@@ -1,7 +1,10 @@
+#keys
+**/android/app/google-services.json
+**/android/key.properties
+
 # Miscellaneous
 *.json
 *.class
-*.json
 *.log
 *.pyc
 *.swp

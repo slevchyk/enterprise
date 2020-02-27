@@ -42,7 +42,6 @@ class PageMainState extends State<PageMain> {
     Profile _profile;
 
     if (_userID != "") {
-//      _profile = await DBProvider.db.getProfile(_userID);
       _profile = await ProfileDAO().getByUuid(_userID);
     }
 
@@ -79,13 +78,19 @@ class PageMainState extends State<PageMain> {
         },
         items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            title: Text('головна'),
-          ),
+              icon: Icon(Icons.home),
+              title: Text('головна'),
+              activeIcon: Icon(
+                Icons.home,
+                color: Theme.of(context).accentColor,
+              )),
           BottomNavigationBarItem(
-            icon: Icon(Icons.rss_feed),
-            title: Text('канал'),
-          ),
+              icon: Icon(Icons.rss_feed),
+              title: Text('канал'),
+              activeIcon: Icon(
+                Icons.rss_feed,
+                color: Theme.of(context).accentColor,
+              )),
         ],
       ),
     );

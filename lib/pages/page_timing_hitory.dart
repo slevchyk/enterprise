@@ -18,7 +18,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
   DateTime beginningPeriod = new DateTime.now().add(new Duration(days: -4));
   DateTime endPeriod = new DateTime.now();
 
-  Future<List<Timing>> operations;
+  Future<List<Timing>> statuses;
   Future<List<charts.Series<ChartData, String>>> chartData;
   String userID;
 
@@ -31,8 +31,8 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
     final prefs = await SharedPreferences.getInstance();
     String _userID = prefs.getString(KEY_USER_ID) ?? "";
 
-    operations = _getTiming(_userID);
-    chartData = _createChartData(operations);
+    statuses = _getTiming(_userID);
+    chartData = _createChartData(statuses);
 
     setState(() {
       userID = _userID;
@@ -58,7 +58,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
         await TimingDAO().geUndeletedtPeriodByDatesUserId(listDate, userID);
 
     for (var _timing in listTiming) {
-      if (_timing.operation == TIMING_STATUS_WORKDAY) {
+      if (_timing.status == TIMING_STATUS_WORKDAY) {
         continue;
       }
 
@@ -72,13 +72,10 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
           3600000;
 
       int existIndex = result.indexWhere((record) =>
-          (record.date == _timing.date) &&
-          (record.operation == _timing.operation));
+          (record.date == _timing.date) && (record.status == _timing.status));
       if (existIndex == -1) {
         result.add(new Timing(
-            date: _timing.date,
-            operation: _timing.operation,
-            duration: duration));
+            date: _timing.date, status: _timing.status, duration: duration));
       } else {
         result[existIndex].duration += duration;
       }
@@ -99,7 +96,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
     for (var _timing in _listTiming) {
       strDate = formatDate(_timing.date, [yyyy, '-', mm, '-', dd]);
 
-      switch (_timing.operation) {
+      switch (_timing.status) {
         case TIMING_STATUS_JOB:
           jobChartData.add(new ChartData(
               title: strDate, value: _timing.duration, color: _timing.color()));
@@ -159,7 +156,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                   : ""),
             ),
             DataCell(
-              Text(TIMING_ALIAS[timing.operation]),
+              Text(TIMING_ALIAS[timing.status]),
             ),
             DataCell(
               Text(timing.duration.toStringAsFixed(2)),
@@ -251,8 +248,8 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                           beginningPeriod = picked;
                         });
 
-                        operations = _getTiming(userID);
-                        chartData = _createChartData(operations);
+                        statuses = _getTiming(userID);
+                        chartData = _createChartData(statuses);
                       }
                     },
                     color: Colors.white,
@@ -280,8 +277,8 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                           endPeriod = picked;
                         });
 
-                        operations = _getTiming(userID);
-                        chartData = _createChartData(operations);
+                        statuses = _getTiming(userID);
+                        chartData = _createChartData(statuses);
                       }
                     },
                     color: Colors.white,
@@ -298,7 +295,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
           ),
           SliverFillRemaining(
             child: FutureBuilder(
-              future: operations,
+              future: statuses,
               builder: (BuildContext context, AsyncSnapshot snapshot) {
                 switch (snapshot.connectionState) {
                   case ConnectionState.none:

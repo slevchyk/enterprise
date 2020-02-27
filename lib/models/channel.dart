@@ -1,7 +1,4 @@
 import 'package:enterprise/database/channel_dao.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'contatns.dart';
 
 class Channel {
   int id;

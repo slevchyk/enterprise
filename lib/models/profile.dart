@@ -300,13 +300,13 @@ class Profile {
 
     final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
     final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
-    final String _serverPawssord = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+    final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
     final String _serverDB = prefs.getString(KEY_SERVER_DATABASE) ?? "";
 
     final String url =
         'http://$_serverIP/$_serverDB/hs/m/profile?action=card&infocard=$infoCard';
 
-    final credentials = '$_serverUser:$_serverPawssord';
+    final credentials = '$_serverUser:$_serverPassword';
     final stringToBase64 = utf8.fuse(base64);
     final encodedCredentials = stringToBase64.encode(credentials);
 

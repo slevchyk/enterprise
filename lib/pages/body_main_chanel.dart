@@ -27,33 +27,34 @@ class BodyChannel extends StatefulWidget {
 }
 
 class BodyChannelState extends State<BodyChannel> {
-  Future<List<Channel>> channels;
+  Future<List<Channel>> channelsNews;
+  Future<List<Channel>> channelsStatuses;
   Future<List<Channel>> channelsArchived;
-  Future<List<Channel>> channelsStatus;
 
   @override
   void initState() {
-    channels = getChannels(CHANNEL_TYPE_MESSAGE);
+    super.initState();
+
+    channelsNews = getChannels(CHANNEL_TYPE_MESSAGE);
     channelsArchived = getArchived();
-    channelsStatus = getChannels(CHANNEL_TYPE_STATUS);
+    channelsStatuses = getChannels(CHANNEL_TYPE_STATUS);
   }
 
   _downloadChannel(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
 
-    final String _ip = prefs.getString(KEY_SERVER_IP) ?? "";
-    final String _user = prefs.getString(KEY_SERVER_USER) ?? "";
-    final String _password = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
-    final String _db = prefs.getString(KEY_SERVER_DATABASE) ?? "";
+    final String _srvIP = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String _srvUser = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _srvPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
 
     final String _userID = prefs.get(KEY_USER_ID);
 
     int _updateID = prefs.getInt(KEY_CHANNEL_UPDATE_ID) ?? 0;
 
     final String url =
-        'http://$_ip/$_db/hs/m/channel?userid=$_userID&idmax=$_updateID';
+        'http://$_srvIP/api/channel?userid=$_userID&offset=$_updateID';
 
-    final credentials = '$_user:$_password';
+    final credentials = '$_srvUser:$_srvPassword';
     final stringToBase64 = utf8.fuse(base64);
     final encodedCredentials = stringToBase64.encode(credentials);
 
@@ -78,7 +79,7 @@ class BodyChannelState extends State<BodyChannel> {
 
     final jsonData = json.decode(body);
 
-    for (var jsonRow in jsonData["channel"]) {
+    for (var jsonRow in jsonData) {
       Channel _channel = Channel.fromMap(jsonRow);
 
       _channel.userID = _userID;
@@ -99,9 +100,9 @@ class BodyChannelState extends State<BodyChannel> {
 
   _updateChannel() async {
     await _downloadChannel(context);
-    channels = getChannels(CHANNEL_TYPE_MESSAGE);
+    channelsNews = getChannels(CHANNEL_TYPE_MESSAGE);
     channelsArchived = getArchived();
-    channelsStatus = getChannels(CHANNEL_TYPE_STATUS);
+    channelsStatuses = getChannels(CHANNEL_TYPE_STATUS);
     setState(() {});
   }
 
@@ -119,13 +120,6 @@ class BodyChannelState extends State<BodyChannel> {
     return ChannelDAO().getArchivedByUserId(userID);
   }
 
-  Future<List<Channel>> getStarted() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return ChannelDAO().getStarredByUserId(userID);
-  }
-
   Widget starSlideAction(Channel channel, int id) {
     Widget iconSlideAction;
 
@@ -137,9 +131,9 @@ class BodyChannelState extends State<BodyChannel> {
         onTap: () {
           ChannelDAO().unstarById(id);
           setState(() {
-            channels = getChannels(CHANNEL_TYPE_MESSAGE);
+            channelsNews = getChannels(CHANNEL_TYPE_MESSAGE);
             channelsArchived = getArchived();
-            channelsStatus = getChannels(CHANNEL_TYPE_STATUS);
+            channelsStatuses = getChannels(CHANNEL_TYPE_STATUS);
           });
         },
       );
@@ -151,9 +145,9 @@ class BodyChannelState extends State<BodyChannel> {
         onTap: () {
           ChannelDAO().starById(id);
           setState(() {
-            channels = getChannels(CHANNEL_TYPE_MESSAGE);
+            channelsNews = getChannels(CHANNEL_TYPE_MESSAGE);
             channelsArchived = getArchived();
-            channelsStatus = getChannels(CHANNEL_TYPE_STATUS);
+            channelsStatuses = getChannels(CHANNEL_TYPE_STATUS);
           });
         },
       );
@@ -171,7 +165,7 @@ class BodyChannelState extends State<BodyChannel> {
           title: Text('Канал'),
           bottom: TabBar(
             tabs: <Widget>[
-              Tab(text: "Нові"),
+              Tab(text: "Новини"),
               Tab(text: "Статуси"),
               Tab(text: "Архів"),
             ],
@@ -184,7 +178,7 @@ class BodyChannelState extends State<BodyChannel> {
               onRefresh: _refreshTiming,
               child: Container(
                 child: FutureBuilder(
-                  future: channels,
+                  future: channelsNews,
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
                     switch (snapshot.connectionState) {
                       case ConnectionState.none:
@@ -216,13 +210,13 @@ class BodyChannelState extends State<BodyChannel> {
                                     color: Colors.blue,
                                     icon: Icons.archive,
                                     onTap: () {
-                                      ChannelDAO()
-                                          .archiveById(listChanneles[index].id);
+                                      ChannelDAO().archiveById(
+                                          listChanneles[index].mobID);
                                       setState(() {
-                                        channels =
+                                        channelsNews =
                                             getChannels(CHANNEL_TYPE_MESSAGE);
                                         channelsArchived = getArchived();
-                                        channelsStatus =
+                                        channelsStatuses =
                                             getChannels(CHANNEL_TYPE_STATUS);
                                       });
                                     },
@@ -235,8 +229,8 @@ class BodyChannelState extends State<BodyChannel> {
                                     color: Colors.red,
                                     icon: Icons.delete,
                                     onTap: () {
-                                      ChannelDAO()
-                                          .deleteById(listChanneles[index].id);
+                                      ChannelDAO().deleteById(
+                                          listChanneles[index].mobID);
                                     },
                                   ),
                                 ],
@@ -254,7 +248,15 @@ class BodyChannelState extends State<BodyChannel> {
 //                                    https://github.com/flutter/flutter/issues/34119
                                     child: Material(
                                       child: ListTile(
-                                        title: Text(channel.title),
+                                        title: Text(
+                                          channel.title,
+                                          style: TextStyle(
+                                            fontWeight:
+                                                channel.starredAt == null
+                                                    ? FontWeight.normal
+                                                    : FontWeight.bold,
+                                          ),
+                                        ),
                                         isThreeLine: true,
                                         leading: CircleAvatar(
                                           backgroundColor:
@@ -287,7 +289,7 @@ class BodyChannelState extends State<BodyChannel> {
               onRefresh: _refreshTiming,
               child: Container(
                 child: FutureBuilder(
-                  future: channelsStatus,
+                  future: channelsStatuses,
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
                     switch (snapshot.connectionState) {
                       case ConnectionState.none:
@@ -319,13 +321,13 @@ class BodyChannelState extends State<BodyChannel> {
                                     color: Colors.blue,
                                     icon: Icons.archive,
                                     onTap: () {
-                                      ChannelDAO()
-                                          .archiveById(listChanneles[index].id);
+                                      ChannelDAO().archiveById(
+                                          listChanneles[index].mobID);
                                       setState(() {
-                                        channels =
+                                        channelsNews =
                                             getChannels(CHANNEL_TYPE_MESSAGE);
                                         channelsArchived = getArchived();
-                                        channelsStatus =
+                                        channelsStatuses =
                                             getChannels(CHANNEL_TYPE_STATUS);
                                       });
                                     },
@@ -338,13 +340,20 @@ class BodyChannelState extends State<BodyChannel> {
                                     color: Colors.red,
                                     icon: Icons.delete,
                                     onTap: () {
-                                      ChannelDAO()
-                                          .deleteById(listChanneles[index].id);
+                                      ChannelDAO().deleteById(
+                                          listChanneles[index].mobID);
                                     },
                                   ),
                                 ],
                                 child: ListTile(
-                                  title: Text(channel.title),
+                                  title: Text(
+                                    channel.title,
+                                    style: TextStyle(
+                                      fontWeight: channel.starredAt == null
+                                          ? FontWeight.normal
+                                          : FontWeight.bold,
+                                    ),
+                                  ),
                                   isThreeLine: true,
                                   leading: CircleAvatar(
                                     backgroundColor:
@@ -407,12 +416,12 @@ class BodyChannelState extends State<BodyChannel> {
                                     icon: Icons.archive,
                                     onTap: () {
                                       ChannelDAO().unarchiveById(
-                                          listChanneles[index].id);
+                                          listChanneles[index].mobID);
                                       setState(() {
-                                        channels =
+                                        channelsNews =
                                             getChannels(CHANNEL_TYPE_MESSAGE);
                                         channelsArchived = getArchived();
-                                        channelsStatus =
+                                        channelsStatuses =
                                             getChannels(CHANNEL_TYPE_STATUS);
                                       });
                                     },
@@ -425,8 +434,8 @@ class BodyChannelState extends State<BodyChannel> {
                                     color: Colors.red,
                                     icon: Icons.delete,
                                     onTap: () {
-                                      ChannelDAO()
-                                          .deleteById(listChanneles[index].id);
+                                      ChannelDAO().deleteById(
+                                          listChanneles[index].mobID);
                                     },
                                   ),
                                 ],

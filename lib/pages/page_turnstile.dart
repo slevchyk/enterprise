@@ -102,7 +102,7 @@ class _PageTurnstileState extends State<PageTurnstile> {
     Timing timing = Timing(
       date: Utility.beginningOfDay(_dateNow),
       userID: _profile.uuid,
-      operation: TIMING_STATUS_WORKDAY,
+      status: TIMING_STATUS_WORKDAY,
       startedAt: _dateNow,
       isTurnstile: true,
     );
@@ -124,7 +124,7 @@ class _PageTurnstileState extends State<PageTurnstile> {
         Utility.beginningOfDay(_dateNow), _profile.uuid);
     for (var timing in listTiming) {
       timing.endedAt = _dateNow;
-      await TimingDAO().update(timing);
+      await TimingDAO().updateByMobID(timing);
     }
 
     setState(() {
@@ -143,7 +143,7 @@ class _PageTurnstileState extends State<PageTurnstile> {
         DataCell(GestureDetector(
           child: Row(
             children: <Widget>[
-              Text(TIMING_ALIAS[timing.operation]),
+              Text(TIMING_ALIAS[timing.status]),
             ],
           ),
         )),
