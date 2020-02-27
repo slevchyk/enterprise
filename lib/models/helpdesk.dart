@@ -1,4 +1,4 @@
-import 'package:enterprise/database/help_desk_dao.dart.dart';
+import 'package:enterprise/database/help_desk_dao.dart';
 
 class Helpdesk {
   int id;

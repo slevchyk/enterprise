@@ -47,6 +47,9 @@ const Map<String, String> TIMING_ALIAS = {
 const String CHANNEL_TYPE_STATUS = "status";
 const String CHANNEL_TYPE_MESSAGE = "message";
 
+const String HELPDESK_STATUS_UNPROCESSED = "unprocessed";
+const String HELPDESK_STATUS_PROCESSED = "processed";
+
 const String SEX_MALE = "male";
 const String SEX_FEMALE = "female";
 
