@@ -39,7 +39,7 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
   getprofileByUuid() async {
     final prefs = await SharedPreferences.getInstance();
     String userID = prefs.getString(KEY_USER_ID) ?? "";
-    profile = await ProfileDAO().getByUuid(userID);
+    profile = await ProfileDAO().getByUserId(userID);
   }
 
   @override

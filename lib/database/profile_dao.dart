@@ -13,16 +13,17 @@ class ProfileDAO {
     var raw = await db.rawInsert(
         'INSERT Into Profile ('
         'id, '
-        'uuid, '
+        'blocked,'
+        'user_id, '
+        'pin, '
+        'info_card, '
         'first_name,'
         'last_name,'
         'middle_name,'
         'phone,'
         'itn,'
         'email,'
-        'photo,'
-        'sex,'
-        'blocked,'
+        'gender,'
         'passport_type,'
         'passport_series,'
         'passport_number,'
@@ -31,7 +32,7 @@ class ProfileDAO {
         'passport_expiry,'
         'civil_status,'
         'children,'
-        'position,'
+        'job_position,'
         'education,'
         'specialty,'
         'additional_education,'
@@ -40,21 +41,22 @@ class ProfileDAO {
         'languages,'
         'disability,'
         'pensioner,'
-        'info_card'
+        'photo'
         ')'
-        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
           id,
-          newProfile.uuid,
+          newProfile.blocked,
+          newProfile.userID,
+          newProfile.pin,
+          newProfile.infoCard,
           newProfile.firstName,
           newProfile.lastName,
           newProfile.middleName,
           newProfile.phone,
           newProfile.itn,
           newProfile.email,
-          newProfile.photo,
-          newProfile.sex,
-          newProfile.blocked,
+          newProfile.gender,
           newProfile.passportType,
           newProfile.passportSeries,
           newProfile.passportNumber,
@@ -63,7 +65,7 @@ class ProfileDAO {
           newProfile.passportExpiry,
           newProfile.civilStatus,
           newProfile.children,
-          newProfile.position,
+          newProfile.jobPosition,
           newProfile.education,
           newProfile.specialty,
           newProfile.additionalEducation,
@@ -72,14 +74,14 @@ class ProfileDAO {
           newProfile.languages,
           newProfile.disability,
           newProfile.pensioner,
-          newProfile.infoCard,
+          newProfile.photo,
         ]);
     return raw;
   }
 
   block(Profile profile) async {
     final db = await dbProvider.database;
-    Profile blocked = await getByUuid(profile.uuid);
+    Profile blocked = await getByUserId(profile.userID);
     blocked.blocked = true;
     var res = await db.update("Profile", blocked.toMap(),
         where: "id = ?", whereArgs: [profile.id]);
@@ -88,7 +90,7 @@ class ProfileDAO {
 
   unblock(Profile profile) async {
     final db = await dbProvider.database;
-    Profile blocked = await getByUuid(profile.uuid);
+    Profile blocked = await getByUserId(profile.userID);
     blocked.blocked = false;
     var res = await db.update("Profile", blocked.toMap(),
         where: "id = ?", whereArgs: [profile.id]);
@@ -97,22 +99,23 @@ class ProfileDAO {
 
   update(Profile newProfile) async {
     final db = await dbProvider.database;
-    var res = await db.update("Profile", newProfile.toDB(),
+    var res = await db.update("Profile", newProfile.toMap(),
         where: "id = ?", whereArgs: [newProfile.id]);
     return res;
   }
 
-  Future<Profile> getByUuid(String uuid) async {
+  Future<Profile> getByUserId(String user_id) async {
     final db = await dbProvider.database;
-    var res = await db.query("profile", where: "uuid = ?", whereArgs: [uuid]);
-    return res.isNotEmpty ? Profile.fromDB(res.first) : null;
+    var res =
+        await db.query("profile", where: "user_id = ?", whereArgs: [user_id]);
+    return res.isNotEmpty ? Profile.fromMap(res.first) : null;
   }
 
   Future<Profile> getByInfoCard(int infoCard) async {
     final db = await dbProvider.database;
     var res = await db
         .query("profile", where: "info_card = ?", whereArgs: [infoCard]);
-    return res.isNotEmpty ? Profile.fromDB(res.first) : null;
+    return res.isNotEmpty ? Profile.fromMap(res.first) : null;
   }
 
   Future<List<Profile>> getBlocked() async {

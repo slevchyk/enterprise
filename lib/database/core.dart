@@ -25,16 +25,17 @@ class DBProvider {
         onCreate: (Database db, int version) async {
       await db.execute("CREATE TABLE Profile ("
           "id INTEGER PRIMARY KEY,"
-          "uuid TEXT,"
+          "blocked BIT,"
+          "user_id TEXT,"
+          "pin TEXT,"
+          "info_card INTEGER,"
           "first_name TEXT,"
           "last_name TEXT,"
           "middle_name TEXT,"
           "phone TEXT,"
           "itn TEXT,"
           "email TEXT,"
-          "photo TEXT,"
-          "sex TEXT,"
-          "blocked BIT,"
+          "gender TEXT,"
           "passport_type TEXT,"
           "passport_series TEXT,"
           "passport_number TEXT,"
@@ -43,7 +44,7 @@ class DBProvider {
           "passport_expiry TEXT,"
           "civil_status TEXT,"
           "children TEXT,"
-          "position INTEGER,"
+          "job_position INTEGER,"
           "education INTEGER,"
           "specialty TEXT,"
           "additional_education TEXT,"
@@ -52,8 +53,9 @@ class DBProvider {
           "languages TEXT,"
           "disability BIT,"
           "pensioner BIT,"
-          "info_card INTEGER"
+          "photo TEXT"
           ")");
+
       await db.execute('CREATE TABLE timing ('
           'mob_id INTEGER PRIMARY KEY,'
           'id INTEGER,'
@@ -69,6 +71,7 @@ class DBProvider {
           'deleted_at TEXT,'
           'is_modified BIT'
           ')');
+
       await db.execute('CREATE TABLE timing_log ('
           'mob_id INTEGER,'
           'old_id TEXT,'
@@ -86,6 +89,7 @@ class DBProvider {
           'old_end TEXT,'
           'new_end TEXT'
           ')');
+
       await db.execute('CREATE TABLE chanel ('
           'id INTEGER PRIMARY KEY,'
           'user_id TEXT,'

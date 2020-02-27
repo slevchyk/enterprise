@@ -11,17 +11,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Profile {
   int id;
-  String uuid;
+  bool blocked;
+  String userID;
+  String pin;
+  int infoCard;
   String firstName;
   String lastName;
   String middleName;
   String phone;
   String itn;
   String email;
-  String photo;
-  String photoData;
-  String sex;
-  bool blocked;
+  String gender;
   String passportType;
   String passportSeries;
   String passportNumber;
@@ -30,30 +30,31 @@ class Profile {
   String passportExpiry;
   String civilStatus;
   String children;
-  String position;
+  String jobPosition;
   int education;
   String specialty;
   String additionalEducation;
   String lastWorkPlace;
   String skills;
   String languages;
-  String disability;
-  String pensioner;
-  int infoCard;
+  bool disability;
+  bool pensioner;
+  String photo;
+  String photoData;
 
   Profile({
     this.id,
-    this.uuid,
+    this.blocked,
+    this.userID,
+    this.pin,
+    this.infoCard,
     this.firstName,
     this.lastName,
     this.middleName,
     this.phone,
     this.itn,
     this.email,
-    this.photo,
-    this.photoData,
-    this.sex,
-    this.blocked,
+    this.gender,
     this.passportType,
     this.passportSeries,
     this.passportNumber,
@@ -62,7 +63,7 @@ class Profile {
     this.passportExpiry,
     this.civilStatus,
     this.children,
-    this.position,
+    this.jobPosition,
     this.education,
     this.specialty,
     this.additionalEducation,
@@ -71,22 +72,24 @@ class Profile {
     this.languages,
     this.disability,
     this.pensioner,
-    this.infoCard,
+    this.photo,
+    this.photoData,
   });
 
   factory Profile.fromMap(Map<String, dynamic> json) => new Profile(
         id: json["id"],
-        uuid: json["uuid"],
+        blocked:
+            json["blocked"] is int ? json["blocked"] == 1 : json["blocked"],
+        userID: json["user_id"],
+        pin: json["pin"],
+        infoCard: json["info_card"],
         firstName: json["first_name"],
         lastName: json["last_name"],
         middleName: json["middle_name"],
         phone: json["phone"],
         itn: json["itn"],
         email: json["email"],
-        photo: json["photo_name"],
-        photoData: json["photo_data"],
-        sex: json["sex"],
-        blocked: json["blocked"] == 1,
+        gender: json["gender"],
         passportType: json["passport_type"],
         passportSeries: json["passport_series"],
         passportNumber: json["passport_number"],
@@ -95,63 +98,38 @@ class Profile {
         passportExpiry: json["passport_expiry"],
         civilStatus: json["civil_status"],
         children: json["children"],
-        position: json["position"],
-        education: int.parse(json['education']),
+        jobPosition: json["job_position"],
+        education: json['education'] is int
+            ? json['education']
+            : int.parse(json['education']),
         specialty: json['specialty'],
         additionalEducation: json['additional_education'],
         lastWorkPlace: json["last_work_place"],
         skills: json["skills"],
         languages: json["languages"],
-        disability: json["disability"],
-        pensioner: json["pensioner"],
-        infoCard: json["info_card"],
-      );
-
-  factory Profile.fromDB(Map<String, dynamic> json) => new Profile(
-        id: json["id"],
-        uuid: json["uuid"],
-        firstName: json["first_name"],
-        lastName: json["last_name"],
-        middleName: json["middle_name"],
-        phone: json["phone"],
-        itn: json["itn"],
-        email: json["email"],
+        disability: json["disability"] is int
+            ? json["disability"] == 1
+            : json["disability"],
+        pensioner: json["pensioner"] is int
+            ? json["pensioner"] == 1
+            : json["pensioner"],
         photo: json["photo"],
-        sex: json["sex"],
-        blocked: json["blocked"] == 1,
-        passportType: json["passport_type"],
-        passportSeries: json["passport_series"],
-        passportNumber: json["passport_number"],
-        passportIssued: json["passport_issued"],
-        passportDate: json["passport_date"],
-        passportExpiry: json["passport_expiry"],
-        civilStatus: json["civil_status"],
-        children: json["children"],
-        position: json["position"],
-        education: json['education'],
-        specialty: json['specialty'],
-        additionalEducation: json['additional_education'],
-        lastWorkPlace: json["last_work_place"],
-        skills: json["skills"],
-        languages: json["languages"],
-        disability: json["disability"],
-        pensioner: json["pensioner"],
-        infoCard: json["info_card"],
+//        photoData: json["photo_data"],
       );
 
   Map<String, dynamic> toMap() => {
         "id": id,
-        "uuid": uuid,
+        "blocked": blocked,
+        "pin": pin,
+        "info_card": infoCard,
+        "user_id": userID,
         "first_name": firstName,
         "last_name": lastName,
         "middle_name": middleName,
         "phone": phone,
         "itn": itn,
         "email": email,
-        "photo": photo,
-        "photo_data": photoData,
-        "sex": sex,
-        "blocked": blocked,
+        "gender": gender,
         "passport_type": passportType,
         "passport_series": passportSeries,
         "passport_number": passportNumber,
@@ -160,7 +138,7 @@ class Profile {
         "passport_expiry": passportExpiry,
         "civil_status": civilStatus,
         "children": children,
-        "position": position,
+        "job_position": jobPosition,
         "education": education,
         "specialty": specialty,
         "additional_education": additionalEducation,
@@ -169,39 +147,8 @@ class Profile {
         "languages": languages,
         "disability": disability,
         "pensioner": pensioner,
-        "info_card": infoCard,
-      };
-
-  Map<String, dynamic> toDB() => {
-        "id": id,
-        "uuid": uuid,
-        "first_name": firstName,
-        "last_name": lastName,
-        "middle_name": middleName,
-        "phone": phone,
-        "itn": itn,
-        "email": email,
         "photo": photo,
-        "sex": sex,
-        "blocked": blocked,
-        "passport_type": passportType,
-        "passport_series": passportSeries,
-        "passport_number": passportNumber,
-        "passport_issued": passportIssued,
-        "passport_date": passportDate,
-        "passport_expiry": passportExpiry,
-        "civil_status": civilStatus,
-        "children": children,
-        "position": position,
-        "education": education,
-        "specialty": specialty,
-        "additional_education": additionalEducation,
-        "last_work_place": lastWorkPlace,
-        "skills": skills,
-        "languages": languages,
-        "disability": disability,
-        "pensioner": pensioner,
-        "info_card": infoCard,
+//        "photo_data": photoData,
       };
 
   static Future<Profile> downloadByPhonePin(
@@ -211,17 +158,18 @@ class Profile {
     final prefs = await SharedPreferences.getInstance();
 
     final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
-    final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
-    final String _serverPassord = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
-    final String _serverDB = prefs.getString(KEY_SERVER_DATABASE) ?? "";
+    final String _localSrvUser = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _localSrvPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
 
-    final String _userPhone = prefs.get(KEY_USER_PHONE);
-    final String _userPin = prefs.get(KEY_USER_PIN);
+    String _userPhone = prefs.get(KEY_USER_PHONE);
+    String _userPin = prefs.get(KEY_USER_PIN);
+
+    _userPhone = _userPhone.replaceAll("+", "");
 
     final String url =
-        'http://$_serverIP/$_serverDB/hs/m/profile?action=user&phone=$_userPhone&pin=$_userPin';
+        'http://$_serverIP/api/profile?phone=$_userPhone&pin=$_userPin';
 
-    final credentials = '$_serverUser:$_serverPassord';
+    final credentials = '$_localSrvUser:$_localSrvPassword';
     final stringToBase64 = utf8.fuse(base64);
     final encodedCredentials = stringToBase64.encode(credentials);
 
@@ -235,7 +183,7 @@ class Profile {
 
     if (statusCode != 200) {
       _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('не вдалось з\'єднатись із сервером'),
+        content: Text('не вдалось з\'єднатись із локальним сервером'),
         backgroundColor: Colors.redAccent,
       ));
       return profile;
@@ -245,15 +193,7 @@ class Profile {
 
     var jsonData = json.decode(body);
 
-    if (jsonData['status'] != 200) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('обліковий запис не знайдено'),
-        backgroundColor: Colors.redAccent,
-      ));
-      return profile;
-    }
-
-    profile = Profile.fromMap(jsonData["application"]);
+    profile = Profile.fromMap(jsonData);
 
     if (profile.photo != '') {
       final documentDirectory = await getApplicationDocumentsDirectory();
@@ -270,7 +210,7 @@ class Profile {
       prefs.setString(KEY_USER_PICTURE, file.path);
     }
 
-    Profile existProfile = await ProfileDAO().getByUuid(profile.uuid);
+    Profile existProfile = await ProfileDAO().getByUserId(profile.userID);
     if (existProfile == null) {
       await ProfileDAO().insert(profile);
     } else {
@@ -279,13 +219,15 @@ class Profile {
     }
 
     if (profile != null) {
+      prefs.setString(KEY_USER_ID, profile.userID);
+
       _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('ваш обліовий запис оновлено'),
+        content: Text('отримано ваш обліковий запис'),
         backgroundColor: Colors.green,
       ));
     } else {
       _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('не вдалось поновити обліковий запис'),
+        content: Text('не вдалось отримати ваш обліковий запис'),
         backgroundColor: Colors.green,
       ));
     }
@@ -347,7 +289,7 @@ class Profile {
       prefs.setString(KEY_USER_PICTURE, file.path);
     }
 
-    Profile existProfile = await ProfileDAO().getByUuid(profile.uuid);
+    Profile existProfile = await ProfileDAO().getByUserId(profile.userID);
     if (existProfile == null) {
       await ProfileDAO().insert(profile);
     } else {
