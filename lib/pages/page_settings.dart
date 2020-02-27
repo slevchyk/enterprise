@@ -304,7 +304,7 @@ class PageSettingsState extends State<PageSettings> {
 
     Profile profile = await Profile.downloadByPhonePin(_scaffoldKey);
     if (profile != null) {
-      prefs.setString(KEY_USER_ID, profile.uuid);
+      prefs.setString(KEY_USER_ID, profile.userID);
     }
   }
 

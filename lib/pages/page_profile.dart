@@ -26,7 +26,7 @@ class PageProfileState extends State<PageProfile> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _middleNameController = TextEditingController();
-  final _sexController = TextEditingController();
+  final _genderController = TextEditingController();
   final _itnController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
@@ -43,8 +43,11 @@ class PageProfileState extends State<PageProfile> {
   final _lastWorkPlaceController = TextEditingController();
   final _skillsController = TextEditingController();
   final _languagesController = TextEditingController();
-  final _disabilityController = TextEditingController();
-  final _pensionerController = TextEditingController();
+//  final _disabilityController = TextEditingController();
+//  final _pensionerController = TextEditingController();
+  bool _isPensioner;
+  bool _isDisability;
+
   final _infoCardController = TextEditingController();
 
   bool isLoadingProfile = true;
@@ -54,7 +57,7 @@ class PageProfileState extends State<PageProfile> {
     _firstNameController.text = _pfl.firstName;
     _lastNameController.text = _pfl.lastName;
     _middleNameController.text = _pfl.middleName;
-    _sexController.text = _pfl.sex;
+    _genderController.text = _pfl.gender;
     _itnController.text = _pfl.itn;
     _phoneController.text = _pfl.phone;
     _emailController.text = _pfl.email;
@@ -64,15 +67,17 @@ class PageProfileState extends State<PageProfile> {
     _passportDateController.text = _pfl.passportDate;
     _civilStatusController.text = _pfl.civilStatus;
     _childrenController.text = _pfl.children;
-    _positionController.text = _pfl.position;
+    _positionController.text = _pfl.jobPosition;
     _educationController.text = _pfl.education.toString();
     _specialtyController.text = _pfl.specialty;
     _additionalEducationController.text = _pfl.additionalEducation;
     _lastWorkPlaceController.text = _pfl.lastWorkPlace;
     _skillsController.text = _pfl.skills;
     _languagesController.text = _pfl.languages;
-    _disabilityController.text = _pfl.disability;
-    _pensionerController.text = _pfl.pensioner;
+    _isDisability = _pfl.disability;
+    _isPensioner = _pfl.pensioner;
+//    _disabilityController.value = _pfl.disability;
+//    _pensionerController.text = _pfl.pensioner;
     _infoCardController.text = _pfl.infoCard.toString();
   }
 
@@ -83,7 +88,7 @@ class PageProfileState extends State<PageProfile> {
     Profile _profile;
 
     if (_userID != "") {
-      _profile = await ProfileDAO().getByUuid(_userID);
+      _profile = await ProfileDAO().getByUserId(_userID);
     }
 
     if (_profile != null) {
@@ -220,7 +225,7 @@ class PageProfileState extends State<PageProfile> {
         children: <Widget>[
           Icon(
             _icon,
-            color: _sexController.text == _sex
+            color: _genderController.text == _sex
                 ? Colors.white
                 : Theme.of(context).iconTheme.color,
           ),
@@ -230,7 +235,7 @@ class PageProfileState extends State<PageProfile> {
           Text(
             SEX_ALIAS[_sex],
             style: TextStyle(
-              color: _sexController.text == _sex
+              color: _genderController.text == _sex
                   ? Colors.white
                   : Theme.of(context).textTheme.title.color,
             ),
@@ -238,12 +243,12 @@ class PageProfileState extends State<PageProfile> {
         ],
       ),
       backgroundColor:
-          _sexController.text == "" ? _color : Colors.grey.shade100,
+          _genderController.text == "" ? _color : Colors.grey.shade100,
       selectedColor: Colors.green,
-      selected: _sexController.text == _sex,
+      selected: _genderController.text == _sex,
       onSelected: (bool value) {
         setState(() {
-          _sexController.text = value ? _sex : "";
+          _genderController.text = value ? _sex : "";
         });
       },
     );
@@ -656,12 +661,12 @@ class PageProfileState extends State<PageProfile> {
                             ),
                             child: SwitchListTile(
                                 title: Text('Відомість про інвалідність'),
-                                value: _disabilityController.text == 'true',
+                                value: _isDisability == null
+                                    ? false
+                                    : _isDisability,
                                 onChanged: (bool value) {
                                   setState(() {
-                                    value == true
-                                        ? _disabilityController.text = 'true'
-                                        : _disabilityController.text = 'false';
+                                    _isDisability = value;
                                   });
                                 }),
                           );
@@ -675,12 +680,11 @@ class PageProfileState extends State<PageProfile> {
                             ),
                             child: SwitchListTile(
                                 title: Text('Пенсіонер'),
-                                value: _pensionerController.text == 'true',
+                                value:
+                                    _isPensioner == null ? false : _isPensioner,
                                 onChanged: (bool value) {
                                   setState(() {
-                                    value == true
-                                        ? _pensionerController.text = 'true'
-                                        : _pensionerController.text = 'false';
+                                    _isPensioner = value;
                                   });
                                 }),
                           );

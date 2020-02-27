@@ -44,6 +44,13 @@ const Map<String, String> TIMING_ALIAS = {
   TIMING_STATUS_BREAK: "Перерва",
 };
 
+Map<String, String> timingAlias = {
+  TIMING_STATUS_WORKDAY: "Турнікет",
+  TIMING_STATUS_JOB: "Робота",
+  TIMING_STATUS_LANCH: "Обід",
+  TIMING_STATUS_BREAK: "Перерва",
+};
+
 const String CHANNEL_TYPE_STATUS = "status";
 const String CHANNEL_TYPE_MESSAGE = "message";
 

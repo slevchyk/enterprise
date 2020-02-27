@@ -102,7 +102,7 @@ class _TimingMainState extends State<TimingMain> {
     }
 
     for (var _record in _chartData) {
-      _record.title = TIMING_ALIAS[_record.title] +
+      _record.title = timingAlias[_record.title] +
           ' - ' +
           _record.value.toStringAsFixed(2) +
           ' год';

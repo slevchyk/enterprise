@@ -42,7 +42,7 @@ class PageMainState extends State<PageMain> {
     Profile _profile;
 
     if (_userID != "") {
-      _profile = await ProfileDAO().getByUuid(_userID);
+      _profile = await ProfileDAO().getByUserId(_userID);
     }
 
     setState(() {

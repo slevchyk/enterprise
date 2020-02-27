@@ -101,7 +101,7 @@ class _PageTurnstileState extends State<PageTurnstile> {
 
     Timing timing = Timing(
       date: Utility.beginningOfDay(_dateNow),
-      userID: _profile.uuid,
+      userID: _profile.userID,
       status: TIMING_STATUS_WORKDAY,
       startedAt: _dateNow,
       isTurnstile: true,
@@ -121,7 +121,7 @@ class _PageTurnstileState extends State<PageTurnstile> {
     DateTime _dateNow = DateTime.now();
 
     List<Timing> listTiming = await TimingDAO().getOpenWorkdayByDateUserId(
-        Utility.beginningOfDay(_dateNow), _profile.uuid);
+        Utility.beginningOfDay(_dateNow), _profile.userID);
     for (var timing in listTiming) {
       timing.endedAt = _dateNow;
       await TimingDAO().updateByMobID(timing);
@@ -407,7 +407,7 @@ class _PageTurnstileState extends State<PageTurnstile> {
     List<Timing> _tmngTurnstile = [];
     if (_pfl != null) {
       _tmngTurnstile =
-          await TimingDAO().getTurnstileByDateUserId(_beginingDay, _pfl.uuid);
+          await TimingDAO().getTurnstileByDateUserId(_beginingDay, _pfl.userID);
     }
 
     setState(() {
