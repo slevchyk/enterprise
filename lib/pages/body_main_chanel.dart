@@ -6,6 +6,7 @@ import 'package:enterprise/models/contatns.dart';
 import 'package:enterprise/database/channel_dao.dart';
 import 'package:enterprise/models/channel.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/pages/page_channel_detail.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -499,17 +500,7 @@ class _ChannelHeroState extends State<ChannelHero> {
       tag: 'channel_' + widget.channel.id.toString(),
       child: Material(
 //        padding: EdgeInsets.all(16),
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(widget.channel.title),
-          ),
-          body: SingleChildScrollView(
-            child: Container(
-              padding: EdgeInsets.all(14),
-              child: Text(widget.channel.news, style: TextStyle(fontSize: 19)),
-            ),
-          ),
-        ),
+        child: PageChanelDetail(channel: widget.channel),
       ),
     );
   }

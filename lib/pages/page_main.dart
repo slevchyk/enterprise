@@ -269,6 +269,16 @@ class _AppDrawerState extends State<AppDrawer> {
             },
           ),
           ListTile(
+            leading: Icon(Icons.help),
+            title: Text('HelpDesk'),
+            onTap: () {
+              Navigator.of(context).pushNamed(
+                '/helpdesk',
+                arguments: "",
+              );
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.settings),
             title: Text('Налаштування'),
             onTap: () {

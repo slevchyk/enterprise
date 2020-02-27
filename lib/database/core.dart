@@ -101,6 +101,17 @@ class DBProvider {
           'archived_at TEXT,'
           'deleted_at TEXT'
           ')');
+      await db.execute('CREATE TABLE helpdesk ('
+          'id INTEGER PRIMARY KEY,'
+          'user_id TEXT,'
+          'date TEXT,'
+          'title TEXT,'
+          'description TEXT,'
+          'status TEXT,'
+          'ansvered_ad TEXT,'
+          'ansvered_by TEXT'
+          'ansver TEXT'
+          ')');
 //      await db.execute('CREATE TRIGGER log_timing_after_update'
 //          'AFTER UPDATE ON timing'
 //          'WHEN old.ext_id <> new.ext_id'
