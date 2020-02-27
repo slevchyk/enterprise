@@ -1,6 +1,6 @@
 import 'package:enterprise/models/timing.dart';
 
-import '../models/contatns.dart';
+import '../models/constants.dart';
 import 'core.dart';
 
 class TimingDAO {

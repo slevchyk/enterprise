@@ -1,5 +1,5 @@
 import 'package:date_format/date_format.dart';
-import 'package:enterprise/models/contatns.dart';
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/database/timing_dao.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/timing.dart';
@@ -284,7 +284,7 @@ class _TimingMainState extends State<TimingMain> {
               SizedBox(
                 width: 10.0,
               ),
-              Text(TIMING_ALIAS[timing.status]),
+              Text(timingAlias[timing.status]),
             ],
           ),
         )),

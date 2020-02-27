@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'contatns.dart';
+import 'constants.dart';
 import '../utils.dart';
 
 class Timing {

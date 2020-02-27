@@ -4,7 +4,7 @@ import 'package:enterprise/database/profile_dao.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
-import 'package:enterprise/models/contatns.dart';
+import 'package:enterprise/models/constants.dart';
 import 'package:http/http.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -233,6 +233,44 @@ class Profile {
     }
 
     return profile;
+  }
+
+  void upload(GlobalKey<ScaffoldState> _scaffoldKey) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String _localSrvUser = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _localSrvPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+
+    final String url = 'http://$_serverIP/api/profile';
+
+    final credentials = '$_localSrvUser:$_localSrvPassword';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, dynamic> jsonData = this.toMap();
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+      HttpHeaders.contentTypeHeader: "application/json",
+    };
+
+    Response response =
+        await post(url, headers: headers, body: json.encode(jsonData));
+
+    int statusCode = response.statusCode;
+
+    if (statusCode == 200) {
+      Scaffold.of(_scaffoldKey.currentContext).showSnackBar(SnackBar(
+        content: Text('ваш профіль оновлено'),
+        backgroundColor: Colors.green,
+      ));
+    } else {
+      Scaffold.of(_scaffoldKey.currentContext).showSnackBar(SnackBar(
+        content: Text('не вдалось поновити профіль'),
+        backgroundColor: Colors.redAccent,
+      ));
+    }
   }
 
   static Future<Profile> downloadByInfoCard(String infoCard) async {

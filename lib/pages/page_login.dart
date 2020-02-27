@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:enterprise/models/contatns.dart';
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';

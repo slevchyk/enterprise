@@ -1,6 +1,6 @@
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:date_format/date_format.dart';
-import 'package:enterprise/models/contatns.dart';
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/database/timing_dao.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/timing.dart';
@@ -117,7 +117,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
     return [
       // Blue bars with a lighter center color.
       new charts.Series<ChartData, String>(
-        id: TIMING_ALIAS[TIMING_STATUS_JOB],
+        id: timingAlias[TIMING_STATUS_JOB],
         data: jobChartData,
         domainFn: (ChartData record, _) => record.title,
         measureFn: (ChartData record, _) => record.value,
@@ -125,7 +125,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
             charts.ColorUtil.fromDartColor(record.color),
       ),
       new charts.Series<ChartData, String>(
-        id: TIMING_ALIAS[TIMING_STATUS_LANCH],
+        id: timingAlias[TIMING_STATUS_LANCH],
         data: lanchChartData,
         domainFn: (ChartData record, _) => record.title,
         measureFn: (ChartData record, _) => record.value,
@@ -133,7 +133,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
             charts.ColorUtil.fromDartColor(record.color),
       ),
       new charts.Series<ChartData, String>(
-        id: TIMING_ALIAS[TIMING_STATUS_BREAK],
+        id: timingAlias[TIMING_STATUS_BREAK],
         data: breakChartData,
         domainFn: (ChartData record, _) => record.title,
         measureFn: (ChartData record, _) => record.value,
@@ -156,7 +156,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
                   : ""),
             ),
             DataCell(
-              Text(TIMING_ALIAS[timing.status]),
+              Text(timingAlias[timing.status]),
             ),
             DataCell(
               Text(timing.duration.toStringAsFixed(2)),
