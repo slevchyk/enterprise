@@ -1,5 +1,4 @@
 import 'package:enterprise/models/helpdesk.dart';
-import 'package:enterprise/models/helpdesk.dart.dart';
 import 'core.dart';
 
 class HelpdeskDAO {
@@ -15,9 +14,9 @@ class HelpdeskDAO {
         'date,'
         'title,'
         'description,'
-        'ansvered_ad,'
-        'ansvered_by,'
-        'ansver'
+        'answered_at,'
+        'answered_by,'
+        'answer'
         ')'
         'VALUES (?,?,?,?,?,?,?,?,?)',
         [
@@ -27,11 +26,11 @@ class HelpdeskDAO {
           helpdesk.date != null ? helpdesk.date.toIso8601String() : null,
           helpdesk.title,
           helpdesk.description,
-          helpdesk.ansvered_ad != null
-              ? helpdesk.ansvered_ad.toIso8601String()
+          helpdesk.answeredAt != null
+              ? helpdesk.answeredAt.toIso8601String()
               : null,
-          helpdesk.ansvered_by,
-          helpdesk.ansver,
+          helpdesk.answeredBy,
+          helpdesk.answer,
         ]);
     return raw;
   }
