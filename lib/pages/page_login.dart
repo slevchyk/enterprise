@@ -14,7 +14,7 @@ class PageLogin extends StatefulWidget {
 
 class _PageLoginState extends State<PageLogin> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  Future<String> userID;
+  String userID;
   final _userPhoneController = TextEditingController();
   final _userPinController = TextEditingController();
 
@@ -22,86 +22,67 @@ class _PageLoginState extends State<PageLogin> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    userID = getUserID();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _getUserID());
   }
 
-  getUserID() async {
+  void _getUserID() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(KEY_USER_ID);
+
+    String _userID = prefs.getString(KEY_USER_ID) ?? "";
+    setState(() {
+      userID = _userID;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      body: FutureBuilder(
-        future: userID,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            case ConnectionState.waiting:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            case ConnectionState.active:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            case ConnectionState.done:
-              var _userID = snapshot.data;
-              if (_userID != "") {
-                Navigator.of(context).pushNamed(
-                  '/',
-                  arguments: "",
-                );
-              }
-              return Material(
-                child: Form(
-                    child: Column(
-                  children: <Widget>[
-                    TextFormField(
-                      controller: _userPhoneController,
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                          labelText: "Номер телефону",
-                          hintText: "номер телефону +380...",
-                          icon: Icon(Icons.phone)),
-                    ),
-                    TextFormField(
-                      controller: _userPinController,
-                      obscureText: true,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: "PIN",
-                        hintText: "пін код карти перепустки",
-                        icon: Icon(Icons.lock),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 20.0,
-                    ),
-                    FlatButton(
-                        child: Text('Увійти'),
-                        onPressed: () {
-                          _getLocalServerSettings(_scaffoldKey);
-                        },
-                        shape: RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(18.0),
-                          side:
-                              BorderSide(color: Theme.of(context).primaryColor),
-                        )),
-                  ],
-                )),
-              );
-            default:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-          }
-        },
+      body: Container(
+        padding: EdgeInsets.all(50.0),
+        child: Form(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              CircleAvatar(
+                child: Image.asset("assets/logo_512.png"),
+                minRadius: 25,
+                maxRadius: 50,
+              ),
+              TextFormField(
+                controller: _userPhoneController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                    labelText: "Номер телефону",
+                    hintText: "+380...",
+                    icon: Icon(Icons.phone)),
+              ),
+              TextFormField(
+                controller: _userPinController,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: "PIN",
+                  hintText: "пін код карти перепустки",
+                  icon: Icon(Icons.lock),
+                ),
+              ),
+              SizedBox(
+                height: 20.0,
+              ),
+              FlatButton(
+                  child: Text('Увійти'),
+                  onPressed: () {
+                    _getLocalServerSettings(_scaffoldKey);
+                  },
+                  shape: RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(18.0),
+                    side: BorderSide(color: Theme.of(context).primaryColor),
+                  )),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -148,7 +129,13 @@ class _PageLoginState extends State<PageLogin> {
       Profile _profile = await Profile.downloadByPhonePin(_scaffoldKey);
 
       if (_profile != null) {
-        userID = getUserID();
+        if (_profile.userID != "") {
+          prefs.setString(KEY_USER_ID, _profile.userID);
+          Navigator.of(context).pushNamed(
+            '/',
+            arguments: "",
+          );
+        }
       }
 
       return;

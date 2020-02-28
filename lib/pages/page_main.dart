@@ -201,6 +201,22 @@ class AppDrawer extends StatefulWidget {
 }
 
 class _AppDrawerState extends State<AppDrawer> {
+  String userID;
+
+  @override
+  void initState() {
+    super.initState();
+    initWidget();
+  }
+
+  initWidget() async {
+    final prefs = await SharedPreferences.getInstance();
+    String _userID = prefs.getString(KEY_USER_ID) ?? "";
+    setState(() {
+      userID = _userID;
+    });
+  }
+
   Widget getUserpic() {
     if (widget.profile == null ||
         widget.profile.photo == null ||
@@ -213,6 +229,19 @@ class _AppDrawerState extends State<AppDrawer> {
         child: Image.asset(widget.profile.photo),
       );
     }
+  }
+
+  void signInOut() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (userID != "") {
+      prefs.setString(KEY_USER_ID, "");
+    }
+
+    Navigator.of(context).pushNamed(
+      '/sign_in_out',
+      arguments: "",
+    );
   }
 
   @override
@@ -231,6 +260,16 @@ class _AppDrawerState extends State<AppDrawer> {
             currentAccountPicture: getUserpic(),
           ),
           ListTile(
+            leading: Icon(Icons.person),
+            title: Text('Профіль'),
+            onTap: () {
+              Navigator.of(context).pushNamed(
+                '/profile',
+                arguments: "",
+              );
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.home),
             title: Text('Головна'),
             onTap: () {
@@ -246,16 +285,6 @@ class _AppDrawerState extends State<AppDrawer> {
             onTap: () {
               Navigator.of(context).pushNamed(
                 '/paydesk',
-                arguments: "",
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Профіль'),
-            onTap: () {
-              Navigator.of(context).pushNamed(
-                '/profile',
                 arguments: "",
               );
             },
@@ -288,6 +317,15 @@ class _AppDrawerState extends State<AppDrawer> {
                 '/settings',
                 arguments: "",
               );
+            },
+          ),
+          ListTile(
+            leading: userID == ""
+                ? Icon(FontAwesomeIcons.signInAlt)
+                : Icon(FontAwesomeIcons.signOutAlt),
+            title: userID == "" ? Text('Увійти') : Text('Вийти'),
+            onTap: () {
+              signInOut();
             },
           ),
           Expanded(
