@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:enterprise/models/contatns.dart';
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/database/help_desk_dao.dart';
 import 'package:enterprise/models/helpdesk.dart';
 import 'package:enterprise/pages/page_helpdesk.dart';

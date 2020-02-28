@@ -21,6 +21,7 @@ class ProfileDAO {
         'last_name,'
         'middle_name,'
         'phone,'
+        'birthday,'
         'itn,'
         'email,'
         'gender,'
@@ -43,7 +44,7 @@ class ProfileDAO {
         'pensioner,'
         'photo'
         ')'
-        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
           id,
           newProfile.blocked,
@@ -54,6 +55,9 @@ class ProfileDAO {
           newProfile.lastName,
           newProfile.middleName,
           newProfile.phone,
+          newProfile.birthday != null
+              ? newProfile.birthday.toIso8601String()
+              : null,
           newProfile.itn,
           newProfile.email,
           newProfile.gender,
@@ -61,8 +65,12 @@ class ProfileDAO {
           newProfile.passportSeries,
           newProfile.passportNumber,
           newProfile.passportIssued,
-          newProfile.passportDate,
-          newProfile.passportExpiry,
+          newProfile.passportDate != null
+              ? newProfile.passportDate.toIso8601String()
+              : null,
+          newProfile.passportExpiry != null
+              ? newProfile.passportExpiry.toIso8601String()
+              : null,
           newProfile.civilStatus,
           newProfile.children,
           newProfile.jobPosition,

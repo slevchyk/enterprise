@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/database/timing_dao.dart';
-import 'package:enterprise/models/contatns.dart';
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/models/timing.dart';
 import 'package:enterprise/utils.dart';
@@ -143,7 +143,7 @@ class _PageTurnstileState extends State<PageTurnstile> {
         DataCell(GestureDetector(
           child: Row(
             children: <Widget>[
-              Text(TIMING_ALIAS[timing.status]),
+              Text(timingAlias[timing.status]),
             ],
           ),
         )),

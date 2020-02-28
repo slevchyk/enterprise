@@ -1,3 +1,4 @@
+import 'package:enterprise/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/route_generator.dart';
 
@@ -21,7 +22,7 @@ class EnterpriseAppState extends State<EnterpriseApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/',
+      initialRoute: '/sign_in_out',
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
         primaryColorDark: Colors.grey.shade700,

@@ -2,7 +2,7 @@ import 'dart:convert';
 //import 'dart:html';
 import 'dart:io';
 
-import 'package:enterprise/models/contatns.dart';
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/database/channel_dao.dart';
 import 'package:enterprise/models/channel.dart';
 import 'package:enterprise/models/profile.dart';

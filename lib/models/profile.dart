@@ -4,7 +4,7 @@ import 'package:enterprise/database/profile_dao.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
-import 'package:enterprise/models/contatns.dart';
+import 'package:enterprise/models/constants.dart';
 import 'package:http/http.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,6 +19,7 @@ class Profile {
   String lastName;
   String middleName;
   String phone;
+  DateTime birthday;
   String itn;
   String email;
   String gender;
@@ -26,8 +27,8 @@ class Profile {
   String passportSeries;
   String passportNumber;
   String passportIssued;
-  String passportDate;
-  String passportExpiry;
+  DateTime passportDate;
+  DateTime passportExpiry;
   String civilStatus;
   String children;
   String jobPosition;
@@ -52,6 +53,7 @@ class Profile {
     this.lastName,
     this.middleName,
     this.phone,
+    this.birthday,
     this.itn,
     this.email,
     this.gender,
@@ -87,6 +89,9 @@ class Profile {
         lastName: json["last_name"],
         middleName: json["middle_name"],
         phone: json["phone"],
+        birthday: json["birthday"] != null && json["birthday"] != ""
+            ? DateTime.parse(json["birthday"])
+            : null,
         itn: json["itn"],
         email: json["email"],
         gender: json["gender"],
@@ -94,8 +99,14 @@ class Profile {
         passportSeries: json["passport_series"],
         passportNumber: json["passport_number"],
         passportIssued: json["passport_issued"],
-        passportDate: json["passport_date"],
-        passportExpiry: json["passport_expiry"],
+        passportDate:
+            json["passport_date"] != null && json["passport_date"] != ""
+                ? DateTime.parse(json["passport_date"])
+                : null,
+        passportExpiry:
+            json["passport_expiry"] != null && json["passport_expiry"] != ""
+                ? DateTime.parse(json["passport_expiry"])
+                : null,
         civilStatus: json["civil_status"],
         children: json["children"],
         jobPosition: json["job_position"],
@@ -127,6 +138,7 @@ class Profile {
         "last_name": lastName,
         "middle_name": middleName,
         "phone": phone,
+        "birthday": birthday != null ? birthday.toIso8601String() : null,
         "itn": itn,
         "email": email,
         "gender": gender,
@@ -134,8 +146,10 @@ class Profile {
         "passport_series": passportSeries,
         "passport_number": passportNumber,
         "passport_issued": passportIssued,
-        "passport_date": passportDate,
-        "passport_expiry": passportExpiry,
+        "passport_date":
+            passportDate != null ? passportDate.toIso8601String() : null,
+        "passport_expiry":
+            passportExpiry != null ? passportExpiry.toIso8601String() : null,
         "civil_status": civilStatus,
         "children": children,
         "job_position": jobPosition,
@@ -233,6 +247,48 @@ class Profile {
     }
 
     return profile;
+  }
+
+  Future<bool> upload(GlobalKey<ScaffoldState> _scaffoldKey) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String _localSrvUser = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _localSrvPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+
+    final String url = 'http://$_serverIP/api/profile';
+
+    final credentials = '$_localSrvUser:$_localSrvPassword';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, dynamic> jsonData = this.toMap();
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+      HttpHeaders.contentTypeHeader: "application/json",
+    };
+
+    Response response =
+        await post(url, headers: headers, body: json.encode(jsonData));
+
+    int statusCode = response.statusCode;
+
+    if (statusCode == 200) {
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('ваш профіль оновлено'),
+        backgroundColor: Colors.green,
+      ));
+
+      return true;
+    } else {
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('не вдалось поновити профіль'),
+        backgroundColor: Colors.redAccent,
+      ));
+
+      return false;
+    }
   }
 
   static Future<Profile> downloadByInfoCard(String infoCard) async {

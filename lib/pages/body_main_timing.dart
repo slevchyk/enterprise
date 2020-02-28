@@ -1,5 +1,5 @@
 import 'package:date_format/date_format.dart';
-import 'package:enterprise/models/contatns.dart';
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/database/timing_dao.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/timing.dart';
@@ -24,16 +24,25 @@ class BodyMain extends StatefulWidget {
 }
 
 class BodyMainState extends State<BodyMain> {
+  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       drawer: AppDrawer(widget.profile),
-      body: TimingMain(),
+      body: TimingMain(_scaffoldKey),
     );
   }
 }
 
 class TimingMain extends StatefulWidget {
+  final GlobalKey<ScaffoldState> parentScaffoldKey;
+
+  TimingMain(
+    this.parentScaffoldKey,
+  );
+
   @override
   _TimingMainState createState() => _TimingMainState();
 }
@@ -284,7 +293,7 @@ class _TimingMainState extends State<TimingMain> {
               SizedBox(
                 width: 10.0,
               ),
-              Text(TIMING_ALIAS[timing.status]),
+              Text(timingAlias[timing.status]),
             ],
           ),
         )),
@@ -324,6 +333,15 @@ class _TimingMainState extends State<TimingMain> {
         child: CustomScrollView(
           slivers: <Widget>[
             SliverAppBar(
+              leading: MaterialButton(
+                onPressed: () {
+                  widget.parentScaffoldKey.currentState.openDrawer();
+                },
+                child: Icon(
+                  Icons.menu,
+                  color: Colors.white,
+                ),
+              ),
               title: Text('Хронометраж'),
               pinned: true,
               floating: false,
