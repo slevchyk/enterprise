@@ -1,5 +1,6 @@
 import 'package:enterprise/pages/body_main_chanel.dart';
 import 'package:enterprise/pages/page_channel_detail.dart';
+import 'package:enterprise/pages/page_helpdesk_detail.dart';
 import 'package:enterprise/pages/page_helpdesk.dart';
 import 'package:enterprise/pages/page_paydesk.dart';
 import 'package:enterprise/pages/page_timing_hitory.dart';
@@ -30,6 +31,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => PageAbout());
       case '/turnstile':
         return MaterialPageRoute(builder: (_) => PageTurnstile());
+      case '/helpdeskdetail':
+        return MaterialPageRoute(builder: (_) => PageHelpdeskNew());
       case '/helpdesk':
         return MaterialPageRoute(builder: (_) => PageHelpdesk());
       case '/channel/detail':

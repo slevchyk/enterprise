@@ -181,7 +181,12 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
         ),
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.of(context).pushNamed(
+              '/helpdeskdetail',
+              arguments: "",
+            );
+          },
         ),
       ),
     );
