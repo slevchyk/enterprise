@@ -21,3 +21,13 @@ class UploadFile {
     this.data,
   });
 }
+
+class RouteArgs {
+  String userID;
+  dynamic arg;
+
+  RouteArgs(
+    this.userID,
+    this.arg,
+  );
+}

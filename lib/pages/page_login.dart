@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,7 +15,7 @@ class PageLogin extends StatefulWidget {
 
 class _PageLoginState extends State<PageLogin> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  String userID;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _userPhoneController = TextEditingController();
   final _userPinController = TextEditingController();
 
@@ -30,9 +31,33 @@ class _PageLoginState extends State<PageLogin> {
     final prefs = await SharedPreferences.getInstance();
 
     String _userID = prefs.getString(KEY_USER_ID) ?? "";
-    setState(() {
-      userID = _userID;
-    });
+
+    if (_userID != "") {
+      Navigator.of(context).pushNamed("/");
+    }
+  }
+
+  bool get isInDebugMode {
+    bool inDebugMode = false;
+    assert(inDebugMode = true);
+    return inDebugMode;
+  }
+
+  Widget signInOutDebug() {
+    if (this.isInDebugMode) {
+      return FlatButton(
+        onPressed: () {
+          Navigator.of(context).pushNamed("/");
+        },
+        child: Text('Продовжити. debug'),
+        shape: RoundedRectangleBorder(
+          borderRadius: new BorderRadius.circular(18.0),
+          side: BorderSide(color: Theme.of(context).primaryColor),
+        ),
+      );
+    } else {
+      return SizedBox();
+    }
   }
 
   @override
@@ -42,6 +67,7 @@ class _PageLoginState extends State<PageLogin> {
       body: Container(
         padding: EdgeInsets.all(50.0),
         child: Form(
+          key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -49,6 +75,7 @@ class _PageLoginState extends State<PageLogin> {
                 child: Image.asset("assets/logo_512.png"),
                 minRadius: 25,
                 maxRadius: 50,
+                backgroundColor: Colors.white,
               ),
               TextFormField(
                 controller: _userPhoneController,
@@ -57,29 +84,56 @@ class _PageLoginState extends State<PageLogin> {
                     labelText: "Номер телефону",
                     hintText: "+380...",
                     icon: Icon(Icons.phone)),
+                inputFormatters: [
+                  WhitelistingTextInputFormatter(RegExp("[+0-9]"))
+                ],
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return "ви не вказали номер телефону";
+                  } else if (value.length != 13) {
+                    return "невірний формат";
+                  }
+
+                  return null;
+                },
               ),
               TextFormField(
-                controller: _userPinController,
-                obscureText: true,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: "PIN",
-                  hintText: "пін код карти перепустки",
-                  icon: Icon(Icons.lock),
-                ),
-              ),
+                  controller: _userPinController,
+                  obscureText: true,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: "PIN",
+                    hintText: "пін код карти перепустки",
+                    icon: Icon(Icons.lock),
+                  ),
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return "ви не вказали секретний pin";
+                    }
+
+                    return null;
+                  }),
               SizedBox(
                 height: 20.0,
               ),
-              FlatButton(
-                  child: Text('Увійти'),
-                  onPressed: () {
-                    _getLocalServerSettings(_scaffoldKey);
-                  },
-                  shape: RoundedRectangleBorder(
-                    borderRadius: new BorderRadius.circular(18.0),
-                    side: BorderSide(color: Theme.of(context).primaryColor),
-                  )),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  FlatButton(
+                    child: Text('Увійти'),
+                    onPressed: () {
+                      if (_formKey.currentState.validate()) {
+                        _getLocalServerSettings(_scaffoldKey);
+                      }
+                    },
+                    shape: RoundedRectangleBorder(
+                      borderRadius: new BorderRadius.circular(18.0),
+                      side: BorderSide(color: Theme.of(context).primaryColor),
+                    ),
+                  ),
+                  signInOutDebug(),
+                ],
+              ),
             ],
           ),
         ),

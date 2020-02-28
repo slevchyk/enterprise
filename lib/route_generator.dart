@@ -1,3 +1,4 @@
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/pages/body_main_chanel.dart';
 import 'package:enterprise/pages/page_channel_detail.dart';
 import 'package:enterprise/pages/page_helpdesk.dart';
@@ -10,6 +11,7 @@ import 'package:enterprise/pages/page_main.dart';
 import 'package:enterprise/pages/page_profile.dart';
 import 'package:enterprise/pages/page_settings.dart';
 import 'package:enterprise/pages/page_about.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -53,18 +55,18 @@ class RouteGenerator {
 //        return _errorRoute();
       default:
         // If there is no such named route in the switch statement, e.g. /third
-        return _errorRoute();
+        return _errorRoute(settings.name);
     }
   }
 
-  static Route<dynamic> _errorRoute() {
+  static Route<dynamic> _errorRoute(String route) {
     return MaterialPageRoute(builder: (_) {
       return Scaffold(
         appBar: AppBar(
           title: Text('Error'),
         ),
         body: Center(
-          child: Text('ERROR'),
+          child: Text('ERROR route: $route)'),
         ),
       );
     });
