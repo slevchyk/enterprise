@@ -93,6 +93,15 @@ class DBProvider {
           'deleted_at TEXT,'
           'status TEXT'
           ')');
+      await db.execute('CREATE TABLE paydesk ('
+          'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+          'user_id INTEGER,'
+          'amount DOUBLE,'
+          'payment TEXT,'
+          'confirming INTEGER,'
+          'date TEXT,'
+          'files TEXT'
+          ')');
 //      await db.execute('CREATE TRIGGER log_timing_after_update'
 //          'AFTER UPDATE ON timing'
 //          'WHEN old.ext_id <> new.ext_id'

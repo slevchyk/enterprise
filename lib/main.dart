@@ -38,15 +38,18 @@ class EnterpriseAppState extends State<EnterpriseApp> {
       //   ),
       // ),
       theme: ThemeData(
-        primaryColorDark: Color(0xFF455A64),
-        primaryColor: Color(0xFF607D8B),
+//        primaryColorDark: Color(0xFF455A64),
+        primaryColorDark: Colors.lightGreen,
+//        primaryColor: Color(0xFF607D8B),
+        primaryColor:Colors.grey.shade600,
         primaryColorLight: Color(0xFFCFD8DC),
 //        primaryTextTheme: TextTheme(
 //          title: TextStyle(
 //            color: Color(0xFFFFFFFF),
 //          ),
 //        ),
-        accentColor: Color(0xFF00BCD4),
+//        accentColor: Color(0xFF00BCD4),
+        accentColor: Colors.lightGreen,
         dividerColor: Color(0xFFBDBDBD),
       ),
     );
