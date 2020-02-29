@@ -36,7 +36,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
   static Pay lastId = Pay();
   static int id;
 
-   static const List<IconData> _icons = const [Icons.image,
+  static const List<IconData> _icons = const [Icons.image,
     FontAwesomeIcons.filePdf,
     Icons.photo_camera];
 
@@ -60,86 +60,52 @@ class _PagePayDeskState extends State<PagePayDesk> {
     _getProfile();
   }
 
-   @override
+  @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
-      child: GestureDetector(
-        onTap: () {
-          FocusScopeNode currentFocus = FocusScope.of(context);
-          if (!currentFocus.hasPrimaryFocus) {
-            currentFocus.unfocus();
-          }
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text('Каса'),
-            bottom: TabBar(
-              tabs: <Widget>[
-                Tab(text: "Архів"),
-                Tab(text: "Додати"),
+        length: 2,
+        child: GestureDetector(
+          onTap: () {
+            FocusScopeNode currentFocus = FocusScope.of(context);
+            if (!currentFocus.hasPrimaryFocus) {
+              currentFocus.unfocus();
+            }
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text('Каса'),
+              bottom: TabBar(
+                tabs: <Widget>[
+                  Tab(text: "Архів"),
+                  Tab(text: "Додати"),
+                ],
+              ),
+            ),
+            body: TabBarView(
+              children: [
+                Container(
+                  child: FutureBuilder(
+                    builder: (BuildContext context, AsyncSnapshot snapshot){
+                      return Center(
+                          child: _archive()
+                      );
+                    },
+                  ),
+                ),
+                Container(
+                  child: FutureBuilder(
+                    builder: (BuildContext context, AsyncSnapshot snapshot){
+                      return Center(
+                        child: _addPayment(),
+                      );
+                    },
+                  ),
+                )
               ],
             ),
           ),
-          body: TabBarView(
-            children: [
-              Container(
-                child: FutureBuilder(
-                  builder: (BuildContext context, AsyncSnapshot snapshot){
-                    return Center(
-                      child: _archive()
-                    );
-                  },
-                ),
-              ),
-              Container(
-                child: FutureBuilder(
-                  builder: (BuildContext context, AsyncSnapshot snapshot){
-                    return Center(
-                      child: _addPayment(),
-                    );
-                  },
-                ),
-              )
-            ],
-          ),
-        ),
-      )
+        )
     );
-  }
-
-  _load() async {
-    lastId = await PayDeskDAO().getLastId();
-    id = lastId.id;
-    array.clear();
-
-    List<Pay> arrayz = [];
-
-    for(int i = 1; i != id+1; i++){
-      final Pay tmp = await PayDeskDAO().getById(i);
-      print(tmp.id);
-      arrayz.add(tmp);
-    }
-    setState(() {
-      array.addAll(arrayz);
-      print(array.length);
-    });
-  }
-
-  Future<void> _handleRefresh() {
-    final Completer<void> completer = Completer<void>();
-    _load();
-    _addPayment();
-    completer.complete();
-    return completer.future.then<void>((_) {
-      _scaffoldKey.currentState?.showSnackBar(SnackBar(
-          content: const Text('Refresh complete'),
-          action: SnackBarAction(
-              label: 'RETRY',
-              onPressed: () {
-                _refreshIndicatorKey.currentState.show();
-              })));
-    });
   }
 
   Widget _archive(){
@@ -148,7 +114,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
           key: _refreshIndicatorKey,
           onRefresh: _handleRefresh,
           child: ListView(
-            children: (id==array.length) ? List.generate(id, (int index) {
+            children: (id==array.length || id != null) ? List.generate(id, (int index) {
               return Container(
                   child: Row(
                     children: [
@@ -275,20 +241,20 @@ class _PagePayDeskState extends State<PagePayDesk> {
                             height: 140.0,
                             width: 170.0,
                             child: Tooltip(
-                              message: 'Натисніть щоб видалити',
-                              child: Hero(
-                                  tag: 'image' + index.toString(),
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      onTap: () {
-                                        setState(() {
-                                          _files.removeAt(index);
-                                        });
-                                      },
-                                      child: Image.file(_files[index])
-                                    ),
-                                  ))
+                                message: 'Натисніть щоб видалити',
+                                child: Hero(
+                                    tag: 'image' + index.toString(),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              _files.removeAt(index);
+                                            });
+                                          },
+                                          child: Image.file(_files[index])
+                                      ),
+                                    ))
                             ),
                           );
                           return child;
@@ -362,13 +328,13 @@ class _PagePayDeskState extends State<PagePayDesk> {
 
   _displaySnackBar(BuildContext context) {
     final snackBar = SnackBar(
-        content: Text('Платіж збережено'),
-        backgroundColor: Colors.green,);
+      content: Text('Платіж збережено'),
+      backgroundColor: Colors.green,);
     _scaffoldKey.currentState.showSnackBar(snackBar);
   }
 
   _isNotCorrectAmount(String value){ //Check if the sum is of type *.xx
-                                    // (Two digits after the period)
+    // (Two digits after the period)
     List<String> tmp = value.split('.');
     if ((tmp.last.length <= 2 || tmp.length==1) && double.parse(tmp.first)>=0) {
       return false;
@@ -395,7 +361,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
     List<File> files;
     switch(type){
       case FileType.IMAGE:
-       files = await FilePicker.getMultiFile(
+        files = await FilePicker.getMultiFile(
             type: FileType.IMAGE
         );
         break;
@@ -410,7 +376,6 @@ class _PagePayDeskState extends State<PagePayDesk> {
         );
     }
     setState(() {
-      print(files);
       if(_isNotLimitElement()){
         files.forEach((file) => _files.add(file));
       }
@@ -494,5 +459,37 @@ class _PagePayDeskState extends State<PagePayDesk> {
     }
 
     file.writeAsBytes(_bytePhoto);
+  }
+
+  _load() async {
+    lastId = await PayDeskDAO().getLastId();
+    lastId != null ?  id = lastId.id :  id = 0;
+    array.clear();
+
+    List<Pay> arrayz = [];
+
+    for(int i = 1; i != id+1; i++){
+      final Pay tmp = await PayDeskDAO().getById(i);
+      arrayz.add(tmp);
+    }
+    setState(() {
+      array.addAll(arrayz);
+    });
+  }
+
+  Future<void> _handleRefresh() {
+    final Completer<void> completer = Completer<void>();
+    _load();
+    _addPayment();
+    completer.complete();
+    return completer.future.then<void>((_) {
+      _scaffoldKey.currentState?.showSnackBar(SnackBar(
+          content: const Text('Refresh complete'),
+          action: SnackBarAction(
+              label: 'RETRY',
+              onPressed: () {
+                _refreshIndicatorKey.currentState.show();
+              })));
+    });
   }
 }

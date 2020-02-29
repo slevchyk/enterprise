@@ -42,12 +42,6 @@ class PayDeskDAO {
     return res.isNotEmpty ? Pay.fromMap(res.last) : null;
   }
 
-  getAll() async {
-    final db = await dbProvider.database;
-    var res =  await db.query("paydesk");
-    return res;
-  }
-
   update(Pay pay) async {
     final db = await dbProvider.database;
     var res = await db.update("paydesk", pay.toMap(),
