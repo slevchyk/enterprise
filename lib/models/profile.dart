@@ -120,10 +120,14 @@ class Profile {
         languages: json["languages"],
         disability: json["disability"] is int
             ? json["disability"] == 1
-            : json["disability"],
+            : json["disability"] is String
+                ? json["disability"] == "true"
+                : json["disability"],
         pensioner: json["pensioner"] is int
             ? json["pensioner"] == 1
-            : json["pensioner"],
+            : json["pensioner"] is String
+                ? json["pensioner"] == "true"
+                : json["pensioner"],
         photo: json["photo"],
 //        photoData: json["photo_data"],
       );

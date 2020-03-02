@@ -1,6 +1,9 @@
 import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models/channel.dart';
+import 'package:enterprise/models/models.dart';
+import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/pages/page_login.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/body_main_chanel.dart';
@@ -12,6 +15,12 @@ import '../models/constants.dart';
 import '../models/profile.dart';
 
 class PageMain extends StatefulWidget {
+  final Profile profile;
+
+  PageMain({
+    this.profile,
+  });
+
   PageMainState createState() => PageMainState();
 }
 
@@ -201,23 +210,28 @@ class AppDrawer extends StatefulWidget {
 }
 
 class _AppDrawerState extends State<AppDrawer> {
-  String userID;
+//  String userID;
 
   @override
   void initState() {
     super.initState();
-    initWidget();
+
+//    if (widget.profile == null) {
+//      Navigator.of(context).pushNamed("/sign_in_out");
+//    }
+
+//    initWidget();
   }
 
-  initWidget() async {
-    final prefs = await SharedPreferences.getInstance();
-    String _userID = prefs.getString(KEY_USER_ID) ?? "";
-    setState(() {
-      userID = _userID;
-    });
-  }
+//  initWidget() async {
+//    final prefs = await SharedPreferences.getInstance();
+//    String _userID = prefs.getString(KEY_USER_ID) ?? "";
+//    setState(() {
+//      userID = _userID;
+//    });
+//  }
 
-  Widget getUserpic() {
+  Widget userPhoto() {
     if (widget.profile == null ||
         widget.profile.photo == null ||
         widget.profile.photo == '') {
@@ -231,119 +245,106 @@ class _AppDrawerState extends State<AppDrawer> {
     }
   }
 
-  void signInOut() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    if (userID != "") {
-      prefs.setString(KEY_USER_ID, "");
-    }
-
-    Navigator.of(context).pushNamed(
-      '/sign_in_out',
-      arguments: "",
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: Column(
-        children: <Widget>[
-          UserAccountsDrawerHeader(
-            accountName: widget.profile == null
-                ? Text('Ім\'я')
-                : Text(
-                    widget.profile.firstName + ' ' + widget.profile.lastName),
-            accountEmail: widget.profile == null
-                ? Text('email')
-                : Text(widget.profile.email),
-            currentAccountPicture: getUserpic(),
-          ),
-          ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Профіль'),
-            onTap: () {
-              Navigator.of(context).pushNamed(
-                '/profile',
-                arguments: "",
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.home),
-            title: Text('Головна'),
-            onTap: () {
-              Navigator.of(context).pushNamed(
-                '/',
-                arguments: "",
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(FontAwesomeIcons.cashRegister),
-            title: Text('Каса'),
-            onTap: () {
-              Navigator.of(context).pushNamed(
-                '/paydesk',
-                arguments: "",
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.play_circle_outline),
-            title: Text('Турнікет'),
-            onTap: () {
-              Navigator.of(context).pushNamed(
-                '/turnstile',
-                arguments: "",
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.help),
-            title: Text('HelpDesk'),
-            onTap: () {
-              Navigator.of(context).pushNamed(
-                '/helpdesk',
-                arguments: "",
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.settings),
-            title: Text('Налаштування'),
-            onTap: () {
-              Navigator.of(context).pushNamed(
-                '/settings',
-                arguments: "",
-              );
-            },
-          ),
-          ListTile(
-            leading: userID == ""
-                ? Icon(FontAwesomeIcons.signInAlt)
-                : Icon(FontAwesomeIcons.signOutAlt),
-            title: userID == "" ? Text('Увійти') : Text('Вийти'),
-            onTap: () {
-              signInOut();
-            },
-          ),
-          Expanded(
-            child: Align(
-              alignment: FractionalOffset.bottomCenter,
-              child: ListTile(
-                leading: Icon(Icons.info),
-                title: Text('Про додаток'),
-                onTap: () {
-                  Navigator.of(context).pushNamed(
-                    '/about',
-                    arguments: "",
-                  );
-                },
-              ),
+      child: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            UserAccountsDrawerHeader(
+              accountName: widget.profile == null
+                  ? Text('Ім\'я')
+                  : Text(
+                      widget.profile.firstName + ' ' + widget.profile.lastName),
+              accountEmail: widget.profile == null
+                  ? Text('email')
+                  : Text(widget.profile.email),
+              currentAccountPicture: userPhoto(),
             ),
-          ),
-        ],
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Профіль'),
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                  '/profile',
+                  arguments: "",
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text('Головна'),
+              onTap: () {
+                RouteArgs args = RouteArgs(profile: widget.profile);
+                Navigator.of(context).pushNamed(
+                  '/',
+                  arguments: args,
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(FontAwesomeIcons.cashRegister),
+              title: Text('Каса'),
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                  '/paydesk',
+                  arguments: "",
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.play_circle_outline),
+              title: Text('Турнікет'),
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                  '/turnstile',
+                  arguments: "",
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.help),
+              title: Text('HelpDesk'),
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                  '/helpdesk',
+                  arguments: "",
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text('Налаштування'),
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                  '/settings',
+                  arguments: "",
+                );
+              },
+            ),
+            ListTile(
+              leading: widget.profile?.userID == ""
+                  ? Icon(FontAwesomeIcons.signInAlt)
+                  : Icon(FontAwesomeIcons.signOutAlt),
+              title:
+                  widget.profile?.userID == "" ? Text('Увійти') : Text('Вийти'),
+              onTap: () async {
+                singInOutDialog(context);
+              },
+            ),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.info),
+              title: Text('Про додаток'),
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                  '/about',
+                  arguments: "",
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:enterprise/models/profile.dart';
+
 class ChartData {
   String title;
   double value;
@@ -23,11 +25,9 @@ class UploadFile {
 }
 
 class RouteArgs {
-  String userID;
-  dynamic arg;
+  Profile profile;
 
-  RouteArgs(
-    this.userID,
-    this.arg,
-  );
+  RouteArgs({
+    this.profile,
+  });
 }

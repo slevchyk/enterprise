@@ -1,4 +1,5 @@
 import 'package:enterprise/models/constants.dart';
+import 'package:enterprise/models/models.dart';
 import 'package:enterprise/pages/body_main_chanel.dart';
 import 'package:enterprise/pages/page_channel_detail.dart';
 import 'package:enterprise/pages/page_helpdesk_detail.dart';
@@ -21,7 +22,18 @@ class RouteGenerator {
 
     switch (settings.name) {
       case '/':
-        return MaterialPageRoute(builder: (_) => PageMain());
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+            builder: (_) => PageMain(
+              profile: args.profile,
+            ),
+          );
+        }
+//        return _errorRoute(settings.name);
+        return MaterialPageRoute(
+            builder: (_) => PageMain(
+                  profile: null,
+                ));
       case '/paydesk':
         return MaterialPageRoute(builder: (_) => PagePayDesk());
       case '/timinghistory':
@@ -39,7 +51,7 @@ class RouteGenerator {
       case '/helpdesk':
         return MaterialPageRoute(builder: (_) => PageHelpdesk());
       case '/sign_in_out':
-        return MaterialPageRoute(builder: (_) => PageLogin());
+        return MaterialPageRoute(builder: (_) => PageSignInOut());
       case '/channel/detail':
         return MaterialPageRoute(
             builder: (_) => PageChanelDetail(

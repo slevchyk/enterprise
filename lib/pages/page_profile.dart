@@ -2,6 +2,7 @@ import 'package:date_format/date_format.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/pages/page_login.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -279,6 +280,17 @@ class PageProfileState extends State<PageProfile> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text('Профіль'),
+        actions: <Widget>[
+          FlatButton(
+            child: Icon(
+              FontAwesomeIcons.signOutAlt,
+              color: Colors.white,
+            ),
+            onPressed: () async {
+              singInOutDialog(context);
+            },
+          )
+        ],
       ),
       body: ListView(
         padding: EdgeInsets.all(10.0),

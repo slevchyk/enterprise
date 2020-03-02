@@ -1,19 +1,21 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models/constants.dart';
+import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class PageLogin extends StatefulWidget {
+class PageSignInOut extends StatefulWidget {
   @override
-  _PageLoginState createState() => _PageLoginState();
+  _PageSignInOutState createState() => _PageSignInOutState();
 }
 
-class _PageLoginState extends State<PageLogin> {
+class _PageSignInOutState extends State<PageSignInOut> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _userPhoneController = TextEditingController();
@@ -33,7 +35,13 @@ class _PageLoginState extends State<PageLogin> {
     String _userID = prefs.getString(KEY_USER_ID) ?? "";
 
     if (_userID != "") {
-      Navigator.of(context).pushNamed("/");
+      Profile profile = await ProfileDAO().getByUserId(_userID);
+      RouteArgs args = RouteArgs(profile: profile);
+
+      Navigator.of(context).pushNamed(
+        "/",
+        arguments: args,
+      );
     }
   }
 
@@ -123,7 +131,7 @@ class _PageLoginState extends State<PageLogin> {
                     child: Text('Увійти'),
                     onPressed: () {
                       if (_formKey.currentState.validate()) {
-                        _getLocalServerSettings(_scaffoldKey);
+                        _getLocalServerSettingsProfile(_scaffoldKey);
                       }
                     },
                     shape: RoundedRectangleBorder(
@@ -141,7 +149,8 @@ class _PageLoginState extends State<PageLogin> {
     );
   }
 
-  void _getLocalServerSettings(GlobalKey<ScaffoldState> _scaffoldKey) async {
+  void _getLocalServerSettingsProfile(
+      GlobalKey<ScaffoldState> _scaffoldKey) async {
     Map<String, String> requestMap = {
       "phone": _userPhoneController.text,
       "pin": _userPinController.text
@@ -184,10 +193,12 @@ class _PageLoginState extends State<PageLogin> {
 
       if (_profile != null) {
         if (_profile.userID != "") {
+          RouteArgs args = RouteArgs(profile: _profile);
+
           prefs.setString(KEY_USER_ID, _profile.userID);
           Navigator.of(context).pushNamed(
             '/',
-            arguments: "",
+            arguments: args,
           );
         }
       }
@@ -214,7 +225,7 @@ class _PageLoginState extends State<PageLogin> {
     if (response.statusCode == 404) {
       _scaffoldKey.currentState.showSnackBar(SnackBar(
         content: Text(
-            'Не знайдено користувача сервера ліцензування з такими параметрами'),
+            'Не знайдено обілковий запис сервера ліцензування з такими параметрами'),
         backgroundColor: Colors.redAccent,
       ));
       return;
@@ -222,7 +233,7 @@ class _PageLoginState extends State<PageLogin> {
 
     if (response.statusCode == 500) {
       _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Помилка сервера сервера ліцензування:\n$body'),
+        content: Text('Помилка сервера ліцензування:\n$body'),
         backgroundColor: Colors.redAccent,
       ));
       return;
@@ -233,4 +244,30 @@ class _PageLoginState extends State<PageLogin> {
       backgroundColor: Colors.redAccent,
     ));
   }
+}
+
+singInOutDialog(BuildContext context) {
+  return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Ви дійсно бажаєте вийти?"),
+          actions: <Widget>[
+            FlatButton(
+              child: new Text("Ні"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text("Так"),
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                prefs.setString(KEY_USER_ID, "");
+                Navigator.of(context).pushNamed("/sign_in_out");
+              },
+            )
+          ],
+        );
+      });
 }
