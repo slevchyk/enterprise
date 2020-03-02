@@ -13,7 +13,6 @@ dependencies:
   path: ^1.6.4
   image_picker: ^0.6.3+1
   liquid_pull_to_refresh: ^1.1.1
-
   cupertino_icons: ^0.1.2
   shared_preferences: 0.5.6+1
   http: ^0.12.0+2
