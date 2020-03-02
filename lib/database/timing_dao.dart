@@ -73,6 +73,7 @@ class TimingDAO {
     return res.isNotEmpty ? Timing.fromMap(res.first) : null;
   }
 
+
   Future<List<Timing>> getAll() async {
     final db = await dbProvider.database;
     var res = await db.query(
