@@ -40,7 +40,7 @@ class Profile {
   String languages;
   bool disability;
   bool pensioner;
-  String photo;
+  String photoName;
   String photoData;
 
   Profile({
@@ -74,7 +74,7 @@ class Profile {
     this.languages,
     this.disability,
     this.pensioner,
-    this.photo,
+    this.photoName,
     this.photoData,
   });
 
@@ -128,8 +128,7 @@ class Profile {
             : json["pensioner"] is String
                 ? json["pensioner"] == "true"
                 : json["pensioner"],
-        photo: json["photo"],
-//        photoData: json["photo_data"],
+        photoName: json["photo_name"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -165,8 +164,7 @@ class Profile {
         "languages": languages,
         "disability": disability,
         "pensioner": pensioner,
-        "photo": photo,
-//        "photo_data": photoData,
+        "photo": photoName,
       };
 
   static Future<Profile> downloadByPhonePin(
@@ -213,9 +211,9 @@ class Profile {
 
     profile = Profile.fromMap(jsonData);
 
-    if (profile.photo != '') {
+    if (profile.photoName != '') {
       final documentDirectory = await getApplicationDocumentsDirectory();
-      File file = new File(join(documentDirectory.path, profile.photo));
+      File file = new File(join(documentDirectory.path, profile.photoName));
 
       var base64Photo = profile.photoData;
       base64Photo = base64Photo.replaceAll("\r", "");
@@ -224,7 +222,7 @@ class Profile {
       final _bytePhoto = base64Decode(base64Photo);
       file.writeAsBytes(_bytePhoto);
 
-      profile.photo = file.path;
+      profile.photoName = file.path;
       prefs.setString(KEY_USER_PICTURE, file.path);
     }
 
@@ -334,9 +332,9 @@ class Profile {
 
     profile = Profile.fromMap(jsonData["application"]);
 
-    if (profile.photo != '') {
+    if (profile.photoName != '') {
       final documentDirectory = await getApplicationDocumentsDirectory();
-      File file = new File(join(documentDirectory.path, profile.photo));
+      File file = new File(join(documentDirectory.path, profile.photoName));
 
       var base64Photo = profile.photoData;
       base64Photo = base64Photo.replaceAll("\r", "");
@@ -345,7 +343,7 @@ class Profile {
       final _bytePhoto = base64Decode(base64Photo);
       file.writeAsBytes(_bytePhoto);
 
-      profile.photo = file.path;
+      profile.photoName = file.path;
       prefs.setString(KEY_USER_PICTURE, file.path);
     }
 

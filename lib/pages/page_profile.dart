@@ -172,7 +172,9 @@ class PageProfileState extends State<PageProfile> {
   }
 
   Widget _userPhoto(profile) {
-    if (profile == null || profile.photo == null || profile.photo == '') {
+    if (profile == null ||
+        profile.photoName == null ||
+        profile.photoName == '') {
       return CircleAvatar(
         minRadius: 75,
         maxRadius: 100,
@@ -182,7 +184,7 @@ class PageProfileState extends State<PageProfile> {
       return CircleAvatar(
         minRadius: 75,
         maxRadius: 100,
-        backgroundImage: ExactAssetImage(profile.photo),
+        backgroundImage: ExactAssetImage(profile.photoName),
       );
     }
   }
@@ -195,7 +197,7 @@ class PageProfileState extends State<PageProfile> {
     final documentDirectory = await getApplicationDocumentsDirectory();
     file.copy(documentDirectory.path);
 
-    _profile.photo = file.path;
+    _profile.photoName = file.path;
     await ProfileDAO().update(_profile);
 
     setState(() {

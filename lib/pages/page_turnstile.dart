@@ -429,7 +429,7 @@ class _PageTurnstileState extends State<PageTurnstile> {
   }
 
   Widget _getUserpic(profile) {
-    if (profile == null || profile.photo == '') {
+    if (profile == null || profile.photoName == '') {
       return CircleAvatar(
         minRadius: 75,
         maxRadius: 100,
@@ -439,7 +439,7 @@ class _PageTurnstileState extends State<PageTurnstile> {
       return CircleAvatar(
         minRadius: 75,
         maxRadius: 100,
-        backgroundImage: ExactAssetImage(profile.photo),
+        backgroundImage: ExactAssetImage(profile.photoName),
       );
     }
   }

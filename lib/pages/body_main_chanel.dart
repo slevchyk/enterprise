@@ -171,7 +171,9 @@ class BodyChannelState extends State<BodyChannel> {
             ],
           ),
         ),
-        drawer: AppDrawer(widget.profile),
+        drawer: AppDrawer(
+          profile: widget.profile,
+        ),
         body: TabBarView(
           children: [
             RefreshIndicator(
@@ -194,13 +196,13 @@ class BodyChannelState extends State<BodyChannel> {
                           child: CircularProgressIndicator(),
                         );
                       case ConnectionState.done:
-                        var listChanneles = snapshot.data;
+                        var listChannels = snapshot.data;
                         return Center(
                           child: ListView.separated(
-                            itemCount: listChanneles.length,
+                            itemCount: listChannels.length,
                             separatorBuilder: (context, index) => Divider(),
                             itemBuilder: (BuildContext context, int index) {
-                              Channel channel = listChanneles[index];
+                              Channel channel = listChannels[index];
                               return Slidable(
                                 delegate: new SlidableDrawerDelegate(),
                                 actionExtentRatio: 0.25,
@@ -211,7 +213,7 @@ class BodyChannelState extends State<BodyChannel> {
                                     icon: Icons.archive,
                                     onTap: () {
                                       ChannelDAO().archiveById(
-                                          listChanneles[index].mobID);
+                                          listChannels[index].mobID);
                                       setState(() {
                                         channelsNews =
                                             getChannels(CHANNEL_TYPE_MESSAGE);
@@ -230,7 +232,7 @@ class BodyChannelState extends State<BodyChannel> {
                                     icon: Icons.delete,
                                     onTap: () {
                                       ChannelDAO().deleteById(
-                                          listChanneles[index].mobID);
+                                          listChannels[index].mobID);
                                     },
                                   ),
                                 ],

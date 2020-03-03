@@ -19,6 +19,8 @@ const String KEY_USER_PICTURE = "keyUserPicture";
 
 const String KEY_CHANNEL_UPDATE_ID = "keyChannelUpdateID";
 
+const String KEY_IS_PROTECTION_ENABLED = "keyIsProtectionEnabled";
+
 //Civil statuses
 const String CIVIL_STATUS_SINGLE = 'Single';
 const String CIVIL_STATUS_MERRIED = 'Married';

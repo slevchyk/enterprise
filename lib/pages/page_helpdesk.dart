@@ -56,7 +56,9 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
             ],
           ),
         ),
-        drawer: AppDrawer(profile),
+        drawer: AppDrawer(
+          profile: profile,
+        ),
         body: TabBarView(
           children: [
             Container(
@@ -84,7 +86,7 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
                           separatorBuilder: (context, index) => Divider(),
                           itemBuilder: (BuildContext context, int index) {
                             Helpdesk helpdesk = listChanneles[index];
-                            return Slidable(
+                            return SingleChildScrollView(
                               child: ListTile(
                                 title: Text(
                                   helpdesk.title,
@@ -143,7 +145,7 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
                           separatorBuilder: (context, index) => Divider(),
                           itemBuilder: (BuildContext context, int index) {
                             Helpdesk helpdesk = listChanneles[index];
-                            return Slidable(
+                            return SingleChildScrollView(
                               child: ListTile(
                                 title: Text(
                                   helpdesk.title,

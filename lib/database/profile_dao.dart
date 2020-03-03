@@ -82,7 +82,7 @@ class ProfileDAO {
           newProfile.languages,
           newProfile.disability,
           newProfile.pensioner,
-          newProfile.photo,
+          newProfile.photoName,
         ]);
     return raw;
   }

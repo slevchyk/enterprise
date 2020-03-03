@@ -30,7 +30,9 @@ class BodyMainState extends State<BodyMain> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      drawer: AppDrawer(widget.profile),
+      drawer: AppDrawer(
+        profile: widget.profile,
+      ),
       body: TimingMain(_scaffoldKey),
     );
   }

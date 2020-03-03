@@ -20,6 +20,7 @@ class _PageSignInOutState extends State<PageSignInOut> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _userPhoneController = TextEditingController();
   final _userPinController = TextEditingController();
+  bool isLoadingProfile;
 
   @override
   void initState() {
@@ -27,6 +28,7 @@ class _PageSignInOutState extends State<PageSignInOut> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _getUserID());
+    isLoadingProfile = false;
   }
 
   void _getUserID() async {
@@ -35,6 +37,12 @@ class _PageSignInOutState extends State<PageSignInOut> {
     String _userID = prefs.getString(KEY_USER_ID) ?? "";
 
     if (_userID != "") {
+      setState(() {
+        _userPhoneController.text = prefs.getString(KEY_USER_PHONE);
+        _userPinController.text = prefs.getString(KEY_USER_PIN);
+        isLoadingProfile = true;
+      });
+
       Profile profile = await ProfileDAO().getByUserId(_userID);
       RouteArgs args = RouteArgs(profile: profile);
 
@@ -79,6 +87,10 @@ class _PageSignInOutState extends State<PageSignInOut> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              Visibility(
+                child: CircularProgressIndicator(),
+                visible: isLoadingProfile,
+              ),
               CircleAvatar(
                 child: Image.asset("assets/logo_512.png"),
                 minRadius: 25,
@@ -184,6 +196,9 @@ class _PageSignInOutState extends State<PageSignInOut> {
       final String localSrvPassword = responseJSON["srv_password"];
 
       final prefs = await SharedPreferences.getInstance();
+
+      prefs.setString(KEY_USER_PHONE, _userPhoneController.text);
+      prefs.setString(KEY_USER_PIN, _userPinController.text);
 
       prefs.setString(KEY_SERVER_IP, localSrvIP);
       prefs.setString(KEY_SERVER_USER, localSrvUser);

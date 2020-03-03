@@ -1,19 +1,19 @@
-import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/models.dart';
-import 'package:enterprise/pages/body_main_chanel.dart';
 import 'package:enterprise/pages/page_channel_detail.dart';
 import 'package:enterprise/pages/page_helpdesk_detail.dart';
 import 'package:enterprise/pages/page_helpdesk.dart';
 import 'package:enterprise/pages/page_login.dart';
 import 'package:enterprise/pages/page_paydesk.dart';
+import 'package:enterprise/pages/page_settings.dart';
 import 'package:enterprise/pages/page_timing_hitory.dart';
 import 'package:enterprise/pages/page_turnstile.dart';
+import 'package:enterprise/pages/warehouse/goods/page_goods_list.dart';
+import 'package:enterprise/pages/warehouse/page_orders.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:enterprise/pages/page_profile.dart';
-import 'package:enterprise/pages/page_settings.dart';
+import 'package:enterprise/pages/page_debug.dart';
 import 'package:enterprise/pages/page_about.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -41,7 +41,16 @@ class RouteGenerator {
       case '/profile':
         return MaterialPageRoute(builder: (_) => PageProfile());
       case '/settings':
-        return MaterialPageRoute(builder: (_) => PageSettings());
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+            builder: (_) => PageSettings(
+              profile: args.profile,
+            ),
+          );
+        }
+        return _errorRoute(settings.name + " worng args type");
+      case '/debug':
+        return MaterialPageRoute(builder: (_) => PageDebug());
       case '/about':
         return MaterialPageRoute(builder: (_) => PageAbout());
       case '/turnstile':
@@ -57,6 +66,10 @@ class RouteGenerator {
             builder: (_) => PageChanelDetail(
                   channel: args,
                 ));
+      case '/warehouse/orders':
+        return MaterialPageRoute(builder: (_) => PageOrders());
+      case '/warehouse/goods/list':
+        return MaterialPageRoute(builder: (_) => PageGoodsList());
       // Validation of correct data type
 //        if (args is String) {
 //          return MaterialPageRoute(

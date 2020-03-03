@@ -5,6 +5,7 @@ import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_login.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/body_main_chanel.dart';
 import 'package:enterprise/pages/body_main_timing.dart';
@@ -201,9 +202,9 @@ class PageMainState extends State<PageMain> {
 class AppDrawer extends StatefulWidget {
   final Profile profile;
 
-  AppDrawer(
+  AppDrawer({
     this.profile,
-  );
+  });
 
   @override
   _AppDrawerState createState() => _AppDrawerState();
@@ -233,14 +234,14 @@ class _AppDrawerState extends State<AppDrawer> {
 
   Widget userPhoto() {
     if (widget.profile == null ||
-        widget.profile.photo == null ||
-        widget.profile.photo == '') {
+        widget.profile.photoName == null ||
+        widget.profile.photoName == '') {
       return CircleAvatar(
         child: Text('фото'),
       );
     } else {
       return CircleAvatar(
-        child: Image.asset(widget.profile.photo),
+        child: Image.asset(widget.profile.photoName),
       );
     }
   }
@@ -293,6 +294,16 @@ class _AppDrawerState extends State<AppDrawer> {
               },
             ),
             ListTile(
+              leading: Icon(FontAwesomeIcons.boxes),
+              title: Text('Склад'),
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                  '/warehouse/orders',
+                  arguments: "",
+                );
+              },
+            ),
+            ListTile(
               leading: Icon(Icons.play_circle_outline),
               title: Text('Турнікет'),
               onTap: () {
@@ -316,9 +327,25 @@ class _AppDrawerState extends State<AppDrawer> {
               leading: Icon(Icons.settings),
               title: Text('Налаштування'),
               onTap: () {
+                RouteArgs args = RouteArgs(
+                  profile: widget.profile,
+                );
                 Navigator.of(context).pushNamed(
                   '/settings',
-                  arguments: "",
+                  arguments: args,
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.bug_report),
+              title: Text('Debug'),
+              onTap: () {
+                RouteArgs args = RouteArgs(
+                  profile: widget.profile,
+                );
+                Navigator.of(context).pushNamed(
+                  '/debug',
+                  arguments: args,
                 );
               },
             ),
