@@ -93,7 +93,7 @@ class PageHelpdeskState extends State<PageHelpdeskNew> {
                         labelText: 'Заголовок *',
                       ),
                       validator: (value) {
-                        if (value.isEmpty) return 'ви не вказали заголовок';
+                        if (value.isEmpty) return 'Ви не вказали заголовок';
                         return null;
                       },
                       onChanged: (value) {
