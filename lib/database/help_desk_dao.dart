@@ -6,8 +6,14 @@ class HelpdeskDAO {
 
   insert(Helpdesk helpdesk) async {
     final db = await dbProvider.database;
+
+    //get the biggest id in the table
+    var table = await db.rawQuery("SELECT MAX(id)+1 as id FROM helpdesk");
+    int id = table.first["id"];
+    //insert to the table using the new id
+
     var raw = await db.rawInsert(
-        'INSERT Into chanel ('
+        'INSERT Into helpdesk ('
         'id,'
         'user_id,'
         'status,'
@@ -20,7 +26,7 @@ class HelpdeskDAO {
         ')'
         'VALUES (?,?,?,?,?,?,?,?,?)',
         [
-          helpdesk.id,
+          id,
           helpdesk.userID,
           helpdesk.status,
           helpdesk.date != null ? helpdesk.date.toIso8601String() : null,

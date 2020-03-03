@@ -21,12 +21,19 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
   Profile profile;
   Future<List<Helpdesk>> helpdeskprocessed;
   Future<List<Helpdesk>> helpdeskunprocessed;
+
   @override
   void initState() {
     super.initState();
     getprofileByUuid();
     helpdeskprocessed = getHelpdesk(HELPDESK_STATUS_PROCESSED);
     helpdeskunprocessed = getHelpdesk(HELPDESK_STATUS_UNPROCESSED);
+  }
+
+  _updateHelpdesk() async {
+    helpdeskprocessed = getHelpdesk(HELPDESK_STATUS_PROCESSED);
+    helpdeskunprocessed = getHelpdesk(HELPDESK_STATUS_UNPROCESSED);
+    setState(() {});
   }
 
   Future<List<Helpdesk>> getHelpdesk(String Status) async {
@@ -59,122 +66,123 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
         drawer: AppDrawer(profile),
         body: TabBarView(
           children: [
-            Container(
-              child: FutureBuilder(
-                future: helpdeskprocessed,
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.none:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    case ConnectionState.waiting:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    case ConnectionState.active:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    case ConnectionState.done:
-                      var listChanneles = snapshot.data;
-                      return Center(
-                        child: ListView.separated(
-                          itemCount: listChanneles.length,
-                          separatorBuilder: (context, index) => Divider(),
-                          itemBuilder: (BuildContext context, int index) {
-                            Helpdesk helpdesk = listChanneles[index];
-                            return Slidable(
-                              child: ListTile(
-                                title: Text(
-                                  helpdesk.title,
-                                  //   style: TextStyle(
-                                  //     fontWeight: helpdesk.starredAt == null
-                                  //         ? FontWeight.normal
-                                  //         : FontWeight.bold,
-                                  //  ),
+            RefreshIndicator(
+              onRefresh: _refreshTiming,
+              child: Container(
+                child: FutureBuilder(
+                  future: helpdeskprocessed,
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.none:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.waiting:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.active:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.done:
+                        var listChanneles = snapshot.data;
+                        return Center(
+                          child: ListView.separated(
+                            itemCount: listChanneles.length,
+                            separatorBuilder: (context, index) => Divider(),
+                            itemBuilder: (BuildContext context, int index) {
+                              Helpdesk helpdesk = listChanneles[index];
+                              return Center(
+                                child: ListTile(
+                                  title: Text(
+                                    helpdesk.title,
+                                  ),
+                                  isThreeLine: true,
+                                  leading: CircleAvatar(
+                                    backgroundColor:
+                                        Theme.of(context).primaryColor,
+                                    child: Text('HD'),
+                                  ),
+                                  subtitle: Text(
+                                    helpdesk.description,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                                isThreeLine: true,
-                                leading: CircleAvatar(
-                                  backgroundColor:
-                                      Theme.of(context).primaryColor,
-                                  child: Text('HD'),
-                                ),
-                                subtitle: Text(
-                                  helpdesk.description,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    default:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                  }
-                },
+                              );
+                            },
+                          ),
+                        );
+                      default:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                    }
+                  },
+                ),
               ),
             ),
-            Container(
-              child: FutureBuilder(
-                future: helpdeskunprocessed,
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.none:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    case ConnectionState.waiting:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    case ConnectionState.active:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    case ConnectionState.done:
-                      var listChanneles = snapshot.data;
-                      return Center(
-                        child: ListView.separated(
-                          itemCount: listChanneles.length,
-                          separatorBuilder: (context, index) => Divider(),
-                          itemBuilder: (BuildContext context, int index) {
-                            Helpdesk helpdesk = listChanneles[index];
-                            return Slidable(
-                              child: ListTile(
-                                title: Text(
-                                  helpdesk.title,
-                                  //  style: TextStyle(
-                                  //    fontWeight: helpdesk.starredAt == null
-                                  //        ? FontWeight.normal
-                                  //        : FontWeight.bold,
-                                  //  ),
+            RefreshIndicator(
+              onRefresh: _refreshTiming,
+              child: Container(
+                child: FutureBuilder(
+                  future: helpdeskunprocessed,
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.none:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.waiting:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.active:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      case ConnectionState.done:
+                        var listChanneles = snapshot.data;
+                        return Center(
+                          child: ListView.separated(
+                            itemCount: listChanneles.length,
+                            separatorBuilder: (context, index) => Divider(),
+                            itemBuilder: (BuildContext context, int index) {
+                              Helpdesk helpdesk = listChanneles[index];
+                              return Center(
+                                child: ListTile(
+                                  title: Text(
+                                    helpdesk.title,
+                                    //  style: TextStyle(
+                                    //    fontWeight: helpdesk.starredAt == null
+                                    //        ? FontWeight.normal
+                                    //        : FontWeight.bold,
+                                    //  ),
+                                  ),
+                                  isThreeLine: true,
+                                  leading: CircleAvatar(
+                                    backgroundColor:
+                                        Theme.of(context).primaryColor,
+                                    child: Text('HD'),
+                                  ),
+                                  subtitle: Text(
+                                    helpdesk.description,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                                isThreeLine: true,
-                                leading: CircleAvatar(
-                                  backgroundColor:
-                                      Theme.of(context).primaryColor,
-                                  child: Text('HD'),
-                                ),
-                                subtitle: Text(
-                                  helpdesk.description,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    default:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                  }
-                },
+                              );
+                            },
+                          ),
+                        );
+                      default:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                    }
+                  },
+                ),
               ),
             ),
           ],
@@ -190,5 +198,9 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
         ),
       ),
     );
+  }
+
+  Future<void> _refreshTiming() async {
+    _updateHelpdesk();
   }
 }
