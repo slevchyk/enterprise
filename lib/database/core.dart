@@ -109,9 +109,9 @@ class DBProvider {
           'title TEXT,'
           'description TEXT,'
           'status TEXT,'
-          'ansvered_ad TEXT,'
-          'ansvered_by TEXT'
-          'ansver TEXT'
+          'answered_at TEXT,'
+          'answered_by TEXT,'
+          'answer TEXT'
           ')');
       await db.execute('CREATE TABLE paydesk ('
           'id INTEGER PRIMARY KEY AUTOINCREMENT,'

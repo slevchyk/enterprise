@@ -38,10 +38,10 @@ class Helpdesk {
   Map<String, dynamic> toMap() => {
         "id": id,
         "user_id": userID,
-        "type": status,
+        "status": status,
         "date": date != null ? date.toIso8601String() : null,
         "title": title,
-        "news": description,
+        "description": description,
         "answered_at": answeredAt != null ? answeredAt.toIso8601String() : null,
         "answered_by": answeredBy,
         "answer": answer,
