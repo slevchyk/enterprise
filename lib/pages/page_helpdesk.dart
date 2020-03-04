@@ -90,42 +90,38 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
                           child: CircularProgressIndicator(),
                         );
                       case ConnectionState.done:
-                        var listChanneles = snapshot.data;
+                        var listHelpdesks = snapshot.data;
                         return Center(
                           child: ListView.separated(
-                            itemCount: listChanneles.length,
+                            itemCount: listHelpdesks.length,
                             separatorBuilder: (context, index) => Divider(),
                             itemBuilder: (BuildContext context, int index) {
-                              Helpdesk helpdesk = listChanneles[index];
-                              return Center(
+                              Helpdesk helpdesk = listHelpdesks[index];
+                              return Card(
                                 child: InkWell(
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) =>
-                                              HelpdeskHero(helpdesk: helpdesk)),
+                                              PageHelpdeskDetail(
+                                                  helpdesk: helpdesk)),
                                     );
                                   },
-                                  child: Hero(
-                                    tag: 'helpdesk_' + helpdesk.id.toString(),
-                                    child: Material(
-                                      child: ListTile(
-                                        title: Text(
-                                          helpdesk.title,
-                                        ),
-                                        isThreeLine: true,
-                                        leading: CircleAvatar(
-                                          backgroundColor:
-                                              Theme.of(context).primaryColor,
-                                          child: Text('HD'),
-                                        ),
-                                        subtitle: Text(
-                                          helpdesk.description,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
+                                  child: ListTile(
+                                    title: Text(
+                                      helpdesk.title,
+                                    ),
+                                    isThreeLine: true,
+                                    leading: CircleAvatar(
+                                      backgroundColor:
+                                          Theme.of(context).primaryColor,
+                                      child: Text('HD'),
+                                    ),
+                                    subtitle: Text(
+                                      helpdesk.description,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ),
@@ -162,42 +158,38 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
                           child: CircularProgressIndicator(),
                         );
                       case ConnectionState.done:
-                        var listChanneles = snapshot.data;
+                        var listHelpdesks = snapshot.data;
                         return Center(
                           child: ListView.separated(
-                            itemCount: listChanneles.length,
+                            itemCount: listHelpdesks.length,
                             separatorBuilder: (context, index) => Divider(),
                             itemBuilder: (BuildContext context, int index) {
-                              Helpdesk helpdesk = listChanneles[index];
-                              return Center(
+                              Helpdesk helpdesk = listHelpdesks[index];
+                              return Card(
                                 child: InkWell(
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) =>
-                                              HelpdeskHero(helpdesk: helpdesk)),
+                                              PageHelpdeskDetail(
+                                                  helpdesk: helpdesk)),
                                     );
                                   },
-                                  child: Hero(
-                                    tag: 'helpdesk_' + helpdesk.id.toString(),
-                                    child: Material(
-                                      child: ListTile(
-                                        title: Text(
-                                          helpdesk.title,
-                                        ),
-                                        isThreeLine: true,
-                                        leading: CircleAvatar(
-                                          backgroundColor:
-                                              Theme.of(context).primaryColor,
-                                          child: Text('HD'),
-                                        ),
-                                        subtitle: Text(
-                                          helpdesk.description,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
+                                  child: ListTile(
+                                    title: Text(
+                                      helpdesk.title,
+                                    ),
+                                    isThreeLine: true,
+                                    leading: CircleAvatar(
+                                      backgroundColor:
+                                          Theme.of(context).primaryColor,
+                                      child: Text('HD'),
+                                    ),
+                                    subtitle: Text(
+                                      helpdesk.description,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ),
@@ -234,25 +226,25 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
   }
 }
 
-class HelpdeskHero extends StatefulWidget {
-  final Helpdesk helpdesk;
-
-  HelpdeskHero({
-    this.helpdesk,
-  });
-
-  @override
-  _HelpdeskHeroState createState() => _HelpdeskHeroState();
-}
-
-class _HelpdeskHeroState extends State<HelpdeskHero> {
-  Widget build(BuildContext context) {
-    return Hero(
-      tag: 'helpdesk_' + widget.helpdesk.id.toString(),
-      child: Material(
-//        padding: EdgeInsets.all(16),
-        child: PageHelpdeskNew(helpdesk: widget.helpdesk),
-      ),
-    );
-  }
-}
+//class HelpdeskHero extends StatefulWidget {
+//  final Helpdesk helpdesk;
+//
+//  HelpdeskHero({
+//    this.helpdesk,
+//  });
+//
+//  @override
+//  _HelpdeskHeroState createState() => _HelpdeskHeroState();
+//}
+//
+//class _HelpdeskHeroState extends State<HelpdeskHero> {
+//  Widget build(BuildContext context) {
+//    return Hero(
+//      tag: 'helpdesk_' + widget.helpdesk.id.toString(),
+//      child: Material(
+////        padding: EdgeInsets.all(16),
+//        child: PageHelpdeskNew(helpdesk: widget.helpdesk),
+//      ),
+//    );
+//  }
+//}

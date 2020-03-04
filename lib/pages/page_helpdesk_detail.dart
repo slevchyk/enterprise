@@ -14,17 +14,18 @@ import 'dart:convert';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
-class PageHelpdeskNew extends StatefulWidget {
+class PageHelpdeskDetail extends StatefulWidget {
   final Helpdesk helpdesk;
 
-  PageHelpdeskNew({
+  PageHelpdeskDetail({
     this.helpdesk,
   });
 
-  PageHelpdeskState createState() => PageHelpdeskState();
+  @override
+  _PageHelpdeskDetailState createState() => _PageHelpdeskDetailState();
 }
 
-class PageHelpdeskState extends State<PageHelpdeskNew> {
+class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -131,19 +132,21 @@ class PageHelpdeskState extends State<PageHelpdeskNew> {
                         height: 140.0,
                         width: 170.0,
                         child: Tooltip(
-                            message: 'Натисніть щоб видалити',
-                            child: Hero(
-                                tag: 'image' + index.toString(),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                      onTap: () {
-                                        setState(() {
-                                          _files.removeAt(index);
-                                        });
-                                      },
-                                      child: Image.file(_files[index])),
-                                ))),
+                          message: 'Натисніть щоб видалити',
+                          child: Hero(
+                            tag: 'image' + index.toString(),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _files.removeAt(index);
+                                    });
+                                  },
+                                  child: Image.file(_files[index])),
+                            ),
+                          ),
+                        ),
                       );
                       return child;
                     })),
