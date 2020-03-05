@@ -1,8 +1,11 @@
 import 'package:enterprise/models/models.dart';
+import 'package:enterprise/pages/auth/page_auth.dart';
+import 'package:enterprise/pages/auth/page_root.dart';
+import 'package:enterprise/pages/auth/page_set_pin.dart';
 import 'package:enterprise/pages/page_channel_detail.dart';
 import 'package:enterprise/pages/page_helpdesk_detail.dart';
 import 'package:enterprise/pages/page_helpdesk.dart';
-import 'package:enterprise/pages/page_login.dart';
+import 'package:enterprise/pages/auth/page_login.dart';
 import 'package:enterprise/pages/page_paydesk.dart';
 import 'package:enterprise/pages/page_settings.dart';
 import 'package:enterprise/pages/page_timing_hitory.dart';
@@ -22,6 +25,8 @@ class RouteGenerator {
 
     switch (settings.name) {
       case '/':
+        return MaterialPageRoute(builder: (_) => PageRoot());
+      case '/main':
         if (args is RouteArgs) {
           return MaterialPageRoute(
             builder: (_) => PageMain(
@@ -34,12 +39,22 @@ class RouteGenerator {
             builder: (_) => PageMain(
                   profile: null,
                 ));
+      case '/auth':
+        return MaterialPageRoute(builder: (_) => PageAuth());
+      case '/set_pin':
+        return MaterialPageRoute(builder: (_) => PageSetPin());
       case '/paydesk':
         return MaterialPageRoute(builder: (_) => PagePayDesk());
       case '/timinghistory':
         return MaterialPageRoute(builder: (_) => PageTimingHistory());
       case '/profile':
-        return MaterialPageRoute(builder: (_) => PageProfile());
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PageProfile(
+                    profile: args.profile,
+                  ));
+        }
+        return _errorRoute(settings.name);
       case '/settings':
         if (args is RouteArgs) {
           return MaterialPageRoute(

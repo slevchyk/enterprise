@@ -21,7 +21,7 @@ class EnterpriseAppState extends State<EnterpriseApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/sign_in_out',
+      initialRoute: '/',
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
         primaryColorDark: Colors.grey.shade700,

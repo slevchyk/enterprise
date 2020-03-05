@@ -2,6 +2,7 @@ import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,6 +17,7 @@ class PageSettings extends StatefulWidget {
 }
 
 class _PageSettingsState extends State<PageSettings> {
+  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool canCheckBiometrics = false;
   bool isProtectionEnabled = false;
 
@@ -46,6 +48,7 @@ class _PageSettingsState extends State<PageSettings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text("Налаштування"),
       ),
@@ -68,7 +71,15 @@ class _PageSettingsState extends State<PageSettings> {
                           title: Text(
                               'Увімкнути захист додатку відбитком пальця ци розпізнаванням обличчя'),
                           value: isProtectionEnabled,
-                          onChanged: (bool value) {
+                          onChanged: (bool value) async {
+                            final prefs = await SharedPreferences.getInstance();
+                            String _authPin =
+                                prefs.getString(KEY_AUTH_PIN) ?? "";
+                            if (_authPin == "") {
+                              Navigator.of(context).pushNamed("/set_pin");
+                              return;
+                            }
+
                             setState(() {
                               isProtectionEnabled = value;
                             });

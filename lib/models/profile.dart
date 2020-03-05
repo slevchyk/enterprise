@@ -223,7 +223,7 @@ class Profile {
       file.writeAsBytes(_bytePhoto);
 
       profile.photoName = file.path;
-      prefs.setString(KEY_USER_PICTURE, file.path);
+//      prefs.setString(KEY_USER_PICTURE, file.path);
     }
 
     Profile existProfile = await ProfileDAO().getByUserId(profile.userID);
@@ -344,7 +344,7 @@ class Profile {
       file.writeAsBytes(_bytePhoto);
 
       profile.photoName = file.path;
-      prefs.setString(KEY_USER_PICTURE, file.path);
+//      prefs.setString(KEY_USER_PICTURE, file.path);
     }
 
     Profile existProfile = await ProfileDAO().getByUserId(profile.userID);
