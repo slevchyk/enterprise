@@ -211,7 +211,7 @@ class Profile {
 
     profile = Profile.fromMap(jsonData);
 
-    if (profile.photoName != '') {
+    if (profile.photoName != '' && profile.photoName != null) {
       final documentDirectory = await getApplicationDocumentsDirectory();
       File file = new File(join(documentDirectory.path, profile.photoName));
 
