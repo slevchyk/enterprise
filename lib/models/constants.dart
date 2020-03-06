@@ -22,6 +22,8 @@ const String KEY_AUTH_PIN = "keyAuthPin";
 const String KEY_CHANNEL_UPDATE_ID = "keyChannelUpdateID";
 
 const String KEY_IS_PROTECTION_ENABLED = "keyIsProtectionEnabled";
+const String KEY_IS_BIOMETRIC_PROTECTION_ENABLED =
+    "keyIsBiometricProtectionEnabled";
 
 //Civil statuses
 const String CIVIL_STATUS_SINGLE = 'Single';

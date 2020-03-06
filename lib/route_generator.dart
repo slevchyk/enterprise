@@ -40,7 +40,14 @@ class RouteGenerator {
                   profile: null,
                 ));
       case '/auth':
-        return MaterialPageRoute(builder: (_) => PageAuth());
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+            builder: (_) => PageAuth(
+              profile: args.profile,
+            ),
+          );
+        }
+        return _errorRoute(settings.name);
       case '/set_pin':
         return MaterialPageRoute(builder: (_) => PageSetPin());
       case '/paydesk':

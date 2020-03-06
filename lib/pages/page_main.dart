@@ -4,6 +4,7 @@ import 'package:enterprise/models/channel.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/auth/page_login.dart';
+import 'package:enterprise/widgets/user_photo.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -216,34 +217,6 @@ class _AppDrawerState extends State<AppDrawer> {
   @override
   void initState() {
     super.initState();
-
-//    if (widget.profile == null) {
-//      Navigator.of(context).pushNamed("/sign_in_out");
-//    }
-
-//    initWidget();
-  }
-
-//  initWidget() async {
-//    final prefs = await SharedPreferences.getInstance();
-//    String _userID = prefs.getString(KEY_USER_ID) ?? "";
-//    setState(() {
-//      userID = _userID;
-//    });
-//  }
-
-  Widget userPhoto() {
-    if (widget.profile == null ||
-        widget.profile.photoName == null ||
-        widget.profile.photoName == '') {
-      return CircleAvatar(
-        child: Text('фото'),
-      );
-    } else {
-      return CircleAvatar(
-        child: Image.asset(widget.profile.photoName),
-      );
-    }
   }
 
   @override
@@ -260,7 +233,9 @@ class _AppDrawerState extends State<AppDrawer> {
               accountEmail: widget.profile == null
                   ? Text('email')
                   : Text(widget.profile.email),
-              currentAccountPicture: userPhoto(),
+              currentAccountPicture: UserPhoto(
+                profile: widget.profile,
+              ),
             ),
             ListTile(
               leading: Icon(Icons.home),

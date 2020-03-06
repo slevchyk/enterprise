@@ -3,6 +3,7 @@ import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/auth/page_login.dart';
+import 'package:enterprise/widgets/user_photo.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -98,7 +99,13 @@ class PageProfileState extends State<PageProfile> {
             onPressed: () {
               _changeUserPhoto();
             },
-            child: _userPhoto,
+            child: Container(
+              width: 150.0,
+              height: 150.0,
+              child: UserPhoto(
+                profile: profile,
+              ),
+            ),
           ),
           Form(
             key: _formKeyMain,
@@ -700,24 +707,6 @@ class PageProfileState extends State<PageProfile> {
     });
 
     return _list;
-  }
-
-  Widget get _userPhoto {
-    if (profile == null ||
-        profile.photoName == null ||
-        profile.photoName == '') {
-      return CircleAvatar(
-        minRadius: 75,
-        maxRadius: 100,
-        child: Text('фото'),
-      );
-    } else {
-      return CircleAvatar(
-        minRadius: 75,
-        maxRadius: 100,
-        backgroundImage: ExactAssetImage(profile.photoName),
-      );
-    }
   }
 
   void _changeUserPhoto() async {

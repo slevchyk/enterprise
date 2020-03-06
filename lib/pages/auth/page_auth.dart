@@ -1,12 +1,16 @@
 import 'dart:ui';
-
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/widgets/digital_keyboard.dart';
+import 'package:enterprise/widgets/input_indicator.dart';
+import 'package:enterprise/widgets/user_photo.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:local_auth/auth_strings.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vibration/vibration.dart';
 
 class PageAuth extends StatefulWidget {
   final Profile profile;
@@ -20,25 +24,50 @@ class PageAuth extends StatefulWidget {
 }
 
 class _PageAuthState extends State<PageAuth> {
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _didAuthenticate;
   LocalAuthentication _localAuth = LocalAuthentication();
   bool _isPinAuth = false;
+  String _enteredPin = "";
+  bool _incorrectPin = false;
+  bool _isBiometricProtectionEnabled = false;
 
-  final _pin01Controller = TextEditingController();
-  final _pin02Controller = TextEditingController();
-  final _pin03Controller = TextEditingController();
-  final _pin04Controller = TextEditingController();
+  final iosStrings = const IOSAuthMessages(
+      cancelButton: 'ввести ПІН-код',
+      goToSettingsButton: 'налаштування',
+      goToSettingsDescription: 'Будь ласка налаштуйте Touch ID.',
+      lockOut: 'Будь ласка увімкніть Touch ID');
 
-  final _focus01 = FocusNode();
-  final _focus02 = FocusNode();
-  final _focus03 = FocusNode();
-  final _focus04 = FocusNode();
+  final androidStrings = const AndroidAuthMessages(
+    cancelButton: 'ввести ПІН-код',
+    goToSettingsButton: 'налаштування',
+    goToSettingsDescription: 'Будь ласка налаштуйте Fingerprint.',
+    signInTitle: 'Відскануйте, щоб увійти',
+    fingerprintHint: '',
+  );
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _authBiometrics());
+    WidgetsBinding.instance.addPostFrameCallback((_) => initStateAsync());
+
+    _isPinAuth = false;
+    _incorrectPin = false;
+    _enteredPin = "";
+  }
+
+  initStateAsync() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isBiometricProtectionEnabled =
+          prefs.getBool(KEY_IS_BIOMETRIC_PROTECTION_ENABLED);
+      if (!_isBiometricProtectionEnabled) {
+        _isPinAuth = true;
+      }
+    });
+
+    if (_isBiometricProtectionEnabled) {
+      _authBiometrics();
+    }
   }
 
   @override
@@ -47,169 +76,116 @@ class _PageAuthState extends State<PageAuth> {
       child: Visibility(
         visible: _isPinAuth,
         child: Center(
-          child: Form(
-            key: _formKey,
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: 60.0,
-                right: 60.0,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              SizedBox(
+                height: 30.0,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+              Container(
+                width: 150,
+                height: 150,
+                child: UserPhoto(
+                  profile: widget.profile,
+                ),
+              ),
+              SizedBox(
+                height: 10.0,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    "Введіть пін",
+                    widget.profile?.firstName,
                     style: TextStyle(
-                      fontSize: 16.0,
+                      fontSize: 24.0,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Container(
-                        child: TextFormField(
-                          controller: _pin01Controller,
-                          keyboardType: TextInputType.number,
-                          obscureText: true,
-                          style: TextStyle(
-                            fontSize: 24.0,
-                          ),
-                          autofocus: true,
-                          textInputAction: TextInputAction.next,
-                          focusNode: _focus01,
-                          onChanged: (value) {
-                            if (value.length == 1) {
-                              FocusScope.of(context).requestFocus(_focus02);
-                            }
-                          },
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(1),
-                          ],
-                          textAlign: TextAlign.center,
-                          validator: (value) {
-                            if (value.isEmpty) return '';
-                            return null;
-                          },
-                        ),
-                        width: 40.0,
-                      ),
-                      Container(
-                        child: TextFormField(
-                          controller: _pin02Controller,
-                          keyboardType: TextInputType.number,
-                          obscureText: true,
-                          style: TextStyle(
-                            fontSize: 24.0,
-                          ),
-                          focusNode: _focus02,
-                          onChanged: (value) {
-                            if (value.length == 1) {
-                              FocusScope.of(context).requestFocus(_focus03);
-                            } else {
-                              FocusScope.of(context).requestFocus(_focus01);
-                            }
-                          },
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(1),
-                          ],
-                          textAlign: TextAlign.center,
-                          validator: (value) {
-                            if (value.isEmpty) return '';
-                            return null;
-                          },
-                        ),
-                        width: 40.0,
-                      ),
-                      Container(
-                        child: TextFormField(
-                          controller: _pin03Controller,
-                          keyboardType: TextInputType.number,
-                          obscureText: true,
-                          style: TextStyle(
-                            fontSize: 24.0,
-                          ),
-                          focusNode: _focus03,
-                          onChanged: (value) {
-                            if (value.length == 1) {
-                              FocusScope.of(context).requestFocus(_focus04);
-                            } else {
-                              FocusScope.of(context).requestFocus(_focus02);
-                            }
-                          },
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(1),
-                          ],
-                          textAlign: TextAlign.center,
-                          validator: (value) {
-                            if (value.isEmpty) return '';
-                            return null;
-                          },
-                        ),
-                        width: 40.0,
-                      ),
-                      Container(
-                        child: TextFormField(
-                          controller: _pin04Controller,
-                          keyboardType: TextInputType.number,
-                          obscureText: true,
-                          style: TextStyle(
-                            fontSize: 24.0,
-                          ),
-                          focusNode: _focus04,
-                          onChanged: (value) {
-                            if (_formKey.currentState.validate()) {
-                              _authPin(value);
-                            }
-                          },
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(1),
-                          ],
-                          textAlign: TextAlign.center,
-                          validator: (value) {
-                            if (value.isEmpty) return '';
-                            return null;
-                          },
-                        ),
-                        width: 40.0,
-                      ),
-                    ],
-                  ),
                   SizedBox(
-                    height: 20.0,
+                    width: 10.0,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      FlatButton(
-                        child: Row(
-                          children: <Widget>[
-                            Icon(
-                              Icons.fingerprint,
-                              color: Theme.of(context).accentColor,
-                            ),
-                            SizedBox(
-                              width: 10.0,
-                            ),
-                            Text('біометрична аутентифікація'),
-                          ],
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isPinAuth = false;
-                          });
-                          _authBiometrics();
-                        },
-                        shape: RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(18.0),
-                          side:
-                              BorderSide(color: Theme.of(context).primaryColor),
-                        ),
-                      )
-                    ],
+                  Text(
+                    widget.profile?.lastName,
+                    style: TextStyle(
+                      fontSize: 24.0,
+                    ),
                   ),
                 ],
               ),
-            ),
+              SizedBox(
+                height: 24.0,
+              ),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    InputIndicator(
+                      size: 4,
+                      input: _enteredPin,
+                      filledColor: Theme.of(context).accentColor,
+                      emptyColor: Theme.of(context).primaryColor,
+                    ),
+//                    _pinIndicator(4, _enteredPin),
+                    SizedBox(
+                      height: 5.0,
+                    ),
+                    Visibility(
+                      visible: _incorrectPin,
+                      child: Text(
+                        'Ви ввели невірний ПІН-код',
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 5.0,
+                    ),
+                    DigitalKeyboard(
+                      onPressed: _authPin,
+                    ),
+                    Row(
+                      mainAxisAlignment: _isBiometricProtectionEnabled
+                          ? MainAxisAlignment.spaceBetween
+                          : MainAxisAlignment.end,
+                      children: <Widget>[
+                        Visibility(
+                          visible: _isBiometricProtectionEnabled,
+                          child: FlatButton(
+                            child: Icon(
+                              Icons.fingerprint,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isPinAuth = false;
+                              });
+                              _authBiometrics();
+                            },
+                          ),
+                        ),
+                        FlatButton(
+                          child: Text(
+                            "Забули ПІН-код?",
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColor),
+                          ),
+                          onPressed: () async {
+                            final prefs = await SharedPreferences.getInstance();
+                            prefs.setString(KEY_AUTH_PIN, "");
+                            prefs.setString(KEY_USER_ID, "");
+                            prefs.setBool(KEY_IS_PROTECTION_ENABLED, false);
+
+                            Navigator.of(context).pushNamed("/");
+                          },
+                        )
+                      ],
+                    ), //
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -218,7 +194,10 @@ class _PageAuthState extends State<PageAuth> {
 
   void _authBiometrics() async {
     _didAuthenticate = await _localAuth.authenticateWithBiometrics(
-        localizedReason: 'Будь ласка аутентифікуйтесь щоб продовжити роботу');
+        localizedReason: '',
+        iOSAuthStrings: iosStrings,
+        androidAuthStrings: androidStrings,
+        useErrorDialogs: false);
 
     if (_didAuthenticate) {
       RouteArgs _args = RouteArgs(profile: widget.profile);
@@ -227,22 +206,49 @@ class _PageAuthState extends State<PageAuth> {
       setState(() {
         _isPinAuth = true;
       });
-      FocusScope.of(context).requestFocus(_focus01);
     }
   }
 
   void _authPin(String value) async {
-    String _enteredAuthPin = _pin01Controller.text +
-        _pin02Controller.text +
-        _pin03Controller.text +
-        _pin04Controller.text;
+    if (value == "<") {
+      setState(() {
+        if (_enteredPin.length > 0) {
+          _enteredPin = _enteredPin.substring(0, _enteredPin.length - 1);
+        }
+        _incorrectPin = false;
+      });
+
+      return;
+    }
+
+    String _pin = _enteredPin;
+
+    _pin += value;
+
+    if (_pin.length < 4) {
+      setState(() {
+        _enteredPin = _pin;
+        _incorrectPin = false;
+      });
+
+      return;
+    }
 
     final prefs = await SharedPreferences.getInstance();
     String _authPin = prefs.getString(KEY_AUTH_PIN);
 
-    if (_enteredAuthPin == _authPin) {
+    if (_pin == _authPin) {
       RouteArgs _args = RouteArgs(profile: widget.profile);
       Navigator.of(context).pushNamed("/main", arguments: _args);
+    } else {
+      if (await Vibration.hasVibrator()) {
+        Vibration.vibrate();
+      }
+
+      setState(() {
+        _enteredPin = "";
+        _incorrectPin = true;
+      });
     }
   }
 }

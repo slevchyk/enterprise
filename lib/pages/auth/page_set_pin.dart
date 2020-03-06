@@ -1,7 +1,12 @@
 import 'package:enterprise/models/constants.dart';
+import 'package:enterprise/models/models.dart';
+import 'package:enterprise/widgets/digital_keyboard.dart';
+import 'package:enterprise/widgets/input_indicator.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vibration/vibration.dart';
 
 class PageSetPin extends StatefulWidget {
   @override
@@ -12,224 +17,146 @@ class _PageSetPinState extends State<PageSetPin> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String _authPinFirst = "";
   String _authPinSecond = "";
-  String _title =
-      "Для активаці біометричної аутентифікації спочатку потрібно встановити пін";
-
-  final _pin01Controller = TextEditingController();
-  final _pin02Controller = TextEditingController();
-  final _pin03Controller = TextEditingController();
-  final _pin04Controller = TextEditingController();
-
-  final _focus01 = FocusNode();
-  final _focus02 = FocusNode();
-  final _focus03 = FocusNode();
-  final _focus04 = FocusNode();
+  String _title = "Введіь ПІН-код";
+  bool _incorrectPin = false;
+  bool _confirmPin = false;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      child: Center(
-        child: Form(
-          key: _formKey,
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 60.0,
-              right: 60.0,
+      child: Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              _title,
+              style: TextStyle(fontSize: 20.0),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  _title,
-                  style: TextStyle(
-                    fontSize: 16.0,
+            SizedBox(
+              height: 30.0,
+            ),
+            InputIndicator(
+              size: 4,
+              input: _confirmPin ? _authPinSecond : _authPinFirst,
+            ),
+            Visibility(
+              visible: _incorrectPin,
+              child: Text(
+                'Ви ввели два різні ПІН-коди',
+                style: TextStyle(
+                  color: Colors.redAccent,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 10.0,
+            ),
+            DigitalKeyboard(
+              onPressed: _confirmPin ? handlePinConfirmation : handlePin,
+            ),
+            SizedBox(
+              height: 10.0,
+            ),
+            Container(
+              padding: EdgeInsets.only(
+                left: 80.0,
+                right: 80.0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  FlatButton(
+                    child: Text(
+                      'Відмінити',
+                      style: TextStyle(color: Theme.of(context).primaryColor),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
                   ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Container(
-                      child: TextFormField(
-                        controller: _pin01Controller,
-                        keyboardType: TextInputType.number,
-                        obscureText: true,
-                        style: TextStyle(
-                          fontSize: 24.0,
-                        ),
-                        autofocus: true,
-                        textInputAction: TextInputAction.next,
-                        focusNode: _focus01,
-                        onChanged: (value) {
-                          if (value.length == 1) {
-                            FocusScope.of(context).requestFocus(_focus02);
-                          }
-                        },
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(1),
-                        ],
-                        textAlign: TextAlign.center,
-                        validator: (value) {
-                          if (value.isEmpty) return '';
-                          return null;
-                        },
-                      ),
-                      width: 40.0,
-                    ),
-                    Container(
-                      child: TextFormField(
-                        controller: _pin02Controller,
-                        keyboardType: TextInputType.number,
-                        obscureText: true,
-                        style: TextStyle(
-                          fontSize: 24.0,
-                        ),
-                        focusNode: _focus02,
-                        onChanged: (value) {
-                          if (value.length == 1) {
-                            FocusScope.of(context).requestFocus(_focus03);
-                          } else {
-                            FocusScope.of(context).requestFocus(_focus01);
-                          }
-                        },
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(1),
-                        ],
-                        textAlign: TextAlign.center,
-                        validator: (value) {
-                          if (value.isEmpty) return '';
-                          return null;
-                        },
-                      ),
-                      width: 40.0,
-                    ),
-                    Container(
-                      child: TextFormField(
-                        controller: _pin03Controller,
-                        keyboardType: TextInputType.number,
-                        obscureText: true,
-                        style: TextStyle(
-                          fontSize: 24.0,
-                        ),
-                        focusNode: _focus03,
-                        onChanged: (value) {
-                          if (value.length == 1) {
-                            FocusScope.of(context).requestFocus(_focus04);
-                          } else {
-                            FocusScope.of(context).requestFocus(_focus02);
-                          }
-                        },
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(1),
-                        ],
-                        textAlign: TextAlign.center,
-                        validator: (value) {
-                          if (value.isEmpty) return '';
-                          return null;
-                        },
-                      ),
-                      width: 40.0,
-                    ),
-                    Container(
-                      child: TextFormField(
-                        controller: _pin04Controller,
-                        keyboardType: TextInputType.number,
-                        obscureText: true,
-                        style: TextStyle(
-                          fontSize: 24.0,
-                        ),
-                        focusNode: _focus04,
-                        onChanged: (value) {
-                          _handlePin(value);
-                        },
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(1),
-                        ],
-                        textAlign: TextAlign.center,
-                        validator: (value) {
-                          if (value.isEmpty) return '';
-                          return null;
-                        },
-                      ),
-                      width: 40.0,
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 20.0,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    FlatButton(
-                      child: Text('Відмінити'),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      shape: RoundedRectangleBorder(
-                        borderRadius: new BorderRadius.circular(18.0),
-                        side: BorderSide(color: Theme.of(context).primaryColor),
-                      ),
-                    )
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  void _handlePin(String value) async {
-    if (value.length == 1) {
-      if (_authPinFirst == "") {
-        _authPinFirst = _pin01Controller.text +
-            _pin02Controller.text +
-            _pin03Controller.text +
-            _pin04Controller.text;
-
-        _pin01Controller.clear();
-        _pin02Controller.clear();
-        _pin03Controller.clear();
-        _pin04Controller.clear();
-
-        setState(() {
-          _title = "Повторіть пін ще раз";
-        });
-
-        FocusScope.of(context).requestFocus(_focus01);
-      } else {
-        _authPinSecond = _pin01Controller.text +
-            _pin02Controller.text +
-            _pin03Controller.text +
-            _pin04Controller.text;
-
-        _pin01Controller.clear();
-        _pin02Controller.clear();
-        _pin03Controller.clear();
-        _pin04Controller.clear();
-
-        if (_authPinFirst == _authPinSecond) {
-          final prefs = await SharedPreferences.getInstance();
-          prefs.setString(KEY_AUTH_PIN, _authPinFirst);
-          Navigator.pop(context);
-        } else {
-          _pin01Controller.clear();
-          _pin02Controller.clear();
-          _pin03Controller.clear();
-          _pin04Controller.clear();
-
-          setState(() {
-            _authPinFirst = "";
-            _authPinSecond = "";
-            _title = "Ви введи два різні піни. Почнемо спочатку.";
-          });
-
-          FocusScope.of(context).requestFocus(_focus01);
+  handlePin(String value) async {
+    if (value == "<") {
+      setState(() {
+        if (_authPinFirst.length > 0) {
+          _authPinFirst = _authPinFirst.substring(0, _authPinFirst.length - 1);
         }
+        _incorrectPin = false;
+      });
+
+      return;
+    }
+
+    String _pin = _authPinFirst;
+
+    _pin += value;
+
+    setState(() {
+      _authPinFirst = _pin;
+
+      if (_pin.length < 4) {
+        _authPinFirst = _pin;
+        _incorrectPin = false;
+      } else {
+        _title = "Повторіть ПІН-код";
+        _confirmPin = true;
+        _incorrectPin = false;
       }
+    });
+
+    return;
+  }
+
+  handlePinConfirmation(String value) async {
+    if (value == "<") {
+      setState(() {
+        if (_authPinSecond.length > 0) {
+          _authPinSecond =
+              _authPinSecond.substring(0, _authPinSecond.length - 1);
+        }
+        _incorrectPin = false;
+      });
+
+      return;
+    }
+
+    String _pin = _authPinSecond;
+
+    _pin += value;
+
+    if (_pin.length < 4) {
+      setState(() {
+        _authPinSecond = _pin;
+        _incorrectPin = false;
+      });
+
+      return;
+    }
+
+    if (_authPinFirst == _pin) {
+      final prefs = await SharedPreferences.getInstance();
+      prefs.setString(KEY_AUTH_PIN, _authPinFirst);
+      Navigator.pop(context);
     } else {
-      FocusScope.of(context).requestFocus(_focus03);
+      if (await Vibration.hasVibrator()) {
+        Vibration.vibrate();
+      }
+
+      setState(() {
+        _title = "Введіь ПІН-код";
+        _authPinFirst = "";
+        _authPinSecond = "";
+        _confirmPin = false;
+        _incorrectPin = true;
+      });
     }
   }
 }
