@@ -63,82 +63,122 @@ class _PageSettingsState extends State<PageSettings> {
         profile: widget.profile,
       ),
       body: SingleChildScrollView(
-        child: Form(
-          child: Column(
-            children: <Widget>[
-              FormField<String>(
-                builder: (FormFieldState<String> state) {
-                  return InputDecorator(
-                    decoration: InputDecoration(
-                      icon: Icon(Icons.dialpad),
-                    ),
-                    child: SwitchListTile(
-                        title: Text('Увімкнути захист додатку ПІН-кодом'),
-                        value: isProtectionEnabled,
-                        onChanged: (bool value) async {
-                          final prefs = await SharedPreferences.getInstance();
-
-                          if (!value) {
-                            prefs.setBool(
-                                KEY_IS_BIOMETRIC_PROTECTION_ENABLED, value);
-                            prefs.setString(KEY_AUTH_PIN, "");
-                          } else {
-                            String _authPin =
-                                prefs.getString(KEY_AUTH_PIN) ?? "";
-                            if (_authPin == "") {
-                              Navigator.of(context).pushNamed("/set_pin");
-                              return;
-                            }
-                          }
-
-                          prefs.setBool(KEY_IS_PROTECTION_ENABLED, value);
-
-                          setState(() {
-                            isProtectionEnabled = value;
-                            if (!value) {
-                              isBiometricProtectionEnabled = value;
-                            }
-                          });
-                        }),
-                  );
-                },
-              ),
-              Visibility(
-                visible: canCheckBiometrics && isProtectionEnabled,
-                child: FormField<String>(
-                  builder: (FormFieldState<String> state) {
-                    return InputDecorator(
-                      decoration: InputDecoration(
-                        icon: Icon(Icons.fingerprint),
-                      ),
-                      child: SwitchListTile(
-                          title: Text(
-                              'Увімкнути захист додатку відбитком пальця ци розпізнаванням обличчя'),
-                          value: isBiometricProtectionEnabled,
-                          onChanged: (bool value) async {
-                            final prefs = await SharedPreferences.getInstance();
-                            prefs.setBool(
-                                KEY_IS_BIOMETRIC_PROTECTION_ENABLED, value);
-
-                            setState(() {
-                              isBiometricProtectionEnabled = value;
-                            });
-                          }),
-                    );
-                  },
+        child: Container(
+          padding: EdgeInsets.all(10.0),
+          child: Form(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Захист',
+                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
                 ),
-              ),
-            ],
+                Container(
+                  margin: EdgeInsets.only(left: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      FormField<String>(
+                        builder: (FormFieldState<String> state) {
+                          return InputDecorator(
+                            decoration: InputDecoration(
+                              icon: Icon(Icons.dialpad),
+                            ),
+                            child: SwitchListTile(
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text('Захист додатку ПІН-кодом'),
+                                  Text(
+                                    isProtectionEnabled
+                                        ? 'увімкнуто'
+                                        : 'вимкнуто',
+                                    style:
+                                        TextStyle(color: Colors.grey.shade400),
+                                  ),
+                                ],
+                              ),
+                              value: isProtectionEnabled,
+                              onChanged: (bool value) async {
+                                final prefs =
+                                    await SharedPreferences.getInstance();
+
+                                if (!value) {
+                                  prefs.setBool(
+                                      KEY_IS_BIOMETRIC_PROTECTION_ENABLED,
+                                      value);
+                                  prefs.setString(KEY_AUTH_PIN, "");
+                                } else {
+                                  String _authPin =
+                                      prefs.getString(KEY_AUTH_PIN) ?? "";
+                                  if (_authPin == "") {
+                                    Navigator.of(context).pushNamed("/set_pin");
+                                    return;
+                                  }
+                                }
+
+                                prefs.setBool(KEY_IS_PROTECTION_ENABLED, value);
+
+                                setState(() {
+                                  isProtectionEnabled = value;
+                                  if (!value) {
+                                    isBiometricProtectionEnabled = value;
+                                  }
+                                });
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                      FlatButton(
+                          onPressed: null, child: Text('змінити ПІН-код')),
+                      Visibility(
+                        visible: canCheckBiometrics && isProtectionEnabled,
+                        child: FormField<String>(
+                          builder: (FormFieldState<String> state) {
+                            return InputDecorator(
+                              decoration: InputDecoration(
+                                icon: Icon(Icons.fingerprint),
+                              ),
+                              child: SwitchListTile(
+                                  title: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(
+                                          'Захист додатку відбитком пальця ци розпізнаванням обличчя'),
+                                      Text(
+                                        isProtectionEnabled
+                                            ? 'увімкнуто'
+                                            : 'вимкнуто',
+                                        style: TextStyle(
+                                            color: Colors.grey.shade400),
+                                      ),
+                                    ],
+                                  ),
+                                  value: isBiometricProtectionEnabled,
+                                  onChanged: (bool value) async {
+                                    final prefs =
+                                        await SharedPreferences.getInstance();
+                                    prefs.setBool(
+                                        KEY_IS_BIOMETRIC_PROTECTION_ENABLED,
+                                        value);
+
+                                    setState(() {
+                                      isBiometricProtectionEnabled = value;
+                                    });
+                                  }),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.save),
-        onPressed: () async {
-          final prefs = await SharedPreferences.getInstance();
-
-          prefs.setBool(KEY_IS_PROTECTION_ENABLED, isProtectionEnabled);
-        },
       ),
     );
   }
