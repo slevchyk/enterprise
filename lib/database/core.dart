@@ -115,7 +115,8 @@ class DBProvider {
           ')');
       await db.execute('CREATE TABLE paydesk ('
           'id INTEGER PRIMARY KEY AUTOINCREMENT,'
-          'user_id INTEGER,'
+          'user_id TEXT,'
+          'payment_status BOOLEAN,'
           'amount DOUBLE,'
           'payment TEXT,'
           'confirming INTEGER,'
