@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:enterprise/models/profile.dart';
 import 'package:flutter/material.dart';
 
@@ -22,7 +24,8 @@ class UserPhoto extends StatelessWidget {
       );
     } else {
       return CircleAvatar(
-        child: Image.asset(profile.photoName),
+        child: Image.file(File(profile.photoName)),
+//            File(profile.photoName)),
       );
     }
   }

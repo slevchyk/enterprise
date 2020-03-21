@@ -51,7 +51,13 @@ class RouteGenerator {
       case '/set_pin':
         return MaterialPageRoute(builder: (_) => PageSetPin());
       case '/paydesk':
-        return MaterialPageRoute(builder: (_) => PagePayDesk());
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PagePayDesk(
+                    profile: args.profile,
+                  ));
+        }
+        return _errorRoute(settings.name);
       case '/timinghistory':
         return MaterialPageRoute(builder: (_) => PageTimingHistory());
       case '/profile':

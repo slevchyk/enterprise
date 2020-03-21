@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:enterprise/database/paydesk_dao.dart';
 import 'package:enterprise/database/warehouse/core.dart';
 import 'package:enterprise/database/warehouse/goods_dao.dart';
 import 'package:enterprise/models/constants.dart';
@@ -230,6 +231,13 @@ class PageDebugState extends State<PageDebug> {
                           _clearTiming();
                         },
                         child: Text('clear timing'),
+                        color: Colors.blueGrey,
+                      ),
+                      FlatButton(
+                        onPressed: () async {
+                          PayDeskDAO().deleteAll();
+                        },
+                        child: Text('clear paydesk'),
                         color: Colors.blueGrey,
                       ),
                       FlatButton(

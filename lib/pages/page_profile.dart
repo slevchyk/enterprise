@@ -86,7 +86,7 @@ class PageProfileState extends State<PageProfile> {
         ],
       ),
       body: ListView(
-        padding: EdgeInsets.all(10.0),
+        padding: EdgeInsets.all(8.0),
         children: <Widget>[
           Container(
             height: _isLoadingProfile ? 50 : 0,
@@ -243,9 +243,7 @@ class PageProfileState extends State<PageProfile> {
                                 labelText: 'Дата народження',
                               ),
                               validator: (value) {
-                                if (_passportTypeController.text ==
-                                        PASSPORT_TYPE_ID &&
-                                    value.isEmpty)
+                                if (value.isEmpty)
                                   return 'ви не вказали дату свого народження';
                                 return null;
                               },
@@ -553,8 +551,8 @@ class PageProfileState extends State<PageProfile> {
         ],
       ),
       floatingActionButton: ProfileFAB(
-        _readOnly,
-        (String value) {
+        readOnly: _readOnly,
+        onPressed: (String value) {
           switch (value) {
             case "update":
               setState(() {
@@ -1015,10 +1013,10 @@ class ProfileFAB extends StatefulWidget {
   final bool readOnly;
   final Function(String value) onPressed;
 
-  ProfileFAB(
+  ProfileFAB({
     this.readOnly,
     this.onPressed,
-  );
+  });
 
   @override
   _ProfileFABState createState() => _ProfileFABState();

@@ -3,7 +3,6 @@ import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -148,7 +147,7 @@ class _PageSettingsState extends State<PageSettings> {
                                       Text(
                                           'Захист додатку відбитком пальця ци розпізнаванням обличчя'),
                                       Text(
-                                        isProtectionEnabled
+                                        isBiometricProtectionEnabled
                                             ? 'увімкнуто'
                                             : 'вимкнуто',
                                         style: TextStyle(

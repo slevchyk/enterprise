@@ -252,9 +252,12 @@ class _AppDrawerState extends State<AppDrawer> {
               leading: Icon(FontAwesomeIcons.cashRegister),
               title: Text('Каса'),
               onTap: () {
+                RouteArgs args = RouteArgs(
+                  profile: widget.profile,
+                );
                 Navigator.of(context).pushNamed(
                   '/paydesk',
-                  arguments: "",
+                  arguments: args,
                 );
               },
             ),
