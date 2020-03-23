@@ -123,7 +123,7 @@ class DBProvider {
           'document_number TEXT,'
           'document_date TEXT,'
           'files TEXT,'
-          'files_quantity INTEGER,'
+          'files_quantity,'
           'created_at TEXT,'
           'updated_at TEXT,'
           'is_modified BIT'

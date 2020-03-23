@@ -4,8 +4,17 @@ import 'package:enterprise/models/paydesk.dart';
 class PayDeskDAO {
   final dbProvider = DBProvider.db;
 
-  insert(PayDesk payDesk) async {
+  insert(PayDesk payDesk, {bool isModified = true}) async {
     final db = await dbProvider.database;
+
+    String createdAt = isModified
+        ? DateTime.now().toString()
+        : payDesk?.createdAt?.toIso8601String() ?? null;
+
+    String updatedAt = isModified
+        ? DateTime.now().toString()
+        : payDesk?.createdAt?.toIso8601String() ?? null;
+
     var raw = await db.rawInsert(
         'INSERT Into paydesk ('
         'user_id,'
@@ -32,13 +41,13 @@ class PayDeskDAO {
               : null,
           payDesk.files,
           payDesk.filesQuantity,
-          DateTime.now().toIso8601String(),
-          DateTime.now().toIso8601String(),
-          true,
+          createdAt,
+          updatedAt,
+          isModified,
         ]);
 
     if (raw.isFinite) {
-      PayDesk.upload();
+      PayDesk.sync();
     }
 
     return raw;
@@ -48,6 +57,12 @@ class PayDeskDAO {
     final db = await dbProvider.database;
     var res =
         await db.query("paydesk", where: "mob_id = ? ", whereArgs: [mobID]);
+    return res.isNotEmpty ? PayDesk.fromMap(res.first) : null;
+  }
+
+  getByID(int id) async {
+    final db = await dbProvider.database;
+    var res = await db.query("paydesk", where: "id = ? ", whereArgs: [id]);
     return res.isNotEmpty ? PayDesk.fromMap(res.first) : null;
   }
 
