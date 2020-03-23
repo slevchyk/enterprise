@@ -215,15 +215,17 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
           ),
         ),
       ),
-      floatingActionButton: PayDeskFAB(
-        readOnly: _readOnly,
-        onPressed: _handleFAB,
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.menu),
+        onPressed: () {
+          _showModalBottomSheet();
+        },
       ),
       bottomNavigationBar: _setNavigationBar(),
     );
   }
 
-  void _handleFAB(String action) async {
+  void _handleBottomSheet(String action) async {
     switch (action) {
       case "edit":
         setState(() {
@@ -243,14 +245,16 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
         _save();
         break;
       case "saveExit":
-        await _save();
-        Navigator.pop(_scaffoldKey.currentContext);
+        bool _ok = await _save();
+        if (_ok) Navigator.pop(_scaffoldKey.currentContext);
     }
   }
 
-  _save() async {
+  Future<bool> _save() async {
+    bool _ok = false;
+
     if (!_formKey.currentState.validate()) {
-      return;
+      return _ok;
     }
 
     PayDesk _existPayDesk;
@@ -264,7 +268,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     _payDesk.documentNumber = _documentNumberController.text;
     _payDesk.documentDate = _documentDate;
 
-    bool _ok = false;
     if (_existPayDesk == null) {
       _payDesk.mobID = await PayDeskDAO().insert(_payDesk);
       if (_payDesk.mobID != null) {
@@ -283,6 +286,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     } else {
       _displaySnackBar("Помилка збереження в базі", Colors.red);
     }
+
+    return _ok;
   }
 
   void _setControllers() {
@@ -624,96 +629,116 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
       }
     });
   }
-}
 
-class PayDeskFAB extends StatefulWidget {
-  final bool readOnly;
-  final Function(String value) onPressed;
-
-  PayDeskFAB({
-    this.readOnly,
-    this.onPressed,
-  });
-
-  @override
-  _PayDeskFABState createState() => _PayDeskFABState();
-}
-
-class _PayDeskFABState extends State<PayDeskFAB> {
-  String currentTimingStatus;
-
-  SpeedDialChild editSDC() {
-    return SpeedDialChild(
-      label: "Редагувати",
-      child: Icon(Icons.edit),
-      onTap: () {
-        widget.onPressed("edit");
-      },
-    );
-  }
-
-  SpeedDialChild saveSDC() {
-    return SpeedDialChild(
-      label: "Зберегти",
-      child: Icon(Icons.save),
-      onTap: () {
-        widget.onPressed("save");
-      },
-    );
-  }
-
-  SpeedDialChild saveExitSDC() {
-    return SpeedDialChild(
-      label: "Зберегти і вийти",
-      child: Icon(Icons.check),
-      onTap: () {
-        widget.onPressed("saveExit");
-      },
-    );
-  }
-
-  SpeedDialChild undoSDC() {
-    return SpeedDialChild(
-      label: "Відмінити",
-      child: Icon(Icons.undo),
-      onTap: () {
-        widget.onPressed("undo");
-      },
-    );
-  }
-
-  SpeedDialChild exitSDC() {
-    return SpeedDialChild(
-      label: "Вийти",
-      child: Icon(Icons.arrow_back),
-      onTap: () {
-        widget.onPressed("exit");
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    switch (widget.readOnly) {
-      case false:
-        return SpeedDial(
-          animatedIcon: AnimatedIcons.menu_close,
-          closeManually: false,
-          children: [
-            saveSDC(),
-            saveExitSDC(),
-            undoSDC(),
-          ],
-        );
-      default:
-        return SpeedDial(
-          animatedIcon: AnimatedIcons.menu_close,
-          closeManually: false,
-          children: [
-            editSDC(),
-            exitSDC(),
-          ],
-        );
+  _showModalBottomSheet() {
+    ListTile _editLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.edit,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Редагувати"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("edit");
+        },
+      );
     }
+
+    ListTile _saveLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.save,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Зберегти"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("save");
+        },
+      );
+    }
+
+    ListTile _saveExitLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.check,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Зберегти і закрити"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("saveExit");
+        },
+      );
+    }
+
+    ListTile _undoLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.undo,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Відмінити"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("undo");
+        },
+      );
+    }
+
+    ListTile _exitLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.arrow_back,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Закрити"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("exit");
+        },
+      );
+    }
+
+    showModalBottomSheet(
+      context: _scaffoldKey.currentContext,
+      builder: (BuildContext context) {
+        List<ListTile> _menu = [];
+
+        if (_readOnly) {
+          _menu.add(_exitLT(context));
+          _menu.add(_editLT(context));
+        } else {
+          _menu.add(_undoLT(context));
+          _menu.add(_saveExitLT(context));
+          _menu.add(_saveLT(context));
+        }
+
+        return Theme(
+          data: Theme.of(_scaffoldKey.currentContext)
+              .copyWith(canvasColor: Colors.transparent),
+          child: Container(
+            color: Colors.grey.shade600,
+            child: Container(
+              padding: EdgeInsets.all(5.0),
+              height: _menu.length * 60.0,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(8.0),
+                  topRight: Radius.circular(8.0),
+                ),
+              ),
+              child: ListView.builder(
+                  itemCount: _menu.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return _menu[index];
+                  }),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

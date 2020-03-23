@@ -83,7 +83,7 @@ class PayDesk {
 
   static sync() async {
     await upload();
-    download();
+    await download();
   }
 
   static upload() async {
