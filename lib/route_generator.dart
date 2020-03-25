@@ -11,7 +11,6 @@ import 'package:enterprise/pages/page_paydesk_detail.dart';
 import 'package:enterprise/pages/page_settings.dart';
 import 'package:enterprise/pages/page_timing_hitory.dart';
 import 'package:enterprise/pages/page_turnstile.dart';
-import 'package:enterprise/pages/warehouse/goods/page_goods_list.dart';
 import 'package:enterprise/pages/warehouse/page_orders.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/page_main.dart';
@@ -105,8 +104,6 @@ class RouteGenerator {
                 ));
       case '/warehouse/orders':
         return MaterialPageRoute(builder: (_) => PageOrders());
-      case '/warehouse/goods/list':
-        return MaterialPageRoute(builder: (_) => PageGoodsList());
       // Validation of correct data type
 //        if (args is String) {
 //          return MaterialPageRoute(

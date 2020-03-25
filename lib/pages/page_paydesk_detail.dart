@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:crypto/crypto.dart';
+
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/paydesk_dao.dart';
 import 'package:enterprise/models/paydesk.dart';
@@ -8,6 +10,7 @@ import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/widgets/attachments_carousel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
@@ -623,6 +626,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
       _filesPaths.add(value.path);
     });
     _payDesk.filePaths = jsonEncode(_filesPaths);
+
     _payDesk.filesQuantity = _newFiles.length;
 
     PayDeskDAO().update(_payDesk);

@@ -24,13 +24,40 @@ class DBWarehouseProvider {
     return await openDatabase(path, version: 1, onOpen: (db) {},
         onCreate: (Database db, int version) async {
       await db.execute("CREATE TABLE goods ("
-          "mob_id INTEGER PRIMARY KEY,"
+          "mob_id INTEGER PRIMARY KEY AUTOINCREMENT,"
           "id INTEGER,"
-          "acc_id TEXT,"
-          "is_deleted BIT,"
-          "name TEXT"
+          "user_id  TEXT,"
+          "good_status BIT,"
+          "good_count INTEGET,"
+          "good_name TEXT,"
+          "good_unit TEXT"
+          ")");
+      await db.execute("CREATE TABLE newGoods ("
+          "mob_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+          "id INTEGER,"
+          "user_id  TEXT,"
+          "good_status BIT,"
+          "good_count INTEGET,"
+          "good_name TEXT,"
+          "good_unit TEXT"
+          ")");
+      await db.execute('CREATE TABLE documents ('
+          'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
+          "id INTEGER,"
+          'user_id TEXT,'
+          'document_status BIT,'
+          'document_number INTEGET,'
+          'document_date TEXT,'
+          'document_partner TEXT'
+          ')');
+      await db.execute("CREATE TABLE partners ("
+          "mob_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+          "id INTEGER,"
+          "user_id TEXT,"
+          "partner_name TEXT"
           ")");
     });
+
   }
 
   deleteDB() async {
