@@ -2,12 +2,14 @@ import 'dart:io';
 
 import 'package:enterprise/database/warehouse/core.dart';
 import 'package:enterprise/database/warehouse/goods_dao.dart';
+import 'package:enterprise/database/warehouse/partners_dao.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/database/timing_dao.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/models/warehouse/goods.dart';
+import 'package:enterprise/models/warehouse/partners.dart';
 import 'package:enterprise/pages/page_timing_db.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -262,16 +264,20 @@ class PageDebugState extends State<PageDebug> {
                         child: Text('Send fb token'),
                       ),
                       FlatButton(
-                        onPressed: () {
-                          _clearGoods();
-                        },
-                        child: Text('Очистити goods'),
+                          onPressed: () {
+                            for(int i = 1; i <= 20; i++){
+                              PartnersDAO().insert(Partners(userID: '1', name: 'Партнер тест $i'));
+                            }
+                          },
+                          child: Text('Add Partners'),
                       ),
                       FlatButton(
                         onPressed: () {
-                          _setGoods();
+                          for(int i = 1; i <= 20; i++){
+                            GoodsDAO().insert(Goods(userID: '1', status: true, count: i,name: 'Номенклатура тест $i', unit: 'smt $i'));
+                          }
                         },
-                        child: Text('Заповнити goods'),
+                        child: Text('Add Goods'),
                       ),
                       FlatButton(
                         onPressed: () {
@@ -441,31 +447,11 @@ class PageDebugState extends State<PageDebug> {
     Response response = await post(url, headers: headers, body: requestJSON);
   }
 
-  void _setGoods() async {
-    List<Goods> _goodsList = [];
-
-    for (var i = 1; i < 10000; i++) {
-      Goods _goods = Goods(
-        id: i,
-        accID: i.toString(),
-        isDeleted: false,
-        name: "Goods $i",
-      );
-      _goodsList.add(_goods);
-    }
-
-    for (var _goods in _goodsList) {
-      await GoodsDAO().insert(_goods);
-    }
-  }
 
   void _delteDBWarehouse() {
     DBWarehouseProvider.db.deleteDB();
   }
 
-  void _clearGoods() {
-    GoodsDAO().deleteAll();
-  }
 }
 
 class Choice {
