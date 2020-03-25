@@ -17,20 +17,23 @@ class PayDeskDAO {
 
     var raw = await db.rawInsert(
         'INSERT Into paydesk ('
+        'id,'
         'user_id,'
         'payment_status,'
         'amount,'
         'payment,'
         'document_number,'
         'document_date,'
-        'files,'
+        'file_paths,'
         'files_quantity,'
         'created_at,'
         'updated_at,'
+        'is_deleted,'
         'is_modified'
         ')'
-        'VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
+          payDesk.id,
           payDesk.userID,
           payDesk.paymentStatus,
           payDesk.amount,
@@ -39,45 +42,62 @@ class PayDeskDAO {
           payDesk.documentDate != null
               ? payDesk.documentDate.toIso8601String()
               : null,
-          payDesk.files,
+          payDesk.filePaths,
           payDesk.filesQuantity,
           createdAt,
           updatedAt,
+          payDesk.isDeleted,
           isModified,
         ]);
 
-    if (raw.isFinite) {
+    if (raw.isFinite && payDesk.id == null) {
       PayDesk.sync();
     }
 
     return raw;
   }
 
-  getByMobID(int mobID) async {
+  Future<PayDesk> getByMobID(int mobID) async {
     final db = await dbProvider.database;
     var res =
         await db.query("paydesk", where: "mob_id = ? ", whereArgs: [mobID]);
     return res.isNotEmpty ? PayDesk.fromMap(res.first) : null;
   }
 
-  getByID(int id) async {
+  Future<PayDesk> getByID(int id) async {
     final db = await dbProvider.database;
     var res = await db.query("paydesk", where: "id = ? ", whereArgs: [id]);
     return res.isNotEmpty ? PayDesk.fromMap(res.first) : null;
   }
 
-  update(PayDesk payDesk, {bool isModified = true}) async {
+  Future<bool> update(PayDesk payDesk, {bool isModified = true}) async {
     final db = await dbProvider.database;
     payDesk.isModified = isModified;
     payDesk.updatedAt = DateTime.now();
     var res = await db.update("paydesk", payDesk.toMap(),
         where: "mob_id = ?", whereArgs: [payDesk.mobID]);
+
+    if (res.isFinite && isModified) {
+      PayDesk.sync();
+    }
+
     return res.isFinite;
   }
 
-  Future<List<PayDesk>> getAll() async {
+  Future<List<PayDesk>> getUnDeleted() async {
     final db = await dbProvider.database;
-    var res = await db.query("paydesk", orderBy: "document_date DESC");
+    var res =
+        await db.query("paydesk", where: 'is_deleted=0', orderBy: "id DESC");
+
+    List<PayDesk> list =
+        res.isNotEmpty ? res.map((c) => PayDesk.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  Future<List<PayDesk>> getDeleted() async {
+    final db = await dbProvider.database;
+    var res =
+        await db.query("paydesk", where: 'is_deleted=1', orderBy: "id DESC");
 
     List<PayDesk> list =
         res.isNotEmpty ? res.map((c) => PayDesk.fromMap(c)).toList() : [];
@@ -93,7 +113,7 @@ class PayDeskDAO {
     return list;
   }
 
-  deleteAll() async {
+  Future<void> deleteAll() async {
     final db = await dbProvider.database;
     db.delete("paydesk");
   }

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:crypto/crypto.dart';
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/paydesk_dao.dart';
 import 'package:enterprise/models/paydesk.dart';
@@ -8,12 +8,10 @@ import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/widgets/attachments_carousel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:uuid/uuid.dart';
 
 class PagePayDeskDetail extends StatefulWidget {
   final PayDesk payDesk;
@@ -293,10 +291,10 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
   void _setControllers() {
     _files.clear();
     if (_payDesk != null) {
-      List<dynamic> _filesPathes = [];
-      if (_payDesk.files != null && _payDesk.files.isNotEmpty)
-        _filesPathes = jsonDecode(_payDesk.files);
-      _filesPathes.forEach((value) {
+      List<dynamic> _filesPaths = [];
+      if (_payDesk.filePaths != null && _payDesk.filePaths.isNotEmpty)
+        _filesPaths = jsonDecode(_payDesk.filePaths);
+      _filesPaths.forEach((value) {
         _files.add(File(value));
       });
 
@@ -592,26 +590,39 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 
     List<File> _newFiles = [];
 
-    _files.forEach((_file) async {
+    for (var _file in _files) {
       if (_file.path.contains(_dir.path)) {
         _newFiles.add(_file);
       } else {
         final _extension = extension(_file.path);
-        final _originalName = basename(_file.path);
-        final _encryptedName = Uuid().v5(Uuid.NAMESPACE_URL,
-            '${DateTime.now().toString()}${_payDesk.mobID}$_originalName');
 
-        File _newFile =
-            _file.copySync('${_dir.path}/$_encryptedName$_extension');
+        final _fileBytes = _file.readAsBytesSync();
+        String _fileHash = sha256.convert(_fileBytes).toString();
+
+        if (_files.where((value) => value.path.contains(_fileHash)).length >
+            0) {
+          _displaySnackBar(
+              "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+          continue;
+        }
+
+        if (_newFiles.where((value) => value.path.contains(_fileHash)).length >
+            0) {
+          _displaySnackBar(
+              "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+          continue;
+        }
+
+        File _newFile = _file.copySync('${_dir.path}/$_fileHash$_extension');
         _newFiles.add(_newFile);
       }
-    });
+    }
 
-    List<String> _filesPathes = [];
+    List<String> _filesPaths = [];
     _newFiles.forEach((value) {
-      _filesPathes.add(value.path);
+      _filesPaths.add(value.path);
     });
-    _payDesk.files = jsonEncode(_filesPathes);
+    _payDesk.filePaths = jsonEncode(_filesPaths);
     _payDesk.filesQuantity = _newFiles.length;
 
     PayDeskDAO().update(_payDesk);
