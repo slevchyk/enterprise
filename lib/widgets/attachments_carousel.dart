@@ -17,7 +17,8 @@ class AttachmentsCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 325.0,
+      height: 330.0,
+
 //      color: Colors.blue,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,

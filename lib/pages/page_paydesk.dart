@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/paydesk_dao.dart';
+import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_paydesk_detail.dart';
@@ -38,6 +39,18 @@ class _PagePayDeskState extends State<PagePayDesk> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text('Каса'),
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () async {
+              await PayDesk.sync();
+              _load();
+            },
+            child: Icon(
+              Icons.update,
+              color: Colors.white,
+            ),
+          )
+        ],
       ),
       body: Scaffold(
         body: RefreshIndicator(
@@ -127,12 +140,9 @@ class _PagePayDeskState extends State<PagePayDesk> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) {
-              return Material(
-                  child: PagePayDeskDetail(
-                profile: _profile,
-              ));
-            })).whenComplete(() => _load());
+            RouteArgs _args = RouteArgs(profile: _profile);
+            Navigator.pushNamed(context, "/paydesk/detail", arguments: _args)
+                .whenComplete(() => _load());
           },
           child: Icon(Icons.add),
         ),
@@ -141,6 +151,8 @@ class _PagePayDeskState extends State<PagePayDesk> {
   }
 
   Future<void> _load() async {
-    payList = PayDeskDAO().getAll();
+    setState(() {
+      payList = PayDeskDAO().getUnDeleted();
+    });
   }
 }

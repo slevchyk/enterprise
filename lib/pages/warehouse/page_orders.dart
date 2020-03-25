@@ -5,7 +5,7 @@ import 'package:enterprise/database/warehouse/partners_dao.dart';
 import 'package:enterprise/models/warehouse/documnets.dart';
 import 'package:enterprise/models/warehouse/goods.dart';
 import 'package:enterprise/models/warehouse/partners.dart';
-import 'file:///D:/Programs/Flutter/enterprise/lib/pages/warehouse/page_documents_controller.dart';
+import 'package:enterprise/pages/warehouse/page_documents_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -19,8 +19,8 @@ class PageOrders extends StatefulWidget {
   _PageOrdersState createState() => _PageOrdersState();
 }
 
-class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateMixin {
-
+class _PageOrdersState extends State<PageOrders>
+    with SingleTickerProviderStateMixin {
   Future<List<Documents>> _documentsList;
   Future<List<Goods>> _goodsList;
   Future<List<Goods>> _goodsAddedList;
@@ -32,7 +32,9 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
     Tab(text: 'Список замовлень'),
     Tab(text: 'Список номенклатур'),
     Tab(text: 'Номенклатура постачальника'),
-    Tab(text: 'Партнери',),
+    Tab(
+      text: 'Партнери',
+    ),
   ];
 
   TabController _tabController;
@@ -44,16 +46,16 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
     _tabController = TabController(vsync: this, length: _myTabs.length);
 
     _tabController.addListener(() {
-      if(_tabController.index >= 2){
-        if(_isVisible == true) {
-          setState((){
+      if (_tabController.index >= 2) {
+        if (_isVisible == true) {
+          setState(() {
             _isVisible = false;
           });
         }
       } else {
-        if(_tabController.index <= 1){
-          if(_isVisible == false) {
-            setState((){
+        if (_tabController.index <= 1) {
+          if (_isVisible == false) {
+            setState(() {
               _isVisible = true;
             });
           }
@@ -91,27 +93,21 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
               ),
             ],
             bottom: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-                tabs: _myTabs
-            ),
+                controller: _tabController, isScrollable: true, tabs: _myTabs),
           ),
-          body: TabBarView(
-              controller: _tabController,
-              children: [
-                _documents(_documentsList),
-                _goods(_goodsAddedList, true),
-                _goods(_goodsList, false),
-                _partners(_partnersList),
-              ]
-          ),
+          body: TabBarView(controller: _tabController, children: [
+            _documents(_documentsList),
+            _goods(_goodsAddedList, true),
+            _goods(_goodsList, false),
+            _partners(_partnersList),
+          ]),
           floatingActionButton: Visibility(
-            visible: _isVisible,
+              visible: _isVisible,
               child: FloatingActionButton(
                 onPressed: () {
-                  switch(_tabController.index) {
+                  switch (_tabController.index) {
                     case 0:
-                      Navigator.push(context, MaterialPageRoute(builder: (_){
+                      Navigator.push(context, MaterialPageRoute(builder: (_) {
                         return DocumentsView(
                           currentDocuments: null,
                           enableEdit: true,
@@ -120,7 +116,7 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
                       })).whenComplete(() => _load("documents"));
                       break;
                     case 1:
-                      Navigator.push(context, MaterialPageRoute(builder: (_){
+                      Navigator.push(context, MaterialPageRoute(builder: (_) {
                         return GoodsView(
                           currentGoods: null,
                           enableEdit: true,
@@ -130,7 +126,7 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
                       })).whenComplete(() => _load("goodsAdded"));
                       break;
                     default:
-                      Navigator.push(context, MaterialPageRoute(builder: (_){
+                      Navigator.push(context, MaterialPageRoute(builder: (_) {
                         return DocumentsView(
                           currentDocuments: null,
                           enableEdit: true,
@@ -141,13 +137,11 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
                   }
                 },
                 child: Icon(Icons.add),
-              )
-          ),
-        )
-    );
+              )),
+        ));
   }
 
-  Widget _documents(Future<List<Documents>> documentsList){
+  Widget _documents(Future<List<Documents>> documentsList) {
     return FutureBuilder(
       future: documentsList,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -168,14 +162,12 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
             var _documentsList = snapshot.data;
             return Center(
               child: ListView.builder(
-                itemCount: _documentsList == null
-                    ? 0
-                    : _documentsList.length,
+                itemCount: _documentsList == null ? 0 : _documentsList.length,
                 itemBuilder: (BuildContext context, int index) {
                   Documents _documents = _documentsList[index];
                   return InkWell(
-                    onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (_){
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) {
                         return DocumentsView(
                           currentDocuments: _documents,
                           enableEdit: false,
@@ -196,14 +188,13 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                Text('Дата: ${DateFormat('dd.MM.yyyy')
-                                    .format(_documents.date)}'),
+                                Text(
+                                    'Дата: ${DateFormat('dd.MM.yyyy').format(_documents.date)}'),
                                 Text('Номер: ${_documents.number}'),
                               ],
                             ),
                           ),
-                        )
-                    ),
+                        )),
                   );
                 },
               ),
@@ -217,7 +208,7 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
     );
   }
 
-  Widget _goods(Future<List<Goods>> goodsList, bool isNew){
+  Widget _goods(Future<List<Goods>> goodsList, bool isNew) {
     return FutureBuilder(
       future: goodsList,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -238,14 +229,12 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
             var _goodsList = snapshot.data;
             return Center(
               child: ListView.builder(
-                itemCount: _goodsList == null
-                    ? 0
-                    : _goodsList.length,
+                itemCount: _goodsList == null ? 0 : _goodsList.length,
                 itemBuilder: (BuildContext context, int index) {
                   Goods _goods = _goodsList[index];
                   return InkWell(
-                    onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (_){
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) {
                         return GoodsView(
                           currentGoods: _goods,
                           enableEdit: false,
@@ -269,14 +258,12 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
                               children: <Widget>[
                                 Text('Кількість: ${_goods.count}'),
                                 Text('Одиницi вимiру: ${_goods.unit}'),
-                                Text('Статус: ${_goods.status
-                                    ? 'Робочий'
-                                    : 'Чорновик'}'),
+                                Text(
+                                    'Статус: ${_goods.status ? 'Робочий' : 'Чорновик'}'),
                               ],
                             ),
                           ),
-                        )
-                    ),
+                        )),
                   );
                 },
               ),
@@ -290,7 +277,7 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
     );
   }
 
-  Widget _partners(Future<List<Partners>> partnersList){
+  Widget _partners(Future<List<Partners>> partnersList) {
     return FutureBuilder(
       future: partnersList,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -311,9 +298,7 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
             var _partnersList = snapshot.data;
             return Center(
               child: ListView.builder(
-                itemCount: _partnersList == null
-                    ? 0
-                    : _partnersList.length,
+                itemCount: _partnersList == null ? 0 : _partnersList.length,
                 itemBuilder: (BuildContext context, int index) {
                   Partners _partners = _partnersList[index];
 //                 var _image = Image.file(_partners.logo);
@@ -321,8 +306,8 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
 //                 Surround with try{} catch for handle the error
 //                 Add field 'logo' to => warehouse core, partners_dao and models partners
                   return InkWell(
-                    onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (_){
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) {
                         return PartnersView(
                           currentPartners: _partners,
                         );
@@ -342,8 +327,7 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
                             ),
                             title: Text(_partners.name),
                           ),
-                        )
-                    ),
+                        )),
                   );
                 },
               ),
@@ -358,32 +342,30 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
   }
 
   void _load(String toUpdate) {
-    if(context != null)
-    setState(() {
-      switch(toUpdate){
-        case "document":
-          _documentsList = DocumentsDAO().getAll();
-          _goodsList = GoodsDAO().getAll();
-          _partnersList = PartnersDAO().getAll();
-          break;
-        case "goodsAdded":
-          _goodsAddedList = GoodsAddedDAO().getAll();
-          _goodsList = GoodsDAO().getAll();
-          _partnersList = PartnersDAO().getAll();
-          break;
-        default:
-          _documentsList = DocumentsDAO().getAll();
-          _goodsList = GoodsDAO().getAll();
-          _goodsAddedList = GoodsAddedDAO().getAll();
-          _partnersList = PartnersDAO().getAll();
-      }
-    });
+    if (context != null)
+      setState(() {
+        switch (toUpdate) {
+          case "document":
+            _documentsList = DocumentsDAO().getAll();
+            _goodsList = GoodsDAO().getAll();
+            _partnersList = PartnersDAO().getAll();
+            break;
+          case "goodsAdded":
+            _goodsAddedList = GoodsAddedDAO().getAll();
+            _goodsList = GoodsDAO().getAll();
+            _partnersList = PartnersDAO().getAll();
+            break;
+          default:
+            _documentsList = DocumentsDAO().getAll();
+            _goodsList = GoodsDAO().getAll();
+            _goodsAddedList = GoodsAddedDAO().getAll();
+            _partnersList = PartnersDAO().getAll();
+        }
+      });
   }
-
 }
 
 class _CustomSearchDelegate extends SearchDelegate {
-
   final TabController _tabController;
   _CustomSearchDelegate(this._tabController);
 
@@ -424,7 +406,7 @@ class _CustomSearchDelegate extends SearchDelegate {
       );
     }
 
-    switch (_tabController.index){
+    switch (_tabController.index) {
       case 0:
         Future<List<Documents>> _listDocuments = DocumentsDAO().search(query);
         return _PageOrdersState()._documents(_listDocuments);
@@ -453,5 +435,4 @@ class _CustomSearchDelegate extends SearchDelegate {
     // If you want to add search suggestions as the user enters their search term, this is the place to do that.
     return Center();
   }
-
 }

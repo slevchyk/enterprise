@@ -18,10 +18,11 @@ class PayDesk {
   String payment;
   String documentNumber;
   DateTime documentDate;
-  String files;
+  String filePaths;
   int filesQuantity;
   DateTime createdAt;
   DateTime updatedAt;
+  bool isDeleted;
   bool isModified;
 
   PayDesk({
@@ -33,10 +34,11 @@ class PayDesk {
     this.payment,
     this.documentNumber,
     this.documentDate,
-    this.files,
+    this.filePaths,
     this.filesQuantity,
     this.createdAt,
     this.updatedAt,
+    this.isDeleted,
     this.isModified,
   });
 
@@ -53,7 +55,7 @@ class PayDesk {
         documentDate: json['document_date'] != null
             ? DateTime.parse(json["document_date"])
             : null,
-        files: json['files'],
+        filePaths: json['file_paths'],
         filesQuantity: json['files_quantity'],
         createdAt: json['created_at'] != null
             ? DateTime.parse(json["created_at"])
@@ -61,7 +63,16 @@ class PayDesk {
         updatedAt: json['updated_at'] != null
             ? DateTime.parse(json["updated_at"])
             : null,
-        isModified: json["is_modified"] == 1 ? true : false,
+        isDeleted: json["is_deleted"] == null
+            ? false
+            : json["is_deleted"] is int
+                ? json["is_deleted"] == 1 ? true : false
+                : json["is_deleted"],
+        isModified: json["is_modified"] == null
+            ? false
+            : json["is_modified"] is int
+                ? json["is_modified"] == 1 ? true : false
+                : json["is_modified"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -74,11 +85,12 @@ class PayDesk {
         'document_number': documentNumber,
         'document_date':
             documentDate != null ? documentDate.toIso8601String() : null,
-        'files': files,
+        'file_paths': filePaths,
         'files_quantity': filesQuantity,
         'created_at': createdAt != null ? createdAt.toIso8601String() : null,
         'updated_at': updatedAt != null ? updatedAt.toIso8601String() : null,
-        "is_modified": isModified ? 1 : 0,
+        "is_deleted": isDeleted == null ? 0 : isDeleted ? 1 : 0,
+        "is_modified": isModified == null ? 0 : isModified ? 1 : 0,
       };
 
   static sync() async {
@@ -116,8 +128,10 @@ class PayDesk {
       );
 
       if (response.statusCode == 200) {
-        Map<String, dynamic> jsonData = json.decode(response.body);
-        _payDesk.id = jsonData["id"];
+        if (_payDesk.id == null) {
+          Map<String, dynamic> jsonData = json.decode(response.body);
+          _payDesk.id = jsonData["id"];
+        }
 
         PayDeskDAO().update(_payDesk, isModified: false);
       }
@@ -126,14 +140,15 @@ class PayDesk {
 
   static download() async {
     PayDesk payDesk;
-    Map<String, dynamic> requestData;
 
     final prefs = await SharedPreferences.getInstance();
     final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
     final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
     final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+    final String _userID = prefs.getString(KEY_USER_ID) ?? "";
 
-    final String url = 'http://$_serverIP/api/paydesk?for=mobile';
+    final String url =
+        'http://$_serverIP/api/paydesk?for=mobile&userid=$_userID';
 
     final credentials = '$_serverUser:$_serverPassword';
     final stringToBase64 = utf8.fuse(base64);
@@ -164,9 +179,11 @@ class PayDesk {
         PayDesk existPayDesk = await PayDeskDAO().getByID(payDesk.id);
 
         if (existPayDesk != null) {
+          payDesk.mobID = existPayDesk.mobID;
           ok = await PayDeskDAO().update(payDesk, isModified: false);
         } else {
-          int mobID = PayDeskDAO().insert(payDesk, isModified: false);
+          int mobID = await PayDeskDAO().insert(payDesk, isModified: false);
+
           if (mobID != null) {
             ok = true;
           }

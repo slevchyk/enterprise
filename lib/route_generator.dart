@@ -7,6 +7,7 @@ import 'package:enterprise/pages/page_helpdesk_detail.dart';
 import 'package:enterprise/pages/page_helpdesk.dart';
 import 'package:enterprise/pages/auth/page_login.dart';
 import 'package:enterprise/pages/page_paydesk.dart';
+import 'package:enterprise/pages/page_paydesk_detail.dart';
 import 'package:enterprise/pages/page_settings.dart';
 import 'package:enterprise/pages/page_timing_hitory.dart';
 import 'package:enterprise/pages/page_turnstile.dart';
@@ -53,6 +54,14 @@ class RouteGenerator {
         if (args is RouteArgs) {
           return MaterialPageRoute(
               builder: (_) => PagePayDesk(
+                    profile: args.profile,
+                  ));
+        }
+        return _errorRoute(settings.name);
+      case '/paydesk/detail':
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PagePayDeskDetail(
                     profile: args.profile,
                   ));
         }
