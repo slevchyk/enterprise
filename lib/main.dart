@@ -1,3 +1,4 @@
+import 'package:enterprise/models/paydesk.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/route_generator.dart';
 
@@ -16,6 +17,7 @@ class EnterpriseAppState extends State<EnterpriseApp> {
 
     Timing.closePastTiming();
     Timing.downloadByDate(DateTime.now());
+    PayDesk.sync();
   }
 
   @override

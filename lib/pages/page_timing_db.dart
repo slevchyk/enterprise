@@ -26,7 +26,7 @@ class _PageTimingDBState extends State<PageTimingDB> {
     for (var timing in _listTiming) {
       dataRows.add(DataRow(cells: <DataCell>[
         DataCell(
-          Text(timing.date.toIso8601String()),
+          Text(timing.documentDate.toIso8601String()),
         ),
         DataCell(
           Text(timing.userID),

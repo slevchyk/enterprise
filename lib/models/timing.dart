@@ -85,7 +85,7 @@ class Timing {
         "is_turnstile": isTurnstile ? 1 : 0,
       };
 
-  static upload(userID) async {
+  static upload(String userID) async {
     List<Timing> toUpload = await TimingDAO().getToUploadByUserId(userID);
     List<Map<String, dynamic>> requestData = [];
 

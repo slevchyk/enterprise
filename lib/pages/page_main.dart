@@ -1,4 +1,3 @@
-import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models/channel.dart';
 import 'package:enterprise/models/models.dart';
@@ -252,9 +251,12 @@ class _AppDrawerState extends State<AppDrawer> {
               leading: Icon(FontAwesomeIcons.cashRegister),
               title: Text('Каса'),
               onTap: () {
+                RouteArgs args = RouteArgs(
+                  profile: widget.profile,
+                );
                 Navigator.of(context).pushNamed(
                   '/paydesk',
-                  arguments: "",
+                  arguments: args,
                 );
               },
             ),

@@ -59,7 +59,7 @@ class _PageAuthState extends State<PageAuth> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _isBiometricProtectionEnabled =
-          prefs.getBool(KEY_IS_BIOMETRIC_PROTECTION_ENABLED);
+          prefs.getBool(KEY_IS_BIOMETRIC_PROTECTION_ENABLED) ?? false;
       if (!_isBiometricProtectionEnabled) {
         _isPinAuth = true;
       }
