@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/paydesk_dao.dart';
 import 'package:enterprise/models/paydesk.dart';
@@ -120,6 +119,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                       TextFormField(
                         enabled: !_readOnly,
                         controller: _paymentController,
+                        keyboardType: TextInputType.multiline,
+                        maxLines: null,
                         decoration: InputDecoration(
                           icon: Icon(FontAwesomeIcons.file),
                           suffixIcon: _clearIconButton(_paymentController),
@@ -629,7 +630,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 
     _payDesk.filesQuantity = _newFiles.length;
 
-    PayDeskDAO().update(_payDesk);
+    PayDeskDAO().update(_payDesk, sync: false);
 
     setState(() {
       _files = _newFiles;

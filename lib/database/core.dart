@@ -54,7 +54,7 @@ class DBProvider {
           "languages TEXT,"
           "disability BIT,"
           "pensioner BIT,"
-          "photo TEXT"
+          "photo_name TEXT"
           ")");
 
       await db.execute('CREATE TABLE timing ('
