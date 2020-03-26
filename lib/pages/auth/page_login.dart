@@ -20,37 +20,10 @@ class _PageSignInOutState extends State<PageSignInOut> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _userPhoneController = TextEditingController();
   final _userPinController = TextEditingController();
-  bool isLoadingProfile;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => _getUserID());
-    isLoadingProfile = false;
-  }
-
-  void _getUserID() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    String _userID = prefs.getString(KEY_USER_ID) ?? "";
-
-    if (_userID != "") {
-      setState(() {
-        _userPhoneController.text = prefs.getString(KEY_USER_PHONE);
-        _userPinController.text = prefs.getString(KEY_USER_PIN);
-        isLoadingProfile = true;
-      });
-
-      Profile profile = await ProfileDAO().getByUserId(_userID);
-      RouteArgs args = RouteArgs(profile: profile);
-
-      Navigator.of(context).pushNamed(
-        "/",
-        arguments: args,
-      );
-    }
   }
 
   bool get isInDebugMode {
@@ -63,7 +36,7 @@ class _PageSignInOutState extends State<PageSignInOut> {
     if (this.isInDebugMode) {
       return FlatButton(
         onPressed: () {
-          Navigator.of(context).pushNamed("/");
+          Navigator.of(context).pushNamed("/main");
         },
         child: Text('Продовжити. debug'),
         shape: RoundedRectangleBorder(
@@ -87,10 +60,6 @@ class _PageSignInOutState extends State<PageSignInOut> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Visibility(
-                child: CircularProgressIndicator(),
-                visible: isLoadingProfile,
-              ),
               CircleAvatar(
                 child: Image.asset("assets/logo_512.png"),
                 minRadius: 25,

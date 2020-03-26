@@ -85,7 +85,7 @@ class Timing {
         "is_turnstile": isTurnstile ? 1 : 0,
       };
 
-  static upload(userID) async {
+  static upload(String userID) async {
     List<Timing> toUpload = await TimingDAO().getToUploadByUserId(userID);
     List<Map<String, dynamic>> requestData = [];
 
@@ -166,6 +166,10 @@ class Timing {
 
     if (response.statusCode == 200) {
       Map<String, dynamic> jsonData = json.decode(response.body);
+
+      if (jsonData["timing"] == null) {
+        return;
+      }
 
       for (var _timingMap in jsonData["timing"]) {
         var _timing = Timing.fromMap(_timingMap);

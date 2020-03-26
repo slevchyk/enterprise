@@ -1,9 +1,9 @@
-import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models/channel.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
-import 'package:enterprise/pages/page_login.dart';
+import 'package:enterprise/pages/auth/page_login.dart';
+import 'package:enterprise/widgets/user_photo.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -216,34 +216,6 @@ class _AppDrawerState extends State<AppDrawer> {
   @override
   void initState() {
     super.initState();
-
-//    if (widget.profile == null) {
-//      Navigator.of(context).pushNamed("/sign_in_out");
-//    }
-
-//    initWidget();
-  }
-
-//  initWidget() async {
-//    final prefs = await SharedPreferences.getInstance();
-//    String _userID = prefs.getString(KEY_USER_ID) ?? "";
-//    setState(() {
-//      userID = _userID;
-//    });
-//  }
-
-  Widget userPhoto() {
-    if (widget.profile == null ||
-        widget.profile.photoName == null ||
-        widget.profile.photoName == '') {
-      return CircleAvatar(
-        child: Text('фото'),
-      );
-    } else {
-      return CircleAvatar(
-        child: Image.asset(widget.profile.photoName),
-      );
-    }
   }
 
   @override
@@ -260,17 +232,9 @@ class _AppDrawerState extends State<AppDrawer> {
               accountEmail: widget.profile == null
                   ? Text('email')
                   : Text(widget.profile.email),
-              currentAccountPicture: userPhoto(),
-            ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Профіль'),
-              onTap: () {
-                Navigator.of(context).pushNamed(
-                  '/profile',
-                  arguments: "",
-                );
-              },
+              currentAccountPicture: UserPhoto(
+                profile: widget.profile,
+              ),
             ),
             ListTile(
               leading: Icon(Icons.home),
@@ -278,7 +242,7 @@ class _AppDrawerState extends State<AppDrawer> {
               onTap: () {
                 RouteArgs args = RouteArgs(profile: widget.profile);
                 Navigator.of(context).pushNamed(
-                  '/',
+                  '/main',
                   arguments: args,
                 );
               },
@@ -287,9 +251,12 @@ class _AppDrawerState extends State<AppDrawer> {
               leading: Icon(FontAwesomeIcons.cashRegister),
               title: Text('Каса'),
               onTap: () {
+                RouteArgs args = RouteArgs(
+                  profile: widget.profile,
+                );
                 Navigator.of(context).pushNamed(
                   '/paydesk',
-                  arguments: "",
+                  arguments: args,
                 );
               },
             ),
@@ -324,19 +291,6 @@ class _AppDrawerState extends State<AppDrawer> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Налаштування'),
-              onTap: () {
-                RouteArgs args = RouteArgs(
-                  profile: widget.profile,
-                );
-                Navigator.of(context).pushNamed(
-                  '/settings',
-                  arguments: args,
-                );
-              },
-            ),
-            ListTile(
               leading: Icon(Icons.bug_report),
               title: Text('Debug'),
               onTap: () {
@@ -349,6 +303,20 @@ class _AppDrawerState extends State<AppDrawer> {
                 );
               },
             ),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Профіль'),
+              onTap: () {
+                RouteArgs args = RouteArgs(
+                  profile: widget.profile,
+                );
+                Navigator.of(context).pushNamed(
+                  '/profile',
+                  arguments: args,
+                );
+              },
+            ),
             ListTile(
               leading: widget.profile?.userID == ""
                   ? Icon(FontAwesomeIcons.signInAlt)
@@ -357,6 +325,19 @@ class _AppDrawerState extends State<AppDrawer> {
                   widget.profile?.userID == "" ? Text('Увійти') : Text('Вийти'),
               onTap: () async {
                 singInOutDialog(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text('Налаштування'),
+              onTap: () {
+                RouteArgs args = RouteArgs(
+                  profile: widget.profile,
+                );
+                Navigator.of(context).pushNamed(
+                  '/settings',
+                  arguments: args,
+                );
               },
             ),
             Divider(),

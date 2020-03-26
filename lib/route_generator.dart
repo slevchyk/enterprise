@@ -1,13 +1,16 @@
 import 'package:enterprise/models/models.dart';
+import 'package:enterprise/pages/auth/page_auth.dart';
+import 'package:enterprise/pages/auth/page_root.dart';
+import 'package:enterprise/pages/auth/page_set_pin.dart';
 import 'package:enterprise/pages/page_channel_detail.dart';
 import 'package:enterprise/pages/page_helpdesk_detail.dart';
 import 'package:enterprise/pages/page_helpdesk.dart';
-import 'package:enterprise/pages/page_login.dart';
+import 'package:enterprise/pages/auth/page_login.dart';
 import 'package:enterprise/pages/page_paydesk.dart';
+import 'package:enterprise/pages/page_paydesk_detail.dart';
 import 'package:enterprise/pages/page_settings.dart';
 import 'package:enterprise/pages/page_timing_hitory.dart';
 import 'package:enterprise/pages/page_turnstile.dart';
-import 'package:enterprise/pages/warehouse/goods/page_goods_list.dart';
 import 'package:enterprise/pages/warehouse/page_orders.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/page_main.dart';
@@ -22,6 +25,8 @@ class RouteGenerator {
 
     switch (settings.name) {
       case '/':
+        return MaterialPageRoute(builder: (_) => PageRoot());
+      case '/main':
         if (args is RouteArgs) {
           return MaterialPageRoute(
             builder: (_) => PageMain(
@@ -34,12 +39,43 @@ class RouteGenerator {
             builder: (_) => PageMain(
                   profile: null,
                 ));
+      case '/auth':
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+            builder: (_) => PageAuth(
+              profile: args.profile,
+            ),
+          );
+        }
+        return _errorRoute(settings.name);
+      case '/set_pin':
+        return MaterialPageRoute(builder: (_) => PageSetPin());
       case '/paydesk':
-        return MaterialPageRoute(builder: (_) => PagePayDesk());
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PagePayDesk(
+                    profile: args.profile,
+                  ));
+        }
+        return _errorRoute(settings.name);
+      case '/paydesk/detail':
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PagePayDeskDetail(
+                    profile: args.profile,
+                  ));
+        }
+        return _errorRoute(settings.name);
       case '/timinghistory':
         return MaterialPageRoute(builder: (_) => PageTimingHistory());
       case '/profile':
-        return MaterialPageRoute(builder: (_) => PageProfile());
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PageProfile(
+                    profile: args.profile,
+                  ));
+        }
+        return _errorRoute(settings.name);
       case '/settings':
         if (args is RouteArgs) {
           return MaterialPageRoute(
@@ -68,8 +104,6 @@ class RouteGenerator {
                 ));
       case '/warehouse/orders':
         return MaterialPageRoute(builder: (_) => PageOrders());
-      case '/warehouse/goods/list':
-        return MaterialPageRoute(builder: (_) => PageGoodsList());
       // Validation of correct data type
 //        if (args is String) {
 //          return MaterialPageRoute(

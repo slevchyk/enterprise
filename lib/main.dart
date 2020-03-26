@@ -1,3 +1,4 @@
+import 'package:enterprise/models/paydesk.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/route_generator.dart';
 
@@ -16,12 +17,13 @@ class EnterpriseAppState extends State<EnterpriseApp> {
 
     Timing.closePastTiming();
     Timing.downloadByDate(DateTime.now());
+    PayDesk.sync();
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/sign_in_out',
+      initialRoute: '/',
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
         primaryColorDark: Colors.grey.shade700,

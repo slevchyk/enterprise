@@ -54,7 +54,7 @@ class DBProvider {
           "languages TEXT,"
           "disability BIT,"
           "pensioner BIT,"
-          "photo TEXT"
+          "photo_name TEXT"
           ")");
 
       await db.execute('CREATE TABLE timing ('
@@ -111,16 +111,27 @@ class DBProvider {
           'status TEXT,'
           'answered_at TEXT,'
           'answered_by TEXT,'
-          'answer TEXT'
+          'answer TEXT,'
+          'created_at TEXT,'
+          'updated_at TEXT,'
+          'is_deleted BIT,'
+          'is_modified BIT'
           ')');
       await db.execute('CREATE TABLE paydesk ('
-          'id INTEGER PRIMARY KEY AUTOINCREMENT,'
-          'user_id INTEGER,'
+          'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
+          'id INTEGER,'
+          'user_id TEXT,'
+          'payment_status BOOLEAN,'
           'amount DOUBLE,'
           'payment TEXT,'
-          'confirming INTEGER,'
-          'date TEXT,'
-          'files TEXT'
+          'document_number TEXT,'
+          'document_date TEXT,'
+          'file_paths TEXT,'
+          'files_quantity,'
+          'created_at TEXT,'
+          'updated_at TEXT,'
+          'is_deleted BIT DEFAULT 0,'
+          'is_modified BIT'
           ')');
 //      await db.execute('CREATE TRIGGER log_timing_after_update'
 //          'AFTER UPDATE ON timing'
