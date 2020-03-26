@@ -10,7 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_main.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../models/profile.dart';
 
@@ -225,26 +224,3 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
     _updateHelpdesk();
   }
 }
-
-//class HelpdeskHero extends StatefulWidget {
-//  final Helpdesk helpdesk;
-//
-//  HelpdeskHero({
-//    this.helpdesk,
-//  });
-//
-//  @override
-//  _HelpdeskHeroState createState() => _HelpdeskHeroState();
-//}
-//
-//class _HelpdeskHeroState extends State<HelpdeskHero> {
-//  Widget build(BuildContext context) {
-//    return Hero(
-//      tag: 'helpdesk_' + widget.helpdesk.id.toString(),
-//      child: Material(
-////        padding: EdgeInsets.all(16),
-//        child: PageHelpdeskNew(helpdesk: widget.helpdesk),
-//      ),
-//    );
-//  }
-//}

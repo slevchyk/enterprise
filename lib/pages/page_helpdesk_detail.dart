@@ -259,11 +259,28 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
   }
 
   void _initState() async {
+    int id = _helpdesk.id;
+    String _Path = await _localPath;
+    String _dirPath = ("$_Path/helpdesk/$id");
+    Directory _directory = Directory("$_dirPath");
+
+    bool isExist = await _directory.exists();
+
+    List<FileSystemEntity> _listFileSystemEntity =
+        _directory.listSync(); //use your folder name insted of resume.
     final prefs = await SharedPreferences.getInstance();
+
+    List<File> _listFiles = [];
+    for (var _fileSystemEntity in _listFileSystemEntity) {
+      if (_fileSystemEntity is File) {
+        _listFiles.add(_fileSystemEntity);
+      }
+    }
 
     String _userID = prefs.getString(KEY_USER_ID) ?? "";
     setState(() {
       userID = _userID;
+      _files = _listFiles;
     });
   }
 
@@ -286,10 +303,15 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
     String encodedFile = base64.encode(fileBytes);
     final _bytePhoto = base64Decode(encodedFile);
 
+    final path = await _localPath;
+
+    if (!Directory('$path/helpdesk').existsSync()) {
+      Directory('$path/helpdesk').createSync();
+    }
+
     if (!file.parent.existsSync()) {
-      final path = await _localPath;
       final id = _helpdesk.id;
-      Directory('$path/helpdesk/$id/').create();
+      Directory('$path/helpdesk/$id/').createSync();
     }
 
     file.writeAsBytes(_bytePhoto);
