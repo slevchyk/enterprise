@@ -103,7 +103,8 @@ class DBProvider {
           'deleted_at TEXT'
           ')');
       await db.execute('CREATE TABLE helpdesk ('
-          'id INTEGER PRIMARY KEY,'
+          'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
+          'id INTEGER,'
           'user_id TEXT,'
           'date TEXT,'
           'title TEXT,'

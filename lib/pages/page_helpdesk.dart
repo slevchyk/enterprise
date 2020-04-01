@@ -1,25 +1,31 @@
 import 'package:enterprise/database/profile_dao.dart';
-import 'package:enterprise/pages/page_channel_detail.dart';
 import 'package:enterprise/pages/page_helpdesk_detail.dart';
 import 'package:flutter/material.dart';
-
+import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/database/help_desk_dao.dart';
 import 'package:enterprise/models/helpdesk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_main.dart';
-
+import 'dart:async';
+import 'package:enterprise/models/models.dart';
+import 'package:flutter/rendering.dart';
 import '../models/profile.dart';
 
 class PageHelpdesk extends StatefulWidget {
+  final Profile profile;
+
+  PageHelpdesk({
+    this.profile,
+  });
+
   @override
   _PageHelpdeskState createState() => _PageHelpdeskState();
 }
 
 class _PageHelpdeskState extends State<PageHelpdesk> {
-  Profile profile;
+  Profile _profile;
   Future<List<Helpdesk>> helpdeskprocessed;
   Future<List<Helpdesk>> helpdeskunprocessed;
 
@@ -47,7 +53,7 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
   getprofileByUuid() async {
     final prefs = await SharedPreferences.getInstance();
     String userID = prefs.getString(KEY_USER_ID) ?? "";
-    profile = await ProfileDAO().getByUserId(userID);
+    _profile = await ProfileDAO().getByUserId(userID);
   }
 
   @override
@@ -65,7 +71,7 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
           ),
         ),
         drawer: AppDrawer(
-          profile: profile,
+          profile: _profile,
         ),
         body: TabBarView(
           children: [
@@ -210,9 +216,10 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
+            RouteArgs _args = RouteArgs(profile: _profile);
             Navigator.of(context).pushNamed(
               '/helpdeskdetail',
-              arguments: "",
+              arguments: _args,
             );
           },
         ),

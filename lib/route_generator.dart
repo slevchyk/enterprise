@@ -92,7 +92,13 @@ class RouteGenerator {
       case '/turnstile':
         return MaterialPageRoute(builder: (_) => PageTurnstile());
       case '/helpdeskdetail':
-        return MaterialPageRoute(builder: (_) => PageHelpdeskDetail());
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PageHelpdeskDetail(
+                    profile: args.profile,
+                  ));
+        }
+        return _errorRoute(settings.name);
       case '/helpdesk':
         return MaterialPageRoute(builder: (_) => PageHelpdesk());
       case '/sign_in_out':
