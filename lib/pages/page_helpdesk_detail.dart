@@ -85,7 +85,6 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-//                _setStatus(),
                 Text(
                   'Основне',
                   style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
@@ -209,6 +208,7 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
     _helpdesk.userID = profile.userID;
     _helpdesk.title = _titleController.text;
     _helpdesk.description = _descriptionController.text;
+    _helpdesk.status = "processed";
 
     if (_existHelpDesk == null) {
       _helpdesk.mobID = await HelpdeskDAO().insert(_helpdesk);
@@ -349,42 +349,6 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
               }),
         ),
       ],
-    );
-  }
-
-  Widget _setStatus() {
-    String _statusText;
-    if (!_readOnly) {
-      _statusText = '';
-      return Container();
-    }
-
-    if (_status != null && _status == 0) {
-      _statusText = 'Чорновик';
-    } else {
-      _statusText = 'Робочий';
-    }
-
-    return Container(
-      margin: EdgeInsets.only(top: 8.0, left: 4.0),
-      alignment: Alignment.topLeft,
-      child: Row(
-        children: <Widget>[
-          Opacity(
-              child: Icon(
-                FontAwesomeIcons.userClock,
-                size: 18,
-              ),
-              opacity: 0.5),
-          Container(
-            margin: EdgeInsets.only(left: 16.0),
-            child: Text(
-              'Статус: $_statusText',
-              style: TextStyle(fontSize: 15),
-            ),
-          )
-        ],
-      ),
     );
   }
 

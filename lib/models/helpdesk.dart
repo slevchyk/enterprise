@@ -1,12 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:enterprise/database/help_desk_dao.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
-
 import 'constants.dart';
 
 class Helpdesk {
