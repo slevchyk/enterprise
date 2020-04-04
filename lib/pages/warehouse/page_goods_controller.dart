@@ -1,5 +1,6 @@
 
-import 'package:enterprise/database/warehouse/goodsAdded_dao.dart';
+import 'package:date_format/date_format.dart';
+import 'package:enterprise/database/warehouse/user_goods_dao.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/warehouse/goods.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,24 +9,22 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GoodsView extends StatefulWidget{
-
-  final Goods currentGoods;
+  final Goods currentGood;
   final bool enableEdit;
   final bool isNew;
   final Future<List<Goods>> goodsList;
 
   GoodsView({
-    @required this.currentGoods,
+    @required this.currentGood,
     @required this.enableEdit,
     @required this.isNew,
     @required this.goodsList,
   });
 
-  createState() => _GoodsState(currentGoods, enableEdit, isNew, goodsList);
+  createState() => _GoodsState();
 }
 
 class _GoodsState extends State<GoodsView>{
-
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -33,28 +32,18 @@ class _GoodsState extends State<GoodsView>{
   final _fieldCount = TextEditingController();
   final _fieldUnit = TextEditingController();
 
-  final Future<List<Goods>> _goodsList;
-  final Goods _currentGoods;
+  Future<List<Goods>> _goodsList;
 
-  String _appBar = 'Додати номенклатуру';
+  Goods _currentGood;
 
-  final bool _isNew;
-  final bool _enableEdit;
-  bool _editable = true;
+  bool _isNew;
+  bool _readOnly = true;
 
-  var _icon = Icons.check;
-
-  _GoodsState(this._currentGoods, this._enableEdit, this._isNew, this._goodsList){
-    if(_enableEdit == false && _currentGoods != null){
-      _fieldName.text = _currentGoods.name;
-      _fieldCount.text = _currentGoods.count.toString();
-      _fieldUnit.text = _currentGoods.unit;
-      _appBar = 'Перегляд номенклатури';
-      _editable = false;
-      _icon = Icons.edit;
-    }
-    if(_isNew)
-      _appBar = 'Номенклатура постачальника';
+  @override
+  void initState() {
+    _setFields();
+    _setControllers();
+    super.initState();
   }
 
   @override
@@ -69,93 +58,36 @@ class _GoodsState extends State<GoodsView>{
         },
         child: Scaffold(
           key: _scaffoldKey,
-          appBar: AppBar(title: Text(_appBar,)),
+          appBar: _appBar(context),
           body: Container(
             margin: EdgeInsets.only(right: 20.0),
             child: Form(
                 key: _formKey,
                 child: ListView(
                   children: <Widget>[
-                    _isNew ? Container() : _setStatus(),
+                    !_isNew && _readOnly ? Container()
+                        : _currentGood!=null ? _currentGood.status
+                        ? _setStatus('Робочий', Colors.green)
+                        : _setStatus('Чорновик', Colors.blue[800])
+                        : Container(),
                      Container(
-                      child: InkWell(
-                        onTap: () {
-                          if(_editable)
-                            showGeneralDialog(
+                       child: InkWell(
+                         onTap: () {
+                           if(_readOnly)
+                             showGeneralDialog(
                               barrierLabel: "goods",
                               barrierDismissible: true,
                               barrierColor: Colors.black.withOpacity(0.5),
                               transitionDuration: Duration(milliseconds: 250),
                               context: context,
                               pageBuilder: (context, anim1, anim2) {
-                                return Align(
-                                  alignment: Alignment.bottomCenter,
-                                  child: Container(
-                                    height: 300,
-                                    child: Material(
-                                        borderRadius: BorderRadius.circular(40),
-                                        child: FutureBuilder<List<Goods>>(
-                                          future: _goodsList,
-                                          builder: (context, snapshot){
-                                            if(snapshot.hasData) {
-                                              return Container(
-                                                margin: EdgeInsets.only(top: 7, bottom: 7),
-                                                child: ListView.builder(
-                                                  shrinkWrap: true,
-                                                  itemCount: snapshot == null
-                                                      ? 0
-                                                      : snapshot.data.length,
-                                                  itemBuilder: (context, int index) {
-                                                    String _name = snapshot
-                                                        .data[index]
-                                                        .name;
-                                                    String _id = snapshot
-                                                        .data[index]
-                                                        .mobID.toString();
-                                                    String _unit = snapshot
-                                                        .data[index]
-                                                        .unit;
-                                                    return InkWell(
-                                                      onTap: () {
-                                                        _fieldName.text = _name;
-                                                        _fieldUnit.text = _unit;
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Wrap(
-                                                        children: <Widget>[
-                                                          index == 0
-                                                              ? Center(
-                                                            child: Text('Номенклатури',
-                                                              style: TextStyle(fontSize: 20.0),),)
-                                                              : Container(),
-                                                          Center(
-                                                            child: ListTile(
-                                                              leading: CircleAvatar(
-                                                                child: Text(_id),
-                                                              ),
-                                                              title: Text("Номенклатура: $_name"),
-                                                              subtitle: Text("Одиниця вимiру: $_unit"),
-                                                            ),
-                                                          )
-                                                        ],
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              );
-                                            } else {
-                                              return Container();
-                                            }
-                                          },
-                                        )
-                                    ),
-                                    margin: EdgeInsets.only(top: 50, bottom: 50, left: 12, right: 12),
-                                  ),
-                                );
+                                return _showGoodsDialog();
                               },
                               transitionBuilder: (context, anim1, anim2, child) {
                                 return SlideTransition(
-                                  position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
+                                  position: Tween(
+                                      begin: Offset(0, 1),
+                                      end: Offset(0, 0)).animate(anim1),
                                   child: child,
                                 );
                               },
@@ -163,11 +95,12 @@ class _GoodsState extends State<GoodsView>{
                         },
                         child: IgnorePointer(
                           child: TextFormField(
-                            enabled: _editable,
+                            enabled: _readOnly,
                             controller: _fieldName,
                             decoration: InputDecoration(
                                 icon: Icon(Icons.title),
-                                labelText: _isNew ? 'Номенклатура' : 'Номенклатура *',
+                                labelText: _isNew ? 'Номенклатура'
+                                    : 'Номенклатура *',
                                 hintText: 'Оберiть номенклатуру'
                             ),
                             validator: (validator) {
@@ -187,7 +120,8 @@ class _GoodsState extends State<GoodsView>{
                       controller: _fieldUnit,
                       decoration: InputDecoration(
                           icon: Icon(FontAwesomeIcons.sortNumericDown),
-                          labelText: _isNew ? 'Одиниця вимiру' : 'Одиниця вимiру *',
+                          labelText: _isNew ? 'Одиниця вимiру'
+                              : 'Одиниця вимiру *',
                           hintText: 'Введiть одиницю вимiру'
                       ),
                       validator: (validator) {
@@ -200,12 +134,13 @@ class _GoodsState extends State<GoodsView>{
                       },
                     ),
                     TextFormField(
-                      enabled: _editable,
+                      enabled: _readOnly,
                       controller: _fieldCount,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                           icon: Icon(FontAwesomeIcons.sortNumericDown),
-                          suffixIcon: _isNew ? null : _clearIconButton(_fieldCount),
+                          suffixIcon: _isNew ? null
+                              : _clearIconButton(_fieldCount),
                           labelText: _isNew ? 'Кількість' : 'Кількість *',
                           hintText: 'Введiть кількість'
                       ),
@@ -227,39 +162,64 @@ class _GoodsState extends State<GoodsView>{
           floatingActionButton: Visibility(
             visible: !_isNew,
               child: FloatingActionButton(
-                onPressed: () async {
-                  if(_formKey.currentState.validate() == true && _enableEdit){
-                    if(await _insertIntoDB())
-                      _displaySnackBar(context, "Номенклатуру збережно", Colors.green);
-                    else
-                      _displaySnackBar(context, "Помилка збереження", Colors.red);
-                  }
-                  if (!_enableEdit && !_editable){
-                    setState(() {
-                      _appBar = 'Редагування номенклатури';
-                      _editable = true;
-                      _icon = Icons.check;
-                    });
-                  } else if (!_enableEdit &&
-                      _editable &&
-                      _formKey.currentState.validate()){
-                    if (await _updatePaymentInDB())
-                      _displaySnackBar(context, "Номенклатуру оновлено", Colors.green);
-                    else
-                      _displaySnackBar(context, "Помилка збереження", Colors.red);
-                    setState(() {
-                      _appBar = 'Перегляд номенклатури';
-                      _editable = false;
-                      _icon = Icons.edit;
-                    });
-                  }
+                onPressed: () {
+                  _showModalBottomSheet();
                 },
-                child: Icon(_icon),
+                child: Icon(Icons.menu),
               )
           ),
         ),
       ),
     );
+  }
+
+  Future<bool> _save() async {
+    bool _ok = false;
+
+    if (!_formKey.currentState.validate()) {
+      return _ok;
+    }
+
+    _currentGood.name = _fieldName.text;
+    _currentGood.count = int.parse(_fieldCount.text);
+    _currentGood.unit = _fieldUnit.text;
+
+    if(_readOnly && _currentGood.mobID==null){
+      _ok = await _insertIntoDB();
+    } else {
+      _ok = await _updatePaymentInDB();
+    }
+
+    if (_ok) {
+      setState(() {
+        _readOnly = true;
+        _displaySnackBar(context, "Номенклатуру збережно", Colors.green);
+      });
+    } else {
+      _displaySnackBar(context, "Помилка збереження", Colors.red);
+    }
+
+    return _ok;
+  }
+
+  Future<bool> _insertIntoDB() async {
+    final prefs = await SharedPreferences.getInstance();
+    String _userID = prefs.getString(KEY_USER_ID) ?? "";
+    _currentGood.userID = _userID;
+    _currentGood.status = false;
+    try {
+      return await UserGoodsDAO().insert(_currentGood);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> _updatePaymentInDB() async {
+    try {
+      return await UserGoodsDAO().update(_currentGood, isModified: true);
+    } catch (_) {
+      return false;
+    }
   }
 
   Widget _clearIconButton(TextEditingController textController) {
@@ -275,19 +235,7 @@ class _GoodsState extends State<GoodsView>{
           });
   }
 
-  Widget _setStatus() {
-    String _statusText;
-    if (_enableEdit) {
-      _statusText = '';
-      return Container();
-    }
-
-    if (_currentGoods.status == true) {
-      _statusText = 'Робочий';
-    } else {
-      _statusText = 'Чорновик';
-    }
-
+  Widget _setStatus(String status, Color color) {
     return Container(
       margin: EdgeInsets.only(top: 8.0, left: 4.0),
       alignment: Alignment.topLeft,
@@ -302,8 +250,8 @@ class _GoodsState extends State<GoodsView>{
           Container(
             margin: EdgeInsets.only(left: 16.0),
             child: Text(
-              'Статус: $_statusText',
-              style: TextStyle(fontSize: 15),
+              'Статус: $status',
+              style: TextStyle(fontSize: 15, color: color),
             ),
           )
         ],
@@ -311,52 +259,344 @@ class _GoodsState extends State<GoodsView>{
     );
   }
 
+  Widget _showGoodsDialog() {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        height: 300,
+        child: Material(
+            borderRadius: BorderRadius.circular(40),
+            child: FutureBuilder<List<Goods>>(
+              future: _goodsList,
+              builder: (context, snapshot){
+                if(snapshot.hasData) {
+                  return Container(
+                    margin: EdgeInsets.only(top: 7, bottom: 7),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: snapshot == null
+                          ? 0
+                          : snapshot.data.length,
+                      itemBuilder: (context, int index) {
+                        Goods _good = snapshot.data[index];
+                        return InkWell(
+                          onTap: () {
+                            _fieldName.text = _good.name;
+                            _fieldUnit.text = _good.unit;
+                            Navigator.pop(context);
+                          },
+                          child: Card(
+                              margin: EdgeInsets.only(
+                                  left: 20,
+                                  right: 20,
+                                  top: 5,
+                                  bottom: 5
+                              ),
+                            child: Wrap(
+                              children: <Widget>[
+                                Center(
+                                  child: ListTile(
+                                    leading: CircleAvatar(
+                                      child: Text('${_good.mobID}'),
+                                    ),
+                                    title: Text('Номенклатура: '
+                                        '\n${_good.name}'),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Text('Одиницi вимiру: ${_good.unit}'),
+                                        Text('Кiлькiсть: ${_good.count}'),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  return Container();
+                }
+              },
+            )
+        ),
+        margin: EdgeInsets.only(top: 50, bottom: 50, left: 12, right: 12),
+      ),
+    );
+  }
+
+  Widget _appBar(BuildContext context) {
+    return AppBar(
+      title: Text(_readOnly ? 'Номенклатура' : 'Перегляд'),
+      leading: FlatButton(
+        child: Icon(
+          Icons.arrow_back,
+          color: Colors.white,
+        ),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+      actions: <Widget>[
+        Visibility(
+          visible: _currentGood.mobID != null && !_isNew,
+          child: FlatButton(
+              child: Icon(
+                Icons.info,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                showGeneralDialog(
+                  barrierLabel: 'info',
+                  barrierDismissible: true,
+                  barrierColor: Colors.black.withOpacity(0.5),
+                  transitionDuration: Duration(milliseconds: 250),
+                  context: _scaffoldKey.currentContext,
+                  transitionBuilder: (context, anim1, anim2, child) {
+                    return SlideTransition(
+                      position: Tween(
+                          begin: Offset(0, -1),
+                          end: Offset(0, 0)).animate(anim1),
+                      child: child,
+                    );
+                  },
+                  pageBuilder: (context, anim1, anim2) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(20.0))
+                    ),
+                    insetPadding: EdgeInsets.only(top: 200, bottom: 200),
+                    content: ListTile(
+                      title: Text("Інформація про номенклатуру"),
+                      subtitle: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Row(
+                            children: <Widget>[
+                              Text(
+                                'Створений: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                formatDate(_currentGood.createdAt, [
+                                  dd,
+                                  '-',
+                                  mm,
+                                  '-',
+                                  yyyy,
+                                  ' ',
+                                  HH,
+                                  ':',
+                                  nn,
+                                  ':',
+                                  ss
+                                ]),
+                              ),
+                            ],
+                          ),
+                          _currentGood.updatedAt
+                              .difference(_currentGood.createdAt)
+                              .inSeconds > 0 ? Row(
+                            children: <Widget>[
+                              Text(
+                                'Змінений: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                formatDate(_currentGood.updatedAt, [
+                                  dd,
+                                  '-',
+                                  mm,
+                                  '-',
+                                  yyyy,
+                                  ' ',
+                                  HH,
+                                  ':',
+                                  nn,
+                                  ':',
+                                  ss
+                                ]),
+                              ),
+                            ],
+                          ) : Container(),
+                        ],
+                      ),
+                    ),
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text('Назад'),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+        ),
+      ],
+    );
+  }
+
   bool _isNotNumber(String input) {
     try {
-      double.parse(input.trim());
+      int.parse(input.trim());
       return false;
     } on Exception {
       return true;
     }
   }
 
-  Future<bool> _insertIntoDB() async {
-    final prefs = await SharedPreferences.getInstance();
-    String _userID = prefs.getString(KEY_USER_ID) ?? "";
-    if (_userID == '') {
-      _showDialog(
-          title: 'Помилка збереження',
-          body: 'Спочатку потрібно зареєструватися ');
-      return false;
+  _showModalBottomSheet() {
+    ListTile _editLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.edit,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Редагувати"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("edit");
+        },
+      );
     }
 
-    try {
-      Goods goods = Goods(
-        userID: _userID,
-        status: false,
-        name: _fieldName.text,
-        count: int.parse(_fieldCount.text),
-        unit: _fieldUnit.text,
+    ListTile _saveLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.save,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Зберегти"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("save");
+        },
       );
-      return await GoodsAddedDAO().insert(goods);
-    } catch (_) {
-      return false;
+    }
+
+    ListTile _saveExitLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.check,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Зберегти і закрити"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("saveExit");
+        },
+      );
+    }
+
+    ListTile _undoLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.undo,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Відмінити"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("undo");
+        },
+      );
+    }
+
+    ListTile _exitLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.arrow_back,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Закрити"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("exit");
+        },
+      );
+    }
+
+    showModalBottomSheet(
+      context: _scaffoldKey.currentContext,
+      builder: (BuildContext context) {
+        List<ListTile> _menu = [];
+
+        if (!_readOnly) {
+          _menu.add(_exitLT(context));
+          _menu.add(_editLT(context));
+        } else {
+          _menu.add(_undoLT(context));
+          _menu.add(_saveExitLT(context));
+          _menu.add(_saveLT(context));
+        }
+
+        return Theme(
+          data: Theme.of(_scaffoldKey.currentContext)
+              .copyWith(canvasColor: Colors.transparent),
+          child: Container(
+            color: Colors.grey.shade600,
+            child: Container(
+              padding: EdgeInsets.all(5.0),
+              height: _menu.length * 60.0,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(8.0),
+                  topRight: Radius.circular(8.0),
+                ),
+              ),
+              child: ListView.builder(
+                  itemCount: _menu.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return _menu[index];
+                  }),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _setFields(){
+    _currentGood = widget.currentGood;
+    _isNew = widget.isNew;
+    _goodsList = widget.goodsList;
+    _readOnly = widget.enableEdit;
+  }
+
+  void _setControllers(){
+    if(_readOnly == false){
+      _fieldName.text = _currentGood.name;
+      _fieldCount.text = _currentGood.count.toString();
+      _fieldUnit.text = _currentGood.unit;
+      _readOnly = false;
     }
   }
 
-  Future<bool> _updatePaymentInDB() async {
-    try {
-      Goods goods = Goods(
-        mobID: _currentGoods.mobID,
-        userID: _currentGoods.userID,
-        status: false,
-        name: _fieldName.text,
-        count: int.parse(_fieldCount.text),
-        unit: _fieldUnit.text,
-      );
-      return await GoodsAddedDAO().update(goods) == 1 ? true : false;
-    } catch (_) {
-      return false;
+  void _handleBottomSheet(String action) async {
+    switch (action) {
+      case "edit":
+        setState(() {
+          _readOnly = true;
+        });
+        break;
+      case "undo":
+        _setControllers();
+        setState(() {
+          _readOnly = false;
+        });
+        break;
+      case "exit":
+        Navigator.pop(_scaffoldKey.currentContext);
+        break;
+      case "save":
+        _save();
+        break;
+      case "saveExit":
+        bool _ok = await _save();
+        if (_ok) Navigator.pop(_scaffoldKey.currentContext);
     }
   }
 
@@ -366,26 +606,6 @@ class _GoodsState extends State<GoodsView>{
       backgroundColor: color,
     );
     _scaffoldKey.currentState.showSnackBar(snackBar);
-  }
-
-  void _showDialog({String title, String body}) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: new Text(title),
-          content: new Text(body),
-          actions: <Widget>[
-            new FlatButton(
-              child: new Text("Закрити"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
 }

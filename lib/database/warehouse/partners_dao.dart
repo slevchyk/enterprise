@@ -25,10 +25,8 @@ class PartnersDAO {
     final db = await dbProvider.database;
     var res = await db.rawQuery(''
         'select * from partners '
-        'where partner_name like ? '
-        ,[
-          query,
-        ]);
+        'where partner_name like ?'
+        ,[query]);
 
     List<Partners> toReturn =
     res.isNotEmpty
@@ -58,5 +56,16 @@ class PartnersDAO {
     var res = await db.update("partners", partners.toMap(),
         where: "mob_id = ?", whereArgs: [partners.mobID]);
     return res;
+  }
+
+  deleteById(int id) async {
+    final db = await dbProvider.database;
+    var res = db.delete("partners", where: "mob_id = ?", whereArgs: [id]);
+    return res;
+  }
+
+  deleteAll() async {
+    final db = await dbProvider.database;
+    db.delete("partners");
   }
 }

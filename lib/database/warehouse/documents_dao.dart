@@ -5,24 +5,39 @@ import 'package:enterprise/models/warehouse/documnets.dart';
 class DocumentsDAO {
   final dbProvider = DBWarehouseProvider.db;
 
-  insert(Documents documents) async {
+  insert(Documents documents, {bool isModified = true}) async {
     final db = await dbProvider.database;
-    var  raw = await db.rawInsert(
+
+    String createdAt = isModified
+        ? DateTime.now().toString()
+        : documents?.createdAt?.toIso8601String() ?? null;
+
+    String updatedAt = isModified
+        ? DateTime.now().toString()
+        : documents?.createdAt?.toIso8601String() ?? null;
+
+    var raw = await db.rawInsert(
         'INSERT Into documents ('
             'user_id,'
             'document_status,'
             'document_number,'
             'document_date,'
-            'document_partner'
+            'document_partner,'
+            'created_at,'
+            'updated_at,'
+            'is_modified'
             ')'
-            'VALUES (?,?,?,?,?)',
-    [
-     documents.userID,
-     documents.status,
-     documents.number,
-     documents.date.toIso8601String(),
-     documents.partner,
-    ]);
+            'VALUES (?,?,?,?,?,?,?,?)',
+        [
+          documents.userID,
+          documents.status,
+          documents.number,
+          documents.date.toIso8601String(),
+          documents.partner,
+          createdAt,
+          updatedAt,
+          isModified,
+        ]);
     return raw.isFinite;
   }
 
@@ -63,10 +78,35 @@ class DocumentsDAO {
     return toReturn;
   }
 
-  update(Documents documents) async {
+  getLastId() async {
     final db = await dbProvider.database;
+    var res = await db.rawQuery(''
+        'SELECT * FROM documents ORDER BY mob_id DESC LIMIT 1');
+
+    int toReturn =
+    res.isNotEmpty
+        ? res.map((e) => Documents.fromMap(e).mobID).toList().first +1
+        : 1;
+    return toReturn;
+  }
+
+  update(Documents documents, {bool isModified = true}) async {
+    final db = await dbProvider.database;
+    documents.isModified = isModified;
+    documents.updatedAt = DateTime.now();
     var res = await db.update("documents", documents.toMap(),
     where: "mob_id = ?", whereArgs: [documents.mobID]);
+    return res.isFinite;
+  }
+
+  deleteById(int id) async {
+    final db = await dbProvider.database;
+    var res = db.delete("documents", where: "mob_id = ?", whereArgs: [id]);
     return res;
+  }
+
+  deleteAll() async {
+    final db = await dbProvider.database;
+    db.delete("documents");
   }
 }

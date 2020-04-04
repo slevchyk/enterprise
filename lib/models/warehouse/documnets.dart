@@ -1,3 +1,5 @@
+import 'package:enterprise/models/warehouse/goods.dart';
+
 class Documents {
   int mobID;
   int id;
@@ -6,6 +8,10 @@ class Documents {
   int number;
   DateTime date;
   String partner;
+  List<Goods> goods = List();
+  DateTime createdAt;
+  DateTime updatedAt;
+  bool isModified;
 
   Documents({
     this.mobID,
@@ -15,6 +21,9 @@ class Documents {
     this.number,
     this.date,
     this.partner,
+    this.createdAt,
+    this.updatedAt,
+    this.isModified,
   });
 
   factory Documents.fromMap(Map<String, dynamic> json) => new Documents(
@@ -25,6 +34,13 @@ class Documents {
     number: json["document_number"],
     date: DateTime.parse(json["document_date"]),
     partner: json["document_partner"],
+    createdAt: json['created_at'] != null
+        ? DateTime.parse(json["created_at"])
+        : null,
+    updatedAt: json['updated_at'] != null
+        ? DateTime.parse(json["updated_at"])
+        : null,
+    isModified: json["is_modified"] == 1 ? true : false,
   );
 
   Map<String, dynamic> toMap() => {
@@ -35,5 +51,8 @@ class Documents {
     "document_number" : number,
     "document_date" : date.toIso8601String(),
     "document_partner" : partner,
+    'created_at': createdAt != null ? createdAt.toIso8601String() : null,
+    'updated_at': updatedAt != null ? updatedAt.toIso8601String() : null,
+    "is_modified": isModified ? 1 : 0,
   };
 }

@@ -1,9 +1,12 @@
 
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/warehouse/documents_dao.dart';
+import 'package:enterprise/database/warehouse/relation_documents_goods_dao.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/warehouse/documnets.dart';
+import 'package:enterprise/models/warehouse/goods.dart';
 import 'package:enterprise/models/warehouse/partners.dart';
+import 'package:enterprise/models/warehouse/relation_documents_goods.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -11,46 +14,42 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DocumentsView extends StatefulWidget{
-
-  final Documents currentDocuments;
+  final Documents currentDocument;
   final bool enableEdit;
   final Future<List<Partners>> partnersList;
+  final Future<List<Goods>> goodsList;
 
   DocumentsView({
-    @required this.currentDocuments,
+    @required this.currentDocument,
     @required this.enableEdit,
-    @required this.partnersList
+    @required this.partnersList,
+    @required this.goodsList,
   });
 
-  createState() => _DocumentsState(currentDocuments, enableEdit, partnersList);
+  createState() => _DocumentsState();
 }
 
 class _DocumentsState extends State<DocumentsView>{
-
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   final _fieldNumber = TextEditingController();
   final _fieldDate = TextEditingController();
   final _fieldPartner = TextEditingController();
+  final _fieldGoods = TextEditingController();
 
   Future<List<Partners>> _partnersList;
-  final Documents _currentDocuments;
-  String _appBar = 'Додати замовлення';
+  Future<List<Goods>> _goodsList;
 
-  final bool _enableEdit;
-  bool _editable = true;
+  Documents _currentDocument;
 
-  var _icon = Icons.check;
+  bool _readOnly = true;
 
-  _DocumentsState(this._currentDocuments, this._enableEdit, this._partnersList){
-    if(_enableEdit == false && _currentDocuments != null){
-      _fieldNumber.text = _currentDocuments.number.toString();
-      _fieldDate.text = DateFormat('dd.MM.yyyy').format(_currentDocuments.date);
-      _fieldPartner.text = _currentDocuments.partner;
-      _appBar = 'Перегляд замовлення';
-      _editable = false;
-      _icon = Icons.edit;
-    }
+  @override
+  void initState() {
+    _setFields();
+    _setControllers();
+    super.initState();
   }
 
   @override
@@ -65,16 +64,20 @@ class _DocumentsState extends State<DocumentsView>{
         },
         child: Scaffold(
           key: _scaffoldKey,
-          appBar: AppBar(title: Text(_appBar),),
+          appBar: _appBar(context),
           body: Container(
             margin: EdgeInsets.only(right: 20.0),
             child: Form(
                 key: _formKey,
                 child: ListView(
                   children: <Widget>[
-                    _setStatus(),
+                    _readOnly ? Container()
+                        : _currentDocument!=null ? _currentDocument.status
+                        ? _setStatus('Робочий', Colors.green)
+                        : _setStatus('Чорновик', Colors.blue[800])
+                        : Container(),
                     TextFormField(
-                      enabled: _editable,
+                      enabled: _readOnly,
                       controller: _fieldNumber,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
@@ -97,12 +100,12 @@ class _DocumentsState extends State<DocumentsView>{
                     Container(
                       child: InkWell(
                         onTap: () {
-                          if (_editable)
+                          if (_readOnly)
                             _selectDate(context, _fieldDate);
                         },
                         child: IgnorePointer(
                           child: TextFormField(
-                            enabled: _editable,
+                            enabled: _readOnly,
                             controller: _fieldDate,
                             decoration: InputDecoration(
                               icon: Icon(Icons.date_range),
@@ -123,7 +126,7 @@ class _DocumentsState extends State<DocumentsView>{
                     Container(
                       child: InkWell(
                         onTap: () {
-                          if(_editable)
+                          if(_readOnly)
                             showGeneralDialog(
                               barrierLabel: "partners",
                               barrierDismissible: true,
@@ -131,85 +134,7 @@ class _DocumentsState extends State<DocumentsView>{
                               transitionDuration: Duration(milliseconds: 250),
                               context: context,
                               pageBuilder: (context, anim1, anim2) {
-                                return Align(
-                                  alignment: Alignment.bottomCenter,
-                                  child: Container(
-                                    height: 300,
-                                    child: Material(
-                                        borderRadius: BorderRadius.circular(40),
-                                        child: FutureBuilder<List<Partners>>(
-                                          future: _partnersList,
-                                          builder: (context, snapshot){
-                                            if(snapshot.hasData) {
-                                              return Container(
-                                                margin: EdgeInsets.only(
-                                                    top: 7,
-                                                    bottom: 7
-                                                ),
-                                                child: ListView.builder(
-                                                  shrinkWrap: true,
-                                                  itemCount: snapshot == null
-                                                      ? 0
-                                                      : snapshot.data.length,
-                                                  itemBuilder: (context, int index) {
-                                                    String _name = snapshot
-                                                        .data[index]
-                                                        .name;
-                                                    String _id = snapshot
-                                                        .data[index]
-                                                        .mobID.toString();
-//                                                    var _image = Image.file(snapshot
-//                                                        .data[index]
-//                                                        .logo);
-//                                                    Add image of partner to list
-//                                                    Surround with try{} catch for handle the error
-//                                                    Add field 'logo' to => warehouse core, partners_dao and models partners
-                                                    return InkWell(
-                                                      onTap: () {
-                                                        _fieldPartner.text = _name;
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Wrap(
-                                                        children: <Widget>[
-                                                          index == 0
-                                                              ? Center(
-                                                            child: Text('Партнери',
-                                                              style: TextStyle(
-                                                                  fontSize: 20.0
-                                                              ),),)
-                                                              : Container(),
-                                                          Center(
-                                                            child: ListTile(
-                                                              leading: CircleAvatar(
-                                                                child: Text(_id),
-//                                                               child:  _image == null
-//                                                                ? Text(_id)
-//                                                                : _image,
-//                                                               Check if partner have image, show image, else show id
-                                                              ),
-                                                              title: Text("Партнер: $_name"),
-                                                            ),
-                                                          )
-                                                        ],
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              );
-                                            } else {
-                                              return Container();
-                                            }
-                                          },
-                                        )
-                                    ),
-                                    margin: EdgeInsets.only(
-                                        top: 50,
-                                        bottom: 50,
-                                        left: 12,
-                                        right: 12
-                                    ),
-                                  ),
-                                );
+                                return _showPartnersDialog();
                               },
                               transitionBuilder: (context, anim1, anim2, child) {
                                 return SlideTransition(
@@ -223,7 +148,7 @@ class _DocumentsState extends State<DocumentsView>{
                         },
                         child: IgnorePointer(
                           child: TextFormField(
-                            enabled: _editable,
+                            enabled: _readOnly,
                             controller: _fieldPartner,
                             decoration: InputDecoration(
                               icon: Icon(Icons.people),
@@ -242,45 +167,153 @@ class _DocumentsState extends State<DocumentsView>{
                         ),
                       ),
                     ),
+                    Container(
+                      child: InkWell(
+                        onTap: () {
+                          if(_readOnly)
+                            showGeneralDialog(
+                              barrierLabel: "goods",
+                              barrierDismissible: true,
+                              barrierColor: Colors.black.withOpacity(0.5),
+                              transitionDuration: Duration(milliseconds: 250),
+                              context: context,
+                              pageBuilder: (context, anim1, anim2) {
+                                return _showGoodsDialog();
+                              },
+                              transitionBuilder: (context, anim1, anim2, child) {
+                                return SlideTransition(
+                                  position: Tween(
+                                      begin: Offset(0, 1),
+                                      end: Offset(0, 0)).animate(anim1),
+                                  child: child,
+                                );
+                              },
+                            );
+                        },
+                        child: IgnorePointer(
+                          child: TextFormField(
+                            minLines: 1,
+                            maxLines: 100,
+                            enabled: _readOnly,
+                            controller: _fieldGoods,
+                            decoration: InputDecoration(
+                                icon: Icon(Icons.people),
+                                labelText: 'Номенклатура *',
+                                hintText: 'Оберiть номенклатуру'
+                            ),
+                            validator: (validator) {
+                              if(validator.trim().isEmpty)
+                                return 'Ви не обрали номенклатуру';
+                              return null;
+                            },
+                            onChanged: (_) {
+                              setState(() {});
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 )
             ),
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: () async {
-              if(_formKey.currentState.validate() == true && _enableEdit){
-                if(await _insertIntoDB()) {
-                  _displaySnackBar(context, "Замовлення збережно", Colors.green);
-                }
-
-                else
-                  _displaySnackBar(context, "Помилка збереження", Colors.red);
-              }
-              if (!_enableEdit && !_editable){
-                setState(() {
-                  _appBar = 'Редагування замовлення';
-                  _editable = true;
-                  _icon = Icons.check;
-                });
-              } else if (!_enableEdit &&
-                  _editable &&
-                  _formKey.currentState.validate()){
-                if (await _updatePaymentInDB())
-                  _displaySnackBar(context, "Замовлення оновлено", Colors.green);
-                else
-                  _displaySnackBar(context, "Помилка збереження", Colors.red);
-                setState(() {
-                  _appBar = 'Перегляд замовлення';
-                  _editable = false;
-                  _icon = Icons.edit;
-                });
-              }
+            child: Icon(Icons.menu),
+            onPressed: () {
+              _showModalBottomSheet();
             },
-            child: Icon(_icon),
           ),
         ),
       ),
     );
+  }
+
+  Future<bool> _save() async {
+    bool _ok = false;
+
+    if (!_formKey.currentState.validate()) {
+      return _ok;
+    }
+
+    _currentDocument.date = DateTime.parse(formatDate(
+        DateFormat("dd-MM-yyyy")
+            .parse(_fieldDate.text.replaceAll('.', '-')),
+        [yyyy, '-', mm, '-', dd]));
+    _currentDocument.partner = _fieldPartner.text;
+    _currentDocument.number = int.parse(_fieldNumber.text);
+
+    if(_readOnly && _currentDocument.mobID==null){
+      _ok = await _insertIntoDB();
+    } else {
+      _ok = await _updatePaymentInDB();
+    }
+
+    if (_ok) {
+      setState(() {
+        _readOnly = true;
+        _displaySnackBar(context, "Замовлення збережно", Colors.green);
+      });
+    } else {
+      _displaySnackBar(context, "Помилка збереження", Colors.red);
+    }
+
+    return _ok;
+  }
+
+  Future<bool> _insertIntoDB() async {
+    List<bool> _temp = [];
+    final prefs = await SharedPreferences.getInstance();
+    String _userID = prefs.getString(KEY_USER_ID) ?? "";
+    _currentDocument.userID = _userID;
+    _currentDocument.status = false;
+    try {
+      _currentDocument.goods.forEach((element) async {
+        RelationDocumentsGoods relationDocumentsGoods = RelationDocumentsGoods(
+            documentID: await DocumentsDAO().getLastId(),
+            goodsID: element.mobID,
+        );
+        _temp.add(await RelationDocumentsGoodsDAO().insert(relationDocumentsGoods));
+      });
+      _temp.add(await DocumentsDAO().insert(_currentDocument));
+      return _temp.where((element) => element == true)
+          .toList().length == _temp.length;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  List<Goods> _setGoods(){
+    List<Goods> inputGoods = _currentDocument.goods;
+    inputGoods.forEach((goods) {
+      goods.isSelected = true;
+      _fieldGoods.text = ""
+          "${_fieldGoods.text}"
+          "${_fieldGoods.text.isNotEmpty
+          ? '\n' : ''}"
+          "${goods.name}";
+    });
+    return inputGoods;
+  }
+
+  Future<bool> _updatePaymentInDB() async {
+    List<bool> _temp = [];
+    try {
+      _temp.add(await RelationDocumentsGoodsDAO().deleteById(_currentDocument.mobID) > 0
+          ? true
+          : false);
+      _currentDocument.goods.forEach((good) async {
+        RelationDocumentsGoods relationDocumentsGoods = RelationDocumentsGoods(
+          documentID: _currentDocument.mobID,
+          goodsID: good.mobID,
+        );
+        _temp.add(await RelationDocumentsGoodsDAO().insert(relationDocumentsGoods));
+      });
+      _temp.add(await DocumentsDAO().update(_currentDocument, isModified: true));
+      return _temp.where((element) => element == true)
+          .toList().length == _temp.length;
+    } catch (_) {
+      return false;
+    }
   }
 
   Widget _clearIconButton(TextEditingController textController) {
@@ -296,19 +329,7 @@ class _DocumentsState extends State<DocumentsView>{
           });
   }
 
-  Widget _setStatus() {
-    String _statusText;
-    if (_enableEdit) {
-      _statusText = '';
-      return Container();
-    }
-
-    if (_currentDocuments.status == true) {
-      _statusText = 'Робочий';
-    } else {
-      _statusText = 'Чорновик';
-    }
-
+  Widget _setStatus(String status, Color color) {
     return Container(
       margin: EdgeInsets.only(top: 8.0, left: 4.0),
       alignment: Alignment.topLeft,
@@ -323,8 +344,8 @@ class _DocumentsState extends State<DocumentsView>{
           Container(
             margin: EdgeInsets.only(left: 16.0),
             child: Text(
-              'Статус: $_statusText',
-              style: TextStyle(fontSize: 15),
+              'Статус: $status',
+              style: TextStyle(fontSize: 15, color: color),
             ),
           )
         ],
@@ -332,59 +353,414 @@ class _DocumentsState extends State<DocumentsView>{
     );
   }
 
+  Widget _showGoodsDialog() {
+    return StatefulBuilder(
+        builder: (context, setState) {
+          return Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              height: 300,
+              child: Material(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(40),
+                  child: FutureBuilder<List<Goods>>(
+                    future: _goodsList,
+                    builder: (context, snapshot){
+                      if(snapshot.hasData) {
+                        return Container(
+                          margin: EdgeInsets.only(
+                              top: 7,
+                              bottom: 7
+                          ),
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: snapshot == null
+                                ? 0
+                                :  snapshot.data.length,
+                            itemBuilder: (context, int index) {
+                              Goods _good = snapshot.data[index];
+                              return Center(
+                                child: Column(
+                                  children: <Widget>[
+                                    Card(
+                                      margin: EdgeInsets.only(
+                                          left: 20,
+                                          right: 20,
+                                          top: 5,
+                                          bottom: 5
+                                      ),
+                                      child: CheckboxListTile(
+                                        value: _good.isSelected,
+                                        title: ListTile(
+                                          selected: _good.isSelected,
+                                          leading: CircleAvatar(
+                                            child: Text('${_good.mobID}'),
+                                          ),
+                                          title: Text("Номенклатура:"
+                                              "\n${_good.name}"),
+                                          subtitle: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: <Widget>[
+                                              Text('Одиницi вимiру: ${_good.unit}'),
+                                              Text('Кiлькiсть: ${_good.count}'),
+                                            ],
+                                          ),
+                                        ),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            if(_good.isSelected) {
+                                              _currentDocument.goods.remove(_good);
+                                              _good.isSelected = false;
+                                              _fieldGoods.clear();
+
+                                              _currentDocument.goods.forEach((good) {
+                                                _fieldGoods.text = ""
+                                                    "${_fieldGoods.text}"
+                                                    "${_fieldGoods.text.isNotEmpty
+                                                    ? '\n' : ''}"
+                                                    "${good.name}";
+                                              });
+                                            } else {
+                                              _currentDocument.goods.add(_good);
+                                              _good.isSelected = true;
+                                              _fieldGoods.text = ""
+                                                  "${_fieldGoods.text}"
+                                                  "${_fieldGoods.text.isNotEmpty
+                                                  ? '\n' : ''}"
+                                                  "${_good.name}";
+                                            }
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      } else {
+                        return Container();
+                      }
+                    },
+                  )
+              ),
+              margin: EdgeInsets.only(
+                  top: 50,
+                  bottom: 50,
+                  left: 12,
+                  right: 12
+              ),
+            ),
+          );
+        }
+    );
+  }
+
+  Widget _showPartnersDialog() {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        height: 300,
+        child: Material(
+            borderRadius: BorderRadius.circular(40),
+            child: FutureBuilder<List<Partners>>(
+              future: _partnersList,
+              builder: (context, snapshot){
+                if(snapshot.hasData) {
+                  return Container(
+                    margin: EdgeInsets.only(
+                        top: 7,
+                        bottom: 7
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: snapshot == null
+                          ? 0
+                          : snapshot.data.length,
+                      itemBuilder: (context, int index) {
+                        Partners _partner = snapshot.data[index];
+                        return InkWell(
+                          onTap: () {
+                            _fieldPartner.text = _partner.name;
+                            Navigator.pop(context);
+                          },
+                          child: Card(
+                            margin: EdgeInsets.only(
+                                left: 20,
+                                right: 20,
+                                top: 5,
+                                bottom: 5
+                            ),
+                            child: Wrap(
+                              children: <Widget>[
+                                Center(
+                                  child: ListTile(
+                                    leading: CircleAvatar(
+                                      child: Text('${_partner.mobID}'),
+//                                     child: _partner.logo == null
+//                                      ? Text('${_partner.mobID}')
+//                                      : Image.file(_partner.logo),
+//                                     Add image of partner to list
+//                                     Surround with try{} catch for handle the error
+//                                     Add field 'logo' to => warehouse core, partners_dao and models partners
+//                                     Check if partner have image, show image, else show id
+                                    ),
+                                    title: Text("Партнер:\n${_partner.name}"),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  return Container();
+                }
+              },
+            )
+        ),
+        margin: EdgeInsets.only(
+            top: 50,
+            bottom: 50,
+            left: 12,
+            right: 12
+        ),
+      ),
+    );
+  }
+
+  Widget _appBar(BuildContext context) {
+    return AppBar(
+      title: Text(_readOnly ? 'Замовлення' : 'Перегляд'),
+      leading: FlatButton(
+        child: Icon(
+          Icons.arrow_back,
+          color: Colors.white,
+        ),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+      actions: <Widget>[
+        Visibility(
+          visible: _currentDocument.mobID != null,
+          child: FlatButton(
+              child: Icon(
+                Icons.info,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                showGeneralDialog(
+                  barrierLabel: 'info',
+                  barrierDismissible: true,
+                  barrierColor: Colors.black.withOpacity(0.5),
+                  transitionDuration: Duration(milliseconds: 250),
+                  context: _scaffoldKey.currentContext,
+                  transitionBuilder: (context, anim1, anim2, child) {
+                    return SlideTransition(
+                      position: Tween(
+                          begin: Offset(0, -1),
+                          end: Offset(0, 0)).animate(anim1),
+                      child: child,
+                    );
+                  },
+                  pageBuilder: (context, anim1, anim2) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(20.0))
+                    ),
+                    insetPadding: EdgeInsets.only(top: 200, bottom: 200),
+                    content: ListTile(
+                      title: Text("Інформація про замовлення"),
+                      subtitle: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Row(
+                            children: <Widget>[
+                              Text(
+                                'Створений: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                formatDate(_currentDocument.createdAt, [
+                                  dd,
+                                  '-',
+                                  mm,
+                                  '-',
+                                  yyyy,
+                                  ' ',
+                                  HH,
+                                  ':',
+                                  nn,
+                                  ':',
+                                  ss
+                                ]),
+                              ),
+                            ],
+                          ),
+                          _currentDocument.updatedAt
+                              .difference(_currentDocument.createdAt)
+                              .inSeconds > 0 ? Row(
+                            children: <Widget>[
+                              Text(
+                                'Змінений: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                formatDate(_currentDocument.updatedAt, [
+                                  dd,
+                                  '-',
+                                  mm,
+                                  '-',
+                                  yyyy,
+                                  ' ',
+                                  HH,
+                                  ':',
+                                  nn,
+                                  ':',
+                                  ss
+                                ]),
+                              ),
+                            ],
+                          ) : Container(),
+                        ],
+                      ),
+                    ),
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text('Назад'),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+        ),
+      ],
+    );
+  }
+
   bool _isNotNumber(String input) {
     try {
-      double.parse(input.trim());
+      int.parse(input.trim());
       return false;
     } on Exception {
       return true;
     }
   }
 
-  Future<bool> _insertIntoDB() async {
-    final prefs = await SharedPreferences.getInstance();
-    String _userID = prefs.getString(KEY_USER_ID) ?? "";
-    if (_userID == '') {
-      _showDialog(
-          title: 'Помилка збереження',
-          body: 'Спочатку потрібно зареєструватися ');
-      return false;
+  _showModalBottomSheet() {
+    ListTile _editLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.edit,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Редагувати"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("edit");
+        },
+      );
     }
 
-    try {
-      Documents documents = Documents(
-        userID: _userID,
-        status: false,
-        number: int.parse(_fieldNumber.text),
-        date: DateTime.parse(formatDate(
-            DateFormat("dd-MM-yyyy")
-                .parse(_fieldDate.text.replaceAll('.', '-')),
-            [yyyy, '-', mm, '-', dd])),
-        partner: _fieldPartner.text,
+    ListTile _saveLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.save,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Зберегти"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("save");
+        },
       );
-      return await DocumentsDAO().insert(documents);
-    } catch (_) {
-      return false;
     }
-  }
 
-  Future<bool> _updatePaymentInDB() async {
-    try {
-      Documents documents = Documents(
-        mobID: _currentDocuments.mobID,
-        userID: _currentDocuments.userID,
-        status: false,
-        number: int.parse(_fieldNumber.text),
-        date: DateTime.parse(formatDate(
-            DateFormat("dd-MM-yyyy")
-                .parse(_fieldDate.text.replaceAll('.', '-')),
-            [yyyy, '-', mm, '-', dd])),
-        partner: _fieldPartner.text,
+    ListTile _saveExitLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.check,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Зберегти і закрити"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("saveExit");
+        },
       );
-      return await DocumentsDAO().update(documents) == 1 ? true : false;
-    } catch (_) {
-      return false;
     }
+
+    ListTile _undoLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.undo,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Відмінити"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("undo");
+        },
+      );
+    }
+
+    ListTile _exitLT(BuildContext context) {
+      return ListTile(
+        leading: Icon(
+          Icons.arrow_back,
+          color: Theme.of(_scaffoldKey.currentContext).accentColor,
+        ),
+        title: Text("Закрити"),
+        onTap: () {
+          Navigator.of(context).pop();
+          _handleBottomSheet("exit");
+        },
+      );
+    }
+
+    showModalBottomSheet(
+      context: _scaffoldKey.currentContext,
+      builder: (BuildContext context) {
+        List<ListTile> _menu = [];
+
+        if (!_readOnly) {
+          _menu.add(_exitLT(context));
+          _menu.add(_editLT(context));
+        } else {
+          _menu.add(_undoLT(context));
+          _menu.add(_saveExitLT(context));
+          _menu.add(_saveLT(context));
+        }
+
+        return Theme(
+          data: Theme.of(_scaffoldKey.currentContext)
+              .copyWith(canvasColor: Colors.transparent),
+          child: Container(
+            color: Colors.grey.shade600,
+            child: Container(
+              padding: EdgeInsets.all(5.0),
+              height: _menu.length * 60.0,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(8.0),
+                  topRight: Radius.circular(8.0),
+                ),
+              ),
+              child: ListView.builder(
+                  itemCount: _menu.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return _menu[index];
+                  }),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future _selectDate(
@@ -401,32 +777,54 @@ class _DocumentsState extends State<DocumentsView>{
       });
   }
 
+  void _setFields(){
+    _currentDocument = widget.currentDocument;
+    _partnersList = widget.partnersList;
+    _goodsList = widget.goodsList;
+    _readOnly = widget.enableEdit;
+  }
+
+  void _setControllers(){
+    if(_readOnly == false){
+      _fieldNumber.text = _currentDocument.number.toString();
+      _fieldDate.text = DateFormat('dd.MM.yyyy').format(_currentDocument.date);
+      _fieldPartner.text = _currentDocument.partner;
+      _currentDocument.goods = _setGoods();
+      _readOnly = false;
+    }
+  }
+
+  void _handleBottomSheet(String action) async {
+    switch (action) {
+      case "edit":
+        setState(() {
+          _readOnly = true;
+        });
+        break;
+      case "undo":
+        _setControllers();
+        setState(() {
+          _readOnly = false;
+        });
+        break;
+      case "exit":
+        Navigator.pop(_scaffoldKey.currentContext);
+        break;
+      case "save":
+        _save();
+        break;
+      case "saveExit":
+        bool _ok = await _save();
+        if (_ok) Navigator.pop(_scaffoldKey.currentContext);
+    }
+  }
+
   void _displaySnackBar(BuildContext context, String title, Color color) {
     final snackBar = SnackBar(
       content: Text(title),
       backgroundColor: color,
     );
     _scaffoldKey.currentState.showSnackBar(snackBar);
-  }
-
-  void _showDialog({String title, String body}) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: new Text(title),
-          content: new Text(body),
-          actions: <Widget>[
-            new FlatButton(
-              child: new Text("Закрити"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
 }

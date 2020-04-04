@@ -32,14 +32,17 @@ class DBWarehouseProvider {
           "good_name TEXT,"
           "good_unit TEXT"
           ")");
-      await db.execute("CREATE TABLE newGoods ("
+      await db.execute("CREATE TABLE user_goods ("
           "mob_id INTEGER PRIMARY KEY AUTOINCREMENT,"
           "id INTEGER,"
           "user_id  TEXT,"
           "good_status BIT,"
           "good_count INTEGET,"
           "good_name TEXT,"
-          "good_unit TEXT"
+          "good_unit TEXT,"
+          'created_at TEXT,'
+          'updated_at TEXT,'
+          'is_modified BIT'
           ")");
       await db.execute('CREATE TABLE documents ('
           'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
@@ -48,7 +51,10 @@ class DBWarehouseProvider {
           'document_status BIT,'
           'document_number INTEGET,'
           'document_date TEXT,'
-          'document_partner TEXT'
+          'document_partner TEXT,'
+          'created_at TEXT,'
+          'updated_at TEXT,'
+          'is_modified BIT'
           ')');
       await db.execute("CREATE TABLE partners ("
           "mob_id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -56,8 +62,15 @@ class DBWarehouseProvider {
           "user_id TEXT,"
           "partner_name TEXT"
           ")");
+      await db.execute("CREATE TABLE relation_documents_goods ("
+          "document_id INTEGER,"
+          "goods_id INTEGER,"
+          "UNIQUE (document_id, goods_id) ON CONFLICT REPLACE,"
+          "FOREIGN KEY (document_id) REFERENCES documents(mob_id),"
+          "FOREIGN KEY (goods_id) REFERENCES newGoods(mob_id),"
+          "PRIMARY KEY (document_id, goods_id)"
+          ")");
     });
-
   }
 
   deleteDB() async {

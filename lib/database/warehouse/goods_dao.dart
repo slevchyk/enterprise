@@ -68,4 +68,15 @@ class GoodsDAO {
         where: "mob_id = ?", whereArgs: [goods.mobID]);
     return res;
   }
+
+  deleteById(int id) async {
+    final db = await dbProvider.database;
+    var res = db.delete("goods", where: "mob_id = ?", whereArgs: [id]);
+    return res;
+  }
+
+  deleteAll() async {
+    final db = await dbProvider.database;
+    db.delete("goods");
+  }
 }
