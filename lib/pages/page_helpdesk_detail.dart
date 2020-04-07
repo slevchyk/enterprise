@@ -18,7 +18,7 @@ import 'package:date_format/date_format.dart';
 import 'package:enterprise/widgets/attachments_carousel.dart';
 
 class PageHelpdeskDetail extends StatefulWidget {
-  final Helpdesk helpdesk;
+  final HelpDesk helpdesk;
   final Profile profile;
 
   PageHelpdeskDetail({
@@ -27,17 +27,17 @@ class PageHelpdeskDetail extends StatefulWidget {
   });
 
   @override
-  createState() => _PageHelpdeskDetailState();
+  createState() => _PageHelpDeskDetailState();
 }
 
-class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
+class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  Helpdesk _helpdesk;
+  HelpDesk _helpDesk;
   Profile profile;
 
   String _appPath;
@@ -57,8 +57,8 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => initAsync());
 
-    _helpdesk = widget.helpdesk ?? Helpdesk();
-    _readOnly = _helpdesk?.mobID != null;
+    _helpDesk = widget.helpdesk ?? HelpDesk();
+    _readOnly = _helpDesk?.mobID != null;
     profile = widget.profile;
     _setControllers();
   }
@@ -199,24 +199,24 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
       return _ok;
     }
 
-    Helpdesk _existHelpDesk;
-    if (_helpdesk.mobID != null) {
-      _existHelpDesk = await HelpdeskDAO().getByMobID(_helpdesk.mobID);
+    HelpDesk _existHelpDesk;
+    if (_helpDesk.mobID != null) {
+      _existHelpDesk = await HelpdeskDAO().getByMobID(_helpDesk.mobID);
     }
 
-    _helpdesk.userID = profile.userID;
-    _helpdesk.title = _titleController.text;
-    _helpdesk.description = _descriptionController.text;
-    _helpdesk.status = "processed";
+    _helpDesk.userID = profile.userID;
+    _helpDesk.title = _titleController.text;
+    _helpDesk.description = _descriptionController.text;
+    _helpDesk.status = "processed";
 
     if (_existHelpDesk == null) {
-      _helpdesk.mobID = await HelpdeskDAO().insert(_helpdesk);
-      if (_helpdesk.mobID != null) {
-        _helpdesk = await HelpdeskDAO().getByMobID(_helpdesk.mobID);
+      _helpDesk.mobID = await HelpdeskDAO().insert(_helpDesk);
+      if (_helpDesk.mobID != null) {
+        _helpDesk = await HelpdeskDAO().getByMobID(_helpDesk.mobID);
         _ok = true;
       }
     } else {
-      _ok = await HelpdeskDAO().update(_helpdesk);
+      _ok = await HelpdeskDAO().update(_helpDesk);
     }
 
     if (_ok) {
@@ -233,16 +233,16 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
 
   void _setControllers() {
     _files.clear();
-    if (_helpdesk != null) {
+    if (_helpDesk != null) {
       List<dynamic> _filesPaths = [];
-      if (_helpdesk.filePaths != null && _helpdesk.filePaths.isNotEmpty)
-        _filesPaths = jsonDecode(_helpdesk.filePaths);
+      if (_helpDesk.filePaths != null && _helpDesk.filePaths.isNotEmpty)
+        _filesPaths = jsonDecode(_helpDesk.filePaths);
       _filesPaths.forEach((value) {
         _files.add(File(value));
       });
 
-      _titleController.text = _helpdesk?.title ?? "";
-      _descriptionController.text = _helpdesk?.description ?? "";
+      _titleController.text = _helpDesk?.title ?? "";
+      _descriptionController.text = _helpDesk?.description ?? "";
     }
   }
 
@@ -273,7 +273,7 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
       ),
       actions: <Widget>[
         Visibility(
-          visible: _helpdesk.mobID != null,
+          visible: _helpDesk.mobID != null,
           child: FlatButton(
               child: Icon(
                 Icons.info,
@@ -295,7 +295,7 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                formatDate(_helpdesk.createdAt, [
+                                formatDate(_helpDesk.createdAt, [
                                   dd,
                                   '-',
                                   mm,
@@ -318,7 +318,7 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                formatDate(_helpdesk.updatedAt, [
+                                formatDate(_helpDesk.updatedAt, [
                                   dd,
                                   '-',
                                   mm,
@@ -451,7 +451,7 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
   }
 
   Future<void> _saveAttachments() async {
-    Directory _dir = Directory('$_appPath/helpdesk/${_helpdesk.mobID}');
+    Directory _dir = Directory('$_appPath/helpdesk/${_helpDesk.mobID}');
     if (_dir.existsSync()) {
       List<FileSystemEntity> _listFileSystemEntity = _dir.listSync();
 
@@ -503,11 +503,11 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
     _newFiles.forEach((value) {
       _filesPaths.add(value.path);
     });
-    _helpdesk.filePaths = jsonEncode(_filesPaths);
+    _helpDesk.filePaths = jsonEncode(_filesPaths);
 
-    _helpdesk.filesQuantity = _newFiles.length;
+    _helpDesk.filesQuantity = _newFiles.length;
 
-    HelpdeskDAO().update(_helpdesk, sync: false);
+    HelpdeskDAO().update(_helpDesk, sync: false);
 
     setState(() {
       _files = _newFiles;

@@ -102,7 +102,7 @@ class RouteGenerator {
       case '/helpdesk':
         if (args is RouteArgs) {
           return MaterialPageRoute(
-              builder: (_) => PageHelpdesk(
+              builder: (_) => PageHelpDesk(
                     profile: args.profile,
                   ));
         }

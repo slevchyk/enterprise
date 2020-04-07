@@ -4,7 +4,7 @@ import 'core.dart';
 class HelpdeskDAO {
   final dbProvider = DBProvider.db;
 
-  insert(Helpdesk helpdesk, {bool isModified = true}) async {
+  insert(HelpDesk helpdesk, {bool isModified = true}) async {
     final db = await dbProvider.database;
 
     String createdAt = isModified
@@ -53,26 +53,26 @@ class HelpdeskDAO {
         ]);
 
     if (raw.isFinite && helpdesk.id == null) {
-      Helpdesk.sync();
+      HelpDesk.sync();
     }
 
     return raw;
   }
 
-  Future<Helpdesk> getByMobID(int mobID) async {
+  Future<HelpDesk> getByMobID(int mobID) async {
     final db = await dbProvider.database;
     var res =
         await db.query("helpdesk", where: "mob_id = ? ", whereArgs: [mobID]);
-    return res.isNotEmpty ? Helpdesk.fromMap(res.first) : null;
+    return res.isNotEmpty ? HelpDesk.fromMap(res.first) : null;
   }
 
-  Future<Helpdesk> getByID(int id) async {
+  Future<HelpDesk> getByID(int id) async {
     final db = await dbProvider.database;
     var res = await db.query("helpdesk", where: "id = ? ", whereArgs: [id]);
-    return res.isNotEmpty ? Helpdesk.fromMap(res.first) : null;
+    return res.isNotEmpty ? HelpDesk.fromMap(res.first) : null;
   }
 
-  Future<bool> update(Helpdesk helpdesk,
+  Future<bool> update(HelpDesk helpdesk,
       {bool isModified = true, sync = true}) async {
     final db = await dbProvider.database;
 
@@ -86,28 +86,28 @@ class HelpdeskDAO {
         where: "mob_id = ?", whereArgs: [helpdesk.mobID]);
 
     if (res.isFinite && sync) {
-      Helpdesk.sync();
+      HelpDesk.sync();
     }
 
     return res.isFinite;
   }
 
-  Future<List<Helpdesk>> getDeleted() async {
+  Future<List<HelpDesk>> getDeleted() async {
     final db = await dbProvider.database;
     var res =
         await db.query("helpdesk", where: 'is_deleted=1', orderBy: "id DESC");
 
-    List<Helpdesk> list =
-        res.isNotEmpty ? res.map((c) => Helpdesk.fromMap(c)).toList() : [];
+    List<HelpDesk> list =
+        res.isNotEmpty ? res.map((c) => HelpDesk.fromMap(c)).toList() : [];
     return list;
   }
 
-  Future<List<Helpdesk>> getToUpload() async {
+  Future<List<HelpDesk>> getToUpload() async {
     final db = await dbProvider.database;
     var res = await db.query("helpdesk", where: "is_modified = 1");
 
-    List<Helpdesk> list =
-        res.isNotEmpty ? res.map((c) => Helpdesk.fromMap(c)).toList() : [];
+    List<HelpDesk> list =
+        res.isNotEmpty ? res.map((c) => HelpDesk.fromMap(c)).toList() : [];
     return list;
   }
 
@@ -119,18 +119,18 @@ class HelpdeskDAO {
   getById(int id) async {
     final db = await dbProvider.database;
     var res = await db.query("helpdesk", where: "id = ? ", whereArgs: [id]);
-    return res.isNotEmpty ? Helpdesk.fromMap(res.first) : null;
+    return res.isNotEmpty ? HelpDesk.fromMap(res.first) : null;
   }
 
-  Future<List<Helpdesk>> getByUserIdType(String userID, String status) async {
+  Future<List<HelpDesk>> getByUserIdType(String userID, String status) async {
     final db = await dbProvider.database;
     var res = await db.query("helpdesk",
         where: "user_id = ? and status = ? and is_deleted = 0 ",
         whereArgs: [userID, status],
-        orderBy: "date DESC");
+        orderBy: "mob_id DESC");
 
-    List<Helpdesk> list =
-        res.isNotEmpty ? res.map((c) => Helpdesk.fromMap(c)).toList() : [];
+    List<HelpDesk> list =
+        res.isNotEmpty ? res.map((c) => HelpDesk.fromMap(c)).toList() : [];
     return list;
   }
 }

@@ -5,7 +5,7 @@ import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'constants.dart';
 
-class Helpdesk {
+class HelpDesk {
   int mobID;
   int id;
   String userID;
@@ -23,7 +23,7 @@ class Helpdesk {
   bool isDeleted;
   bool isModified;
 
-  Helpdesk({
+  HelpDesk({
     this.mobID,
     this.id,
     this.userID,
@@ -42,7 +42,7 @@ class Helpdesk {
     this.isModified,
   });
 
-  factory Helpdesk.fromMap(Map<String, dynamic> json) => new Helpdesk(
+  factory HelpDesk.fromMap(Map<String, dynamic> json) => new HelpDesk(
         mobID: json['mob_id'],
         id: json["id"],
         userID: json["user_id"],
@@ -100,7 +100,7 @@ class Helpdesk {
   }
 
   static upload() async {
-    List<Helpdesk> _listHelpdesk = await HelpdeskDAO().getToUpload();
+    List<HelpDesk> _listHelpDesk = await HelpdeskDAO().getToUpload();
     Map<String, dynamic> requestData;
 
     final prefs = await SharedPreferences.getInstance();
@@ -108,7 +108,7 @@ class Helpdesk {
     final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
     final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
 
-    final String url = 'http://$_serverIP/api/paydesk?from=mobile';
+    final String url = 'http://$_serverIP/api/helpdesk?from=mobile';
 
     final credentials = '$_serverUser:$_serverPassword';
     final stringToBase64 = utf8.fuse(base64);
@@ -119,7 +119,7 @@ class Helpdesk {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    for (var _helpDesk in _listHelpdesk) {
+    for (var _helpDesk in _listHelpDesk) {
       requestData = _helpDesk.toMap();
 
       Response response = await post(
@@ -140,7 +140,7 @@ class Helpdesk {
   }
 
   static download() async {
-    Helpdesk helpDesk;
+    HelpDesk helpDesk;
 
     final prefs = await SharedPreferences.getInstance();
     final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
@@ -173,11 +173,11 @@ class Helpdesk {
       }
 
       for (var jsonPayDesk in jsonData) {
-        helpDesk = Helpdesk.fromMap(jsonPayDesk);
+        helpDesk = HelpDesk.fromMap(jsonPayDesk);
 
         bool ok = false;
 
-        Helpdesk existPayDesk = await HelpdeskDAO().getByID(helpDesk.id);
+        HelpDesk existPayDesk = await HelpdeskDAO().getByID(helpDesk.id);
 
         if (existPayDesk != null) {
           helpDesk.mobID = existPayDesk.mobID;
