@@ -122,7 +122,9 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
                                       MaterialPageRoute(
                                           builder: (context) =>
                                               PageHelpdeskDetail(
-                                                  helpdesk: helpdesk)),
+                                                helpdesk: helpdesk,
+                                                profile: _profile,
+                                              )),
                                     );
                                   },
                                   child: ListTile(
