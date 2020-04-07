@@ -100,7 +100,13 @@ class RouteGenerator {
         }
         return _errorRoute(settings.name);
       case '/helpdesk':
-        return MaterialPageRoute(builder: (_) => PageHelpdesk());
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PageHelpdesk(
+                    profile: args.profile,
+                  ));
+        }
+        return _errorRoute(settings.name);
       case '/sign_in_out':
         return MaterialPageRoute(builder: (_) => PageSignInOut());
       case '/channel/detail':

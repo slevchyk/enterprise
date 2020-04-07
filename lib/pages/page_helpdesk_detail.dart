@@ -42,7 +42,6 @@ class _PageHelpdeskDetailState extends State<PageHelpdeskDetail> {
 
   String _appPath;
 
-  int _status;
   bool _readOnly = false;
 
   final List<IconData> _icons = const [

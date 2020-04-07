@@ -32,9 +32,9 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
   @override
   void initState() {
     super.initState();
-    getprofileByUuid();
-    helpdeskprocessed = getHelpdesk(HELPDESK_STATUS_PROCESSED);
-    helpdeskunprocessed = getHelpdesk(HELPDESK_STATUS_UNPROCESSED);
+    //getprofileByUuid();
+    _profile = widget.profile;
+    _refreshTiming();
   }
 
   _updateHelpdesk() async {
@@ -69,6 +69,18 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
               Tab(text: "Опрацьовані"),
             ],
           ),
+          actions: <Widget>[
+            FlatButton(
+              onPressed: () async {
+                await Helpdesk.sync();
+                _refreshTiming();
+              },
+              child: Icon(
+                Icons.update,
+                color: Colors.white,
+              ),
+            )
+          ],
         ),
         drawer: AppDrawer(
           profile: _profile,

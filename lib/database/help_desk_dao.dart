@@ -92,16 +92,6 @@ class HelpdeskDAO {
     return res.isFinite;
   }
 
-  Future<List<Helpdesk>> getUnDeleted() async {
-    final db = await dbProvider.database;
-    var res =
-        await db.query("helpdesk", where: 'is_deleted=0', orderBy: "id DESC");
-
-    List<Helpdesk> list =
-        res.isNotEmpty ? res.map((c) => Helpdesk.fromMap(c)).toList() : [];
-    return list;
-  }
-
   Future<List<Helpdesk>> getDeleted() async {
     final db = await dbProvider.database;
     var res =
@@ -132,17 +122,10 @@ class HelpdeskDAO {
     return res.isNotEmpty ? Helpdesk.fromMap(res.first) : null;
   }
 
-//  update(Helpdesk helpdesk) async {
-//    final db = await dbProvider.database;
-//    var res = await db.update("helpdesk", helpdesk.toMap(),
-//        where: "id = ?", whereArgs: [helpdesk.id]);
-//    return res;
-//  }
-
   Future<List<Helpdesk>> getByUserIdType(String userID, String status) async {
     final db = await dbProvider.database;
     var res = await db.query("helpdesk",
-        where: "user_id = ? and status = ? ",
+        where: "user_id = ? and status = ? and is_deleted = 0 ",
         whereArgs: [userID, status],
         orderBy: "date DESC");
 
