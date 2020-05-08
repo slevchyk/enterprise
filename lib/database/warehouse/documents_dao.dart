@@ -1,8 +1,9 @@
 
 import 'package:enterprise/database/warehouse/core.dart';
+import 'package:enterprise/interfaces/documents_dao_interface.dart';
 import 'package:enterprise/models/warehouse/documnets.dart';
 
-class DocumentsDAO {
+class DocumentsDAO implements DocumentInterface {
   final dbProvider = DBWarehouseProvider.db;
 
   insert(Documents documents, {bool isModified = true}) async {
@@ -41,11 +42,26 @@ class DocumentsDAO {
     return raw.isFinite;
   }
 
-  getById(int id) async {
+  Future<Documents> getById(int id) async {
     final db = await dbProvider.database;
     var res = await db.query("documents" , where: "mob_id = ?",
         whereArgs: [id]);
     return res.isNotEmpty ? Documents.fromMap(res.first) : null;
+  }
+
+  Future<List<Documents>> getDocumentByGoodsID(int id) async {
+    final db = await dbProvider.database;
+    var res = await db.rawQuery(
+        "SELECT * "
+            "FROM documents "
+            "JOIN relation_documents_goods "
+            "ON relation_documents_goods.document_id = documents.mob_id "
+            "WHERE relation_documents_goods.goods_id = ? ",
+      [id]
+    );
+    List<Documents> toReturn =
+    res.isNotEmpty ? res.map((e) => Documents.fromMap(e)).toList() : [];
+    return toReturn;
   }
 
   Future<List<Documents>> getAll() async {

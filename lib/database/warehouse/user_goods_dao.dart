@@ -40,7 +40,7 @@ class UserGoodsDAO {
     return raw.isFinite;
   }
 
-  getById(int id) async {
+  Future<Goods>getById(int id) async {
     final db = await dbProvider.database;
     var res = await db.query("user_goods" , where: "mob_id = ?",
         whereArgs: [id]);
@@ -74,6 +74,18 @@ class UserGoodsDAO {
     res.isNotEmpty
         ? res.map((e) => Goods.fromMap(e)).toList()
         : [];
+    return toReturn;
+  }
+
+  getLastId() async {
+    final db = await dbProvider.database;
+    var res = await db.rawQuery(''
+        'SELECT * FROM user_goods ORDER BY mob_id DESC LIMIT 1');
+
+    int toReturn =
+    res.isNotEmpty
+        ? res.map((e) => Goods.fromMap(e).mobID).toList().first +1
+        : 1;
     return toReturn;
   }
 

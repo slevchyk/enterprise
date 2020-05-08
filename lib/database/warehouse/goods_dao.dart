@@ -25,11 +25,26 @@ class GoodsDAO {
     return raw.isFinite;
   }
 
-  getById(int id) async {
+  Future<Goods> getById(int id) async {
     final db = await dbProvider.database;
     var res = await db.query("goods" , where: "mob_id = ?",
         whereArgs: [id]);
     return res.isNotEmpty ? Goods.fromMap(res.first) : null;
+  }
+
+  Future<Goods> getTestId(int id) async {
+    final db = await dbProvider.database;
+    var res = await db.query("goods" , where: "mob_id = ?",
+        whereArgs: [id]);
+    print(res);
+    return res.isNotEmpty ? Goods.fromMap(res.first) : null;
+  }
+
+  Future<Goods> getTest(int id) async {
+    final db = await dbProvider.database;
+    var res = await db.query("goods" , where: "mob_id = ?",
+        whereArgs: [id]);
+    return Goods.fromMap(res.first);
   }
 
   Future<List<Goods>> getAll() async {
@@ -59,6 +74,18 @@ class GoodsDAO {
     res.isNotEmpty
         ? res.map((e) => Goods.fromMap(e)).toList()
         : [];
+    return toReturn;
+  }
+
+  getLastId() async {
+    final db = await dbProvider.database;
+    var res = await db.rawQuery(''
+        'SELECT * FROM goods ORDER BY mob_id DESC LIMIT 1');
+
+    int toReturn =
+    res.isNotEmpty
+        ? res.map((e) => Goods.fromMap(e).mobID).toList().first +1
+        : 1;
     return toReturn;
   }
 

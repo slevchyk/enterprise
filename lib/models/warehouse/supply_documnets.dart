@@ -1,6 +1,6 @@
 import 'package:enterprise/models/warehouse/goods.dart';
 
-class Documents {
+class SupplyDocuments {
   int mobID;
   int id;
   String userID;
@@ -8,12 +8,13 @@ class Documents {
   int number;
   DateTime date;
   String partner;
+  int count;
   List<Goods> goods = List();
   DateTime createdAt;
   DateTime updatedAt;
   bool isModified;
 
-  Documents({
+  SupplyDocuments({
     this.mobID,
     this.id,
     this.userID,
@@ -21,19 +22,21 @@ class Documents {
     this.number,
     this.date,
     this.partner,
+    this.count,
     this.createdAt,
     this.updatedAt,
     this.isModified,
   });
 
-  factory Documents.fromMap(Map<String, dynamic> json) => new Documents(
+  factory SupplyDocuments.fromMap(Map<String, dynamic> json) => new SupplyDocuments(
     mobID: json["mob_id"],
     id: json["id"],
     userID: json["user_id"],
-    status: json["document_status"] == 1 ? true : false,
-    number: json["document_number"],
-    date: DateTime.parse(json["document_date"]),
-    partner: json["document_partner"],
+    status: json["supply_document_status"] == 1 ? true : false,
+    number: json["supply_document_number"],
+    date: DateTime.parse(json["supply_document_date"]),
+    partner: json["supply_document_partner"],
+    count: json["supply_document_count"],
     createdAt: json['created_at'] != null ?
         DateTime.parse(json["created_at"]) :
         null,
@@ -47,10 +50,11 @@ class Documents {
     "mob_id" : mobID,
     "id" : id,
     "user_id" : userID,
-    "document_status" : status ? 1 : 0,
-    "document_number" : number,
-    "document_date" : date.toIso8601String(),
-    "document_partner" : partner,
+    "supply_document_status" : status ? 1 : 0,
+    "supply_document_number" : number,
+    "supply_document_date" : date.toIso8601String(),
+    "supply_document_partner" : partner,
+    "supply_document_count" : count,
     'created_at': createdAt != null ? createdAt.toIso8601String() : null,
     'updated_at': updatedAt != null ? updatedAt.toIso8601String() : null,
     "is_modified": isModified ? 1 : 0,

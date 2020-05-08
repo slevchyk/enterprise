@@ -35,6 +35,9 @@ dependencies:
   vibration: ^1.2.4
 #  intl: ^0.16.1
   uuid: ^2.0.4
+  barcode_flutter: ^1.1.2
+  barcode_scan: ^2.0.2
+  qr_flutter: ^3.2.0
 
 dev_dependenfcies:
   flutter_test:

@@ -1,15 +1,15 @@
 
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:date_format/date_format.dart';
-import 'package:enterprise/database/warehouse/documents_dao.dart';
+import 'package:enterprise/database/warehouse/goods_dao.dart';
 import 'package:enterprise/database/warehouse/partners_dao.dart';
-import 'package:enterprise/database/warehouse/relation_documents_goods_dao.dart';
-import 'package:enterprise/database/warehouse/user_goods_dao.dart';
+import 'package:enterprise/database/warehouse/relation_supply_documents_goods_dao.dart';
+import 'package:enterprise/database/warehouse/supply_documents_dao.dart';
 import 'package:enterprise/models/constants.dart';
-import 'package:enterprise/models/warehouse/documnets.dart';
 import 'package:enterprise/models/warehouse/goods.dart';
 import 'package:enterprise/models/warehouse/partners.dart';
-import 'package:enterprise/models/warehouse/relation_documents_goods.dart';
+import 'package:enterprise/models/warehouse/relation_supply_documents_goods.dart';
+import 'package:enterprise/models/warehouse/supply_documnets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,19 +17,19 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class DocumentsView extends StatefulWidget{
-  final Documents currentDocument;
+class SupplyDocumentsView extends StatefulWidget{
+  final SupplyDocuments currentSupplyDocument;
   final bool enableEdit;
 
-  DocumentsView({
-    @required this.currentDocument,
+  SupplyDocumentsView({
+    @required this.currentSupplyDocument,
     @required this.enableEdit,
   });
 
-  createState() => _DocumentsState();
+  createState() => _SupplyDocumentsState();
 }
 
-class _DocumentsState extends State<DocumentsView>{
+class _SupplyDocumentsState extends State<SupplyDocumentsView>{
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -37,11 +37,12 @@ class _DocumentsState extends State<DocumentsView>{
   final _fieldDate = TextEditingController();
   final _fieldPartner = TextEditingController();
   final _fieldGoods = TextEditingController();
+  final _fieldCount = TextEditingController();
 
   Future<List<Partners>> _partnersList;
   Future<List<Goods>> _goodsList;
 
-  Documents _currentDocument;
+  SupplyDocuments _currentSupplyDocument;
 
   bool _readOnly = true;
 
@@ -72,8 +73,8 @@ class _DocumentsState extends State<DocumentsView>{
                 child: ListView(
                   children: <Widget>[
                     _readOnly ?
-                        Container() : _currentDocument!=null ?
-                            _currentDocument.status ?
+                        Container() : _currentSupplyDocument!=null ?
+                            _currentSupplyDocument.status ?
                                 _setStatus('Робочий', Colors.green) :
                                 _setStatus('Чорновик', Colors.blue[800]) :
                                 Container(),
@@ -169,6 +170,27 @@ class _DocumentsState extends State<DocumentsView>{
                         ),
                       ),
                     ),
+                    TextFormField(
+                      enabled: _readOnly,
+                      controller: _fieldCount,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                          icon: Icon(FontAwesomeIcons.sortNumericDown),
+                          suffixIcon: _clearIconButton(_fieldCount),
+                          labelText: 'Кiлькiсть *',
+                          hintText: 'Введiть кiлькiсть'
+                      ),
+                      validator: (validator) {
+                        if(validator.trim().isEmpty)
+                          return 'Ви не вказали номер';
+                        if(_isNotNumber(validator))
+                          return 'Ви ввели не число';
+                        return null;
+                      },
+                      onChanged: (_) {
+                        setState(() {});
+                      },
+                    ),
                     Container(
                       child: InkWell(
                         onTap: () {
@@ -237,14 +259,15 @@ class _DocumentsState extends State<DocumentsView>{
       return _ok;
     }
 
-    _currentDocument.date = DateTime.parse(formatDate(
+    _currentSupplyDocument.date = DateTime.parse(formatDate(
         DateFormat("dd-MM-yyyy")
             .parse(_fieldDate.text.replaceAll('.', '-')),
         [yyyy, '-', mm, '-', dd]));
-    _currentDocument.partner = _fieldPartner.text;
-    _currentDocument.number = int.parse(_fieldNumber.text);
+    _currentSupplyDocument.partner = _fieldPartner.text;
+    _currentSupplyDocument.number = int.parse(_fieldNumber.text);
+    _currentSupplyDocument.count = int.parse(_fieldCount.text);
 
-    if(_readOnly && _currentDocument.mobID==null){
+    if(_readOnly && _currentSupplyDocument.mobID==null){
       _ok = await _insertIntoDB();
     } else {
       _ok = await _updatePaymentInDB();
@@ -253,7 +276,7 @@ class _DocumentsState extends State<DocumentsView>{
     if (_ok) {
       setState(() {
         _readOnly = false;
-        _displaySnackBar(context, "Замовлення збережно", Colors.green);
+        _displaySnackBar(context, "Замовлення постачальника збережно", Colors.green);
       });
     } else {
       _displaySnackBar(context, "Помилка збереження", Colors.red);
@@ -266,17 +289,17 @@ class _DocumentsState extends State<DocumentsView>{
     List<bool> _temp = [];
     final prefs = await SharedPreferences.getInstance();
     String _userID = prefs.getString(KEY_USER_ID) ?? "";
-    _currentDocument.userID = _userID;
-    _currentDocument.status = false;
+    _currentSupplyDocument.userID = _userID;
+    _currentSupplyDocument.status = false;
     try {
-      _currentDocument.goods.forEach((element) async {
-        RelationDocumentsGoods relationDocumentsGoods = RelationDocumentsGoods(
-            documentID: await DocumentsDAO().getLastId(),
+      _currentSupplyDocument.goods.forEach((element) async {
+        RelationSupplyDocumentsGoods relationSupplyDocumentsGoods = RelationSupplyDocumentsGoods(
+            documentID: await SupplyDocumentsDAO().getLastId(),
             goodsID: element.mobID,
         );
-        _temp.add(await RelationDocumentsGoodsDAO().insert(relationDocumentsGoods));
+        _temp.add(await RelationSupplyDocumentsGoodsDAO().insert(relationSupplyDocumentsGoods));
       });
-      _temp.add(await DocumentsDAO().insert(_currentDocument));
+      _temp.add(await SupplyDocumentsDAO().insert(_currentSupplyDocument));
       return _temp.where((element) => element == true)
           .toList().length == _temp.length;
     } catch (_) {
@@ -299,18 +322,17 @@ class _DocumentsState extends State<DocumentsView>{
   Future<bool> _updatePaymentInDB() async {
     List<bool> _temp = [];
     try {
-      _temp.add(await RelationDocumentsGoodsDAO()
-          .deleteById(_currentDocument.mobID) > 0 ?
-          true :
-          false);
-      _currentDocument.goods.forEach((good) async {
-        RelationDocumentsGoods relationDocumentsGoods = RelationDocumentsGoods(
-          documentID: _currentDocument.mobID,
+      _temp.add(await RelationSupplyDocumentsGoodsDAO().deleteById(_currentSupplyDocument.mobID) > 0
+          ? true
+          : false);
+      _currentSupplyDocument.goods.forEach((good) async {
+        RelationSupplyDocumentsGoods relationSupplyDocumentsGoods = RelationSupplyDocumentsGoods(
+          documentID: _currentSupplyDocument.mobID,
           goodsID: good.mobID,
         );
-        _temp.add(await RelationDocumentsGoodsDAO().insert(relationDocumentsGoods));
+        _temp.add(await RelationSupplyDocumentsGoodsDAO().insert(relationSupplyDocumentsGoods));
       });
-      _temp.add(await DocumentsDAO().update(_currentDocument, isModified: true));
+      _temp.add(await SupplyDocumentsDAO().update(_currentSupplyDocument, isModified: true));
       return _temp.where((element) => element == true)
           .toList().length == _temp.length;
     } catch (_) {
@@ -379,12 +401,11 @@ class _DocumentsState extends State<DocumentsView>{
                             shrinkWrap: true,
                             itemCount: snapshot == null
                                 ? 0
-                                : snapshot.data.length,
+                                :  snapshot.data.length,
                             itemBuilder: (context, int index) {
                               Goods _good = snapshot.data[index];
-                              _currentDocument.goods.forEach((good) {
-                                if(good.mobID == _good.mobID)_good
-                                    .isSelected = true;
+                              _currentSupplyDocument.goods.forEach((good) {
+                                if(good.mobID == _good.mobID)_good.isSelected = true;
                               });
                               return Center(
                                 child: Column(
@@ -417,10 +438,10 @@ class _DocumentsState extends State<DocumentsView>{
                                           setState(() {
                                             if(_good.isSelected) {
                                               _good.isSelected = false;
-                                              _currentDocument.goods.remove(_good);
+                                              _currentSupplyDocument.goods.remove(_good);
                                               _fieldGoods.clear();
 
-                                              _currentDocument.goods.forEach((good) {
+                                              _currentSupplyDocument.goods.forEach((good) {
                                                 _fieldGoods.text = ""
                                                     "${_fieldGoods.text}"
                                                     "${_fieldGoods.text.isNotEmpty
@@ -428,7 +449,7 @@ class _DocumentsState extends State<DocumentsView>{
                                                     "${good.name}";
                                               });
                                             } else {
-                                              _currentDocument.goods.add(_good);
+                                              _currentSupplyDocument.goods.add(_good);
                                               _good.isSelected = true;
                                               _fieldGoods.text = ""
                                                   "${_fieldGoods.text}"
@@ -542,7 +563,7 @@ class _DocumentsState extends State<DocumentsView>{
 
   Widget _appBar(BuildContext context) {
     return AppBar(
-      title: Text(_readOnly ? 'Замовлення' : 'Перегляд'),
+      title: Text(_readOnly ? 'Прихiд постачальника' : 'Перегляд'),
       leading: FlatButton(
         child: Icon(
           Icons.arrow_back,
@@ -554,20 +575,25 @@ class _DocumentsState extends State<DocumentsView>{
       ),
       actions: <Widget>[
         Visibility(
-            visible: _currentDocument.mobID == null || _readOnly,
+            visible: _currentSupplyDocument.mobID == null || _readOnly,
             child: IconButton(
-                icon: Icon(Icons.camera_alt),
                 onPressed: () async {
                   String scan = await _scan();
                   int _id = _getID(scan);
                   _addScannedGoods(_id);
-                }
-            ),),
+                },
+                icon: Icon(
+                  Icons.camera_alt,
+                  color: Colors.white,
+                ))),
         Visibility(
-          visible: _currentDocument.mobID != null,
+          visible: _currentSupplyDocument.mobID != null,
           child: IconButton(
-              icon: Icon(Icons.info),
-              onPressed: (){
+              icon: Icon(
+                Icons.info,
+                color: Colors.white,
+              ),
+              onPressed: () {
                 FocusScope.of(context).unfocus();
                 showGeneralDialog(
                   barrierLabel: 'info',
@@ -589,7 +615,7 @@ class _DocumentsState extends State<DocumentsView>{
                     ),
                     insetPadding: EdgeInsets.only(top: 200, bottom: 200),
                     content: ListTile(
-                      title: Text("Інформація про замовлення"),
+                      title: Text("Інформація про поступлення \nпостачальника", textAlign: TextAlign.center,),
                       subtitle: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -600,7 +626,7 @@ class _DocumentsState extends State<DocumentsView>{
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                formatDate(_currentDocument.createdAt, [
+                                formatDate(_currentSupplyDocument.createdAt, [
                                   dd,
                                   '-',
                                   mm,
@@ -616,8 +642,8 @@ class _DocumentsState extends State<DocumentsView>{
                               ),
                             ],
                           ),
-                          _currentDocument.updatedAt
-                              .difference(_currentDocument.createdAt)
+                          _currentSupplyDocument.updatedAt
+                              .difference(_currentSupplyDocument.createdAt)
                               .inSeconds > 0 ? Row(
                             children: <Widget>[
                               Text(
@@ -625,7 +651,7 @@ class _DocumentsState extends State<DocumentsView>{
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                formatDate(_currentDocument.updatedAt, [
+                                formatDate(_currentSupplyDocument.updatedAt, [
                                   dd,
                                   '-',
                                   mm,
@@ -652,8 +678,7 @@ class _DocumentsState extends State<DocumentsView>{
                     ],
                   ),
                 );
-              }
-          ),
+              }),
         ),
       ],
     );
@@ -795,18 +820,19 @@ class _DocumentsState extends State<DocumentsView>{
   }
 
   void _setFields(){
-    _currentDocument = widget.currentDocument;
+    _currentSupplyDocument = widget.currentSupplyDocument;
     _partnersList = PartnersDAO().getAll();
-    _goodsList = UserGoodsDAO().getAll();
+    _goodsList = GoodsDAO().getAll();
     _readOnly = widget.enableEdit;
   }
 
   void _setControllers(){
     if(!_readOnly){
-      _fieldNumber.text = _currentDocument.number.toString();
-      _fieldDate.text = DateFormat('dd.MM.yyyy').format(_currentDocument.date);
-      _fieldPartner.text = _currentDocument.partner;
-      _currentDocument.goods = _setGoods(_currentDocument.goods);
+      _fieldNumber.text = _currentSupplyDocument.number.toString();
+      _fieldDate.text = DateFormat('dd.MM.yyyy').format(_currentSupplyDocument.date);
+      _fieldPartner.text = _currentSupplyDocument.partner;
+      _fieldCount.text = _currentSupplyDocument.count.toString();
+      _currentSupplyDocument.goods = _setGoods(_currentSupplyDocument.goods);
     }
   }
 
@@ -863,9 +889,9 @@ class _DocumentsState extends State<DocumentsView>{
     Future<Goods> _scannedGood = _goodsList.then((goods) =>
         goods.firstWhere((good) => good.mobID == id, orElse: () => null));
     _scannedGood.then((good) => good != null ?
-        _currentDocument.goods.contains(good) ?
-            null : _currentDocument.goods.contains(good) ?
-            null : _currentDocument.goods.add(_setGoods([good]).first) :
+        _currentSupplyDocument.goods.contains(good) ?
+            null : _currentSupplyDocument.goods.contains(good) ?
+            null : _currentSupplyDocument.goods.add(_setGoods([good]).first) :
     _displaySnackBar(context, 'Номенклатуру не знайдено', Colors.red));
   }
 

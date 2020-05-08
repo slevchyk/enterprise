@@ -56,6 +56,19 @@ class DBWarehouseProvider {
           'updated_at TEXT,'
           'is_modified BIT'
           ')');
+      await db.execute('CREATE TABLE supply_documents ('
+          'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
+          "id INTEGER,"
+          'user_id TEXT,'
+          'supply_document_status BIT,'
+          'supply_document_number INTEGET,'
+          'supply_document_date TEXT,'
+          'supply_document_partner TEXT,'
+          'supply_document_count INTEGER,'
+          'created_at TEXT,'
+          'updated_at TEXT,'
+          'is_modified BIT'
+          ')');
       await db.execute("CREATE TABLE partners ("
           "mob_id INTEGER PRIMARY KEY AUTOINCREMENT,"
           "id INTEGER,"
@@ -69,6 +82,14 @@ class DBWarehouseProvider {
           "FOREIGN KEY (document_id) REFERENCES documents(mob_id),"
           "FOREIGN KEY (goods_id) REFERENCES newGoods(mob_id),"
           "PRIMARY KEY (document_id, goods_id)"
+          ")");
+      await db.execute("CREATE TABLE relation_supply_documents_goods ("
+          "supply_document_id INTEGER,"
+          "goods_id INTEGER,"
+          "UNIQUE (supply_document_id, goods_id) ON CONFLICT REPLACE,"
+          "FOREIGN KEY (supply_document_id) REFERENCES supply_documents(mob_id),"
+          "FOREIGN KEY (goods_id) REFERENCES newGoods(mob_id),"
+          "PRIMARY KEY (supply_document_id, goods_id)"
           ")");
     });
   }

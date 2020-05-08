@@ -29,6 +29,17 @@ class RelationDocumentsGoodsDAO {
     return toReturn;
   }
 
+  Future<List<RelationDocumentsGoods>> getById(int id) async {
+    final db = await dbProvider.database;
+    var res = await db.rawQuery(
+        "SELECT * FROM relation_documents_goods WHERE document_id = ?",
+      [id]
+    );
+    List<RelationDocumentsGoods> toReturn =
+    res.isNotEmpty ? res.map((e) => RelationDocumentsGoods.fromMap(e)).toList() : [];
+    return toReturn;
+  }
+
   deleteById(int docID) async {
     final db = await dbProvider.database;
     var res = await db.delete("relation_documents_goods",

@@ -25,6 +25,21 @@ class Goods {
     this.isModified,
   });
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is Goods &&
+              runtimeType == other.runtimeType &&
+              mobID == other.mobID &&
+              count == other.count &&
+              name == other.name;
+
+  @override
+  int get hashCode =>
+      mobID.hashCode ^
+      count.hashCode ^
+      name.hashCode;
+
   factory Goods.fromMap(Map<String, dynamic> json) => new Goods(
     mobID: json["mob_id"],
     id: json["id"],
@@ -33,12 +48,12 @@ class Goods {
     count: json["good_count"],
     name: json["good_name"],
     unit: json["good_unit"],
-    createdAt: json['created_at'] != null
-        ? DateTime.parse(json["created_at"])
-        : null,
-    updatedAt: json['updated_at'] != null
-        ? DateTime.parse(json["updated_at"])
-        : null,
+    createdAt: json['created_at'] != null ?
+        DateTime.parse(json["created_at"]) :
+        null,
+    updatedAt: json['updated_at'] != null ?
+        DateTime.parse(json["updated_at"]) :
+        null,
     isModified: json["is_modified"] == 1 ? true : false,
   );
 

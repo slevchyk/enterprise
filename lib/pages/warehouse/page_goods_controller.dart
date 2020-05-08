@@ -1,24 +1,25 @@
 
+import 'package:barcode_flutter/barcode_flutter.dart';
 import 'package:date_format/date_format.dart';
+import 'package:enterprise/database/warehouse/goods_dao.dart';
 import 'package:enterprise/database/warehouse/user_goods_dao.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/warehouse/goods.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GoodsView extends StatefulWidget{
   final Goods currentGood;
   final bool enableEdit;
   final bool isNew;
-  final Future<List<Goods>> goodsList;
 
   GoodsView({
     @required this.currentGood,
     @required this.enableEdit,
     @required this.isNew,
-    @required this.goodsList,
   });
 
   createState() => _GoodsState();
@@ -65,11 +66,12 @@ class _GoodsState extends State<GoodsView>{
                 key: _formKey,
                 child: ListView(
                   children: <Widget>[
-                    !_isNew && _readOnly ? Container()
-                        : _currentGood!=null ? _currentGood.status
-                        ? _setStatus('Робочий', Colors.green)
-                        : _setStatus('Чорновик', Colors.blue[800])
-                        : Container(),
+                    !_isNew && _readOnly ?
+                        Container() : _currentGood!=null ?
+                            _currentGood.status ?
+                                _setStatus('Робочий', Colors.green) :
+                                _setStatus('Чорновик', Colors.blue[800]) :
+                                Container(),
                      Container(
                        child: InkWell(
                          onTap: () {
@@ -155,6 +157,112 @@ class _GoodsState extends State<GoodsView>{
                         setState(() {});
                       },
                     ),
+                    !_isNew && _readOnly ? Container() : Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          showGeneralDialog(
+                            barrierLabel: "barCode",
+                            barrierDismissible: true,
+                            barrierColor: Colors.white.withOpacity(0.95),
+                            transitionDuration: Duration(milliseconds: 250),
+                            context: context,
+                            pageBuilder: (context, anim1, anim2) {
+                              return Container(
+                                child: Center(
+                                  child: BarCodeImage(
+                                    params: Code128BarCodeParams(
+                                      "${_currentGood.mobID}:"
+                                          "${_currentGood.status? 1 : 0}",
+                                      lineWidth: 4.0,
+                                      barHeight: 120.0,
+                                      withText: true,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                            transitionBuilder: (context, anim1, anim2, child) {
+                              return SlideTransition(
+                                position: Tween(
+                                    begin: Offset(0, 1),
+                                    end: Offset(0, 0)).animate(anim1),
+                                child: child,
+                              );
+                            },
+                          );
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(20),
+                          child: BarCodeImage(
+                            params: Code128BarCodeParams(
+                              "${_currentGood.mobID}:"
+                                  "${_currentGood.status? 1 : 0}",
+                              lineWidth: 2.0,
+                              barHeight: 90.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    !_isNew && _readOnly ? Container() : Center(
+                      child: Container(
+                        child: GestureDetector(
+                          onTap: () {
+                            showGeneralDialog(
+                              barrierLabel: "qrCode",
+                              barrierDismissible: true,
+                              barrierColor: Colors.white.withOpacity(0.95),
+                              transitionDuration: Duration(milliseconds: 250),
+                              context: context,
+                              pageBuilder: (context, anim1, anim2) {
+                                return Container(
+                                  child: Center(
+                                    child: QrImage(
+                                      data: "${_currentGood.name}\n"
+                                          "${_currentGood.count} : "
+                                          "${_currentGood.unit} : "
+                                          "${_currentGood.status? 1 : 0} : "
+                                          "${_currentGood.mobID}",
+                                      version: QrVersions.auto,
+                                      gapless: false,
+                                      embeddedImage: AssetImage('assets/logo_512.png'),
+                                      embeddedImageStyle: QrEmbeddedImageStyle(
+                                        size: Size(80, 80),
+                                      ),
+                                      size: 300,
+                                    ),
+                                  ),
+                                );
+                              },
+                              transitionBuilder: (context, anim1, anim2, child) {
+                                return SlideTransition(
+                                  position: Tween(
+                                      begin: Offset(0, 1),
+                                      end: Offset(0, 0)).animate(anim1),
+                                  child: child,
+                                );
+                              },
+                            );
+                          },
+                          child: RepaintBoundary(
+                            child: QrImage(
+                              data: "${_currentGood.name}\n"
+                                  "${_currentGood.count} : "
+                                  "${_currentGood.unit} : "
+                                  "${_currentGood.status? 1 : 0} : "
+                                  "${_currentGood.mobID}",
+                              version: QrVersions.auto,
+                              gapless: false,
+                              embeddedImage: AssetImage('assets/logo_512.png'),
+                              embeddedImageStyle: QrEmbeddedImageStyle(
+                                size: Size(50, 50),
+                              ),
+                              size: 200,
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
                   ],
                 )
             ),
@@ -260,6 +368,7 @@ class _GoodsState extends State<GoodsView>{
   }
 
   Widget _showGoodsDialog() {
+    FocusScope.of(context).unfocus();
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
@@ -343,12 +452,13 @@ class _GoodsState extends State<GoodsView>{
       actions: <Widget>[
         Visibility(
           visible: _currentGood.mobID != null && !_isNew,
-          child: FlatButton(
-              child: Icon(
+          child: IconButton(
+              icon: Icon(
                 Icons.info,
                 color: Colors.white,
               ),
               onPressed: () {
+                FocusScope.of(context).unfocus();
                 showGeneralDialog(
                   barrierLabel: 'info',
                   barrierDismissible: true,
@@ -562,16 +672,15 @@ class _GoodsState extends State<GoodsView>{
   void _setFields(){
     _currentGood = widget.currentGood;
     _isNew = widget.isNew;
-    _goodsList = widget.goodsList;
+    _goodsList = GoodsDAO().getAll();
     _readOnly = widget.enableEdit;
   }
 
   void _setControllers(){
-    if(_readOnly == false){
+    if(!_readOnly){
       _fieldName.text = _currentGood.name;
       _fieldCount.text = _currentGood.count.toString();
       _fieldUnit.text = _currentGood.unit;
-      _readOnly = false;
     }
   }
 

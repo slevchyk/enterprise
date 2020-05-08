@@ -1,16 +1,19 @@
 
-import 'package:enterprise/database/warehouse/documents_dao.dart';
+import 'package:barcode_scan/barcode_scan.dart';
 import 'package:enterprise/database/warehouse/goods_dao.dart';
+import 'package:enterprise/database/warehouse/impl/documents_dao.dart';
+import 'package:enterprise/database/warehouse/impl/supply_documents_dao.dart';
 import 'package:enterprise/database/warehouse/partners_dao.dart';
-import 'package:enterprise/database/warehouse/relation_documents_goods_dao.dart';
 import 'package:enterprise/database/warehouse/user_goods_dao.dart';
 import 'package:enterprise/models/warehouse/documnets.dart';
 import 'package:enterprise/models/warehouse/goods.dart';
 import 'package:enterprise/models/warehouse/partners.dart';
-import 'package:enterprise/models/warehouse/relation_documents_goods.dart';
+import 'package:enterprise/models/warehouse/supply_documnets.dart';
+import 'package:enterprise/pages/warehouse/page_supply_documents_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import 'page_documents_controller.dart';
@@ -23,11 +26,13 @@ class PageOrders extends StatefulWidget {
 }
 
 class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateMixin {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   Future<List<Documents>> _documentsList;
   Future<List<Goods>> _goodsList;
+  Future<List<SupplyDocuments>> _supplyDocumentsList;
   Future<List<Goods>> _goodsAddedList;
   Future<List<Partners>> _partnersList;
-  Future<List<RelationDocumentsGoods>> _relationsList;
 
   TabController _tabController;
 
@@ -39,8 +44,9 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
   final List<Tab> _myTabs = <Tab>[
     Tab(text: 'Список замовлень'),
     Tab(text: 'Список номенклатур'),
+    Tab(text: 'Прихiд постачальника'),
     Tab(text: 'Номенклатура постачальника'),
-    Tab(text: 'Партнери',),
+    Tab(text: 'Партнери'),
   ];
 
   @override
@@ -50,20 +56,14 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
     _tabController = TabController(vsync: this, length: _myTabs.length);
     _tabController.addListener(() {
       setState(() {
-        if(_tabController.index <= 1 && !_isVisible){
+        if(_tabController.index <= 2 && !_isVisible){
           _isVisible = true;
-        } else if(_tabController.index >= 2 && _isVisible) {
+        } else if(_tabController.index >= 3 && _isVisible) {
           _isVisible = false;
         }
       });
     });
-    _goodsList = GoodsDAO().getAll();
-    _goodsAddedList = UserGoodsDAO().getAll();
-    _relationsList = RelationDocumentsGoodsDAO().getAll();
-    _documentsList = _setGoodsToDocuments(DocumentsDAO().getAll(),
-        _relationsList,
-        _goodsAddedList);
-    _partnersList = PartnersDAO().getAll();
+    _load(_ToUpdate.defaultUpdate);
   }
 
   @override
@@ -76,12 +76,104 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
     return DefaultTabController(
         length: _tabController.length,
         child: Scaffold(
+          key: _scaffoldKey,
           body: NestedScrollView(
             headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
               return <Widget>[
                 SliverAppBar(
                     title: Text('Склад'),
                     actions: <Widget>[
+                      _tabController.index == 0 || _tabController.index == 2 ?
+                      IconButton(
+                          icon: Icon(Icons.camera_alt),
+                          onPressed: () async {
+                            String scan = await _scan();
+                            int _id = _getID(scan);
+                            int _last;
+                            _tabController.index == 0 ?
+                                _last = await UserGoodsDAO().getLastId() :
+                                _last = await GoodsDAO().getLastId();
+                            if(_id == 0 || _last<=_id) {
+                              _scaffoldKey.currentState.showSnackBar(
+                                  SnackBar(
+                                    content: Text('Номенклатуру не знайдено'),
+                                    backgroundColor: Colors.red,));
+                              return null;
+                            }
+                            var _searchResponse;
+                            _tabController.index == 0 ?
+                                _searchResponse = ImplDocumentsDAO().getDocumentByGoodsID(_id) :
+                                _searchResponse = ImplSupplyDocumentsDAO().getDocumentByGoodsID(_id);
+                            Goods _good;
+                            _tabController.index == 0 ?
+                                _good = await UserGoodsDAO().getById(_id) :
+                                _good = await GoodsDAO().getById(_id);
+
+                            bool _empty;
+                            await _searchResponse.then((value) => _empty = value.isEmpty);
+
+                            return Navigator.push(context, MaterialPageRoute(
+                                builder: (_) {return Scaffold(
+                                  appBar: AppBar(
+                                    title: Text("Пошук по: ${_good.name}",
+                                      style: TextStyle(fontSize: 15.0),
+                                    ),
+                                    actions: <Widget>[
+                                      IconButton(
+                                          icon: Icon(Icons.info),
+                                          onPressed: () {
+                                            showGeneralDialog(
+                                              barrierLabel: 'info_goods_search',
+                                              barrierDismissible: true,
+                                              barrierColor: Colors.black.withOpacity(0.5),
+                                              transitionDuration: Duration(milliseconds: 250),
+                                              context: _scaffoldKey.currentContext,
+                                              transitionBuilder: (context, anim1, anim2, child) {
+                                                return SlideTransition(
+                                                  position: Tween(
+                                                      begin: Offset(0, -1),
+                                                      end: Offset(0, 0)).animate(anim1),
+                                                  child: child,
+                                                );
+                                              },
+                                              pageBuilder: (context, anim1, anim2) => AlertDialog(
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.all(Radius.circular(20.0))
+                                                ),
+                                                insetPadding: EdgeInsets.only(top: 200, bottom: 200),
+                                                content: ListTile(
+                                                  title: Text("Iнформацiя про номенклатуру \n\n${_good.name}"),
+                                                  subtitle: Text("Кiлькiсть - ${_good.count}, "
+                                                        "${_good.unit}"),
+                                                ),
+                                                actions: <Widget>[
+                                                  FlatButton(
+                                                    child: Text('Назад'),
+                                                    onPressed: () => Navigator.of(context).pop(),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }
+                                      )
+                                    ],
+                                  ),
+                                  body: GestureDetector(
+                                    onDoubleTap: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: _empty ?
+                                        Container(
+                                          child: Center(
+                                            child: Text("Документiв з данною номенклатурою не знайдено"),
+                                          ),) :
+                                        _tabController.index == 0 ?
+                                            _PageOrdersState()._documents(_searchResponse) :
+                                            _PageOrdersState()._supplyDocuments(_searchResponse),
+                                  )
+                                );}));
+                            },
+                      ) : Container(),
                       IconButton(
                         icon: Icon(Icons.search),
                         onPressed: () {
@@ -108,6 +200,7 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
                 children: [
                   _documents(_documentsList),
                   _goods(_goodsAddedList, true),
+                  _supplyDocuments(_supplyDocumentsList),
                   _goods(_goodsList, false),
                   _partners(_partnersList),
                 ]
@@ -123,10 +216,8 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
                         return DocumentsView(
                           currentDocument: Documents(),
                           enableEdit: true,
-                          partnersList: _partnersList,
-                          goodsList: _goodsAddedList,
                         );
-                      })).whenComplete(() => _load("documents"));
+                      })).whenComplete(() => _load(_ToUpdate.documents));
                       break;
                     case 1:
                       Navigator.push(context, MaterialPageRoute(builder: (_){
@@ -134,19 +225,24 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
                           currentGood: Goods(),
                           enableEdit: true,
                           isNew: false,
-                          goodsList: _goodsList,
                         );
-                      })).whenComplete(() => _load("goodsAdded"));
+                      })).whenComplete(() => _load(_ToUpdate.goods));
+                      break;
+                    case 2:
+                      Navigator.push(context, MaterialPageRoute(builder: (_){
+                        return SupplyDocumentsView(
+                          currentSupplyDocument: SupplyDocuments(),
+                          enableEdit: true,
+                        );
+                      })).whenComplete(() => _load(_ToUpdate.supplyDocuments));
                       break;
                     default:
                       Navigator.push(context, MaterialPageRoute(builder: (_){
                         return DocumentsView(
                           currentDocument: Documents(),
                           enableEdit: true,
-                          partnersList: _partnersList,
-                          goodsList: _goodsAddedList,
                         );
-                      })).whenComplete(() => _load("documents"));
+                      })).whenComplete(() => _load(_ToUpdate.documents));
                       break;
                   }
                 },
@@ -155,25 +251,6 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
           ),
         )
     );
-  }
-
-  Future<List<Documents>> _setGoodsToDocuments( //Set Goods to Document from
-      Future<List<Documents>> inputDocuments,   //Relations
-      Future<List<RelationDocumentsGoods>> inputRelations,
-      Future<List<Goods>> inputGoods){
-    inputDocuments.then((documents) =>
-        inputGoods.then((goods) =>
-            inputRelations.then((relations) =>
-                relations.forEach((relation) {
-                  documents.elementAt(relation.documentID-1)
-                      .goods.add(goods.where(
-                          (good) => good.mobID == relation.goodsID)
-                      .toList().first);
-                }
-                )
-            )
-        ));
-    return inputDocuments;
   }
 
   Widget _documents(Future<List<Documents>> documentsList){
@@ -197,9 +274,9 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
             return Center(
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: snapshot.data == null
-                    ? 0
-                    : snapshot.data.length,
+                itemCount: snapshot.data == null ?
+                    0 :
+                    snapshot.data.length,
                 itemBuilder: (BuildContext context, int index) {
                   Documents _documents = snapshot.data[index];
                   return InkWell(
@@ -208,17 +285,15 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
                         return DocumentsView(
                           currentDocument: _documents,
                           enableEdit: false,
-                          partnersList: _partnersList,
-                          goodsList: _goodsAddedList,
                         );
-                      })).whenComplete(() => _load("documents"));
+                      })).whenComplete(() => _load(_ToUpdate.documents));
                     },
                     child: Hero(
                         tag: 'document_${_documents.mobID}',
                         child: Material(
                           type: MaterialType.transparency,
                           child: Container(
-                              height: 220.0,
+                              height: 230.0,
                               margin: EdgeInsets.all(10.0),
                               padding: EdgeInsets.all(10.0),
                               decoration: BoxDecoration(
@@ -315,6 +390,145 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
     );
   }
 
+  Widget _supplyDocuments(Future<List<SupplyDocuments>> supplyDocumentsList){
+    return FutureBuilder<List<SupplyDocuments>>(
+      future: supplyDocumentsList,
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          case ConnectionState.waiting:
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          case ConnectionState.active:
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          case ConnectionState.done:
+            return Center(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: snapshot.data == null
+                    ? 0
+                    : snapshot.data.length,
+                itemBuilder: (BuildContext context, int index) {
+                  SupplyDocuments _supplyDocuments = snapshot.data[index];
+                  return InkWell(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (_){
+                        return SupplyDocumentsView(
+                          currentSupplyDocument: _supplyDocuments,
+                          enableEdit: false,
+                        );
+                      })).whenComplete(() => _load(_ToUpdate.supplyDocuments));
+                    },
+                    child: Hero(
+                        tag: 'supplyDocuments_${_supplyDocuments.mobID}',
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: Container(
+                              height: 240.0,
+                              margin: EdgeInsets.all(10.0),
+                              padding: EdgeInsets.all(10.0),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius
+                                    .all(Radius.circular(20.0)),
+                                color: Colors.grey[300],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: <Widget>[
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Text('№ ${_supplyDocuments.number}',
+                                        style: TextStyle(fontSize: 17.0),),
+                                      Text('${_supplyDocuments.partner}',
+                                        style: TextStyle(fontSize: 17.0),),
+                                      Row(
+                                        children: <Widget>[
+                                          Text('${DateFormat('dd.MM.yyyy')
+                                              .format(_supplyDocuments.date)}',
+                                            style: TextStyle(fontSize: 14.0,
+                                                color: Colors.grey),),
+                                          Opacity(
+                                            opacity: 0.2,
+                                            child: Icon(Icons.arrow_forward_ios),
+                                          )
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 5,),
+                                  Text("${_supplyDocuments.status
+                                      ? 'Робочий'
+                                      : 'Чорновик'}",
+                                    style: TextStyle(fontSize: 15.0 ,
+                                        color: _supplyDocuments.status
+                                            ? Colors.green
+                                            : Colors.blue[800]),
+                                  ),
+                                  SizedBox(height: 5,),
+                                  Text('Кiлькiсть: ${_supplyDocuments.count}'),
+                                  SizedBox(height: 5,),
+                                  Expanded(
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: _supplyDocuments.goods == null
+                                          ? 0
+                                          : _supplyDocuments.goods.length,
+                                      shrinkWrap: true,
+                                      itemBuilder: (BuildContext context, int index) {
+                                        Goods _good = _supplyDocuments.goods[index];
+                                        return Card(
+                                          color: Colors.grey[200],
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(15.0),
+                                          ),
+                                          child: Container(
+                                            padding: EdgeInsets.only(top: 10,
+                                                bottom: 10,
+                                                right: 5,
+                                                left: 5),
+                                            child: Column(
+                                              children: <Widget>[
+                                                Text("Назва:",
+                                                    style: TextStyle(fontSize: 15.0)),
+                                                Text(_good.name,
+                                                  style: TextStyle(color: Colors.grey[600]),),
+                                                Text("\nКiлькiсть:",
+                                                    style: TextStyle(fontSize: 15.0)),
+                                                Text("${_good.count}, ${_good.unit}",
+                                                  style: TextStyle(color: Colors.grey[600]),),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              )
+                          ),
+                        )
+                    ),
+                  );
+                },
+              ),
+            );
+          default:
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+        }
+      },
+    );
+  }
+
   Widget _goods(Future<List<Goods>> goodsList, bool isNew){
     return FutureBuilder<List<Goods>>(
       future: goodsList,
@@ -352,9 +566,8 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
                               currentGood: good,
                               enableEdit: false,
                               isNew: !isNew,
-                              goodsList: this._goodsList,
                             );
-                          })).whenComplete(() => _load("goodsAdded"));
+                          })).whenComplete(() => _load(_ToUpdate.goods));
                         }),
                         DataCell(Text(good.unit)),
                         DataCell(Text('${good.count}')),
@@ -479,38 +692,66 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
     );
   }
 
-  void _load(String toUpdate) {
+  void _load(_ToUpdate update) {
     if(context != null)
       setState(() {
-        switch(toUpdate){
-          case "documents":
-            _relationsList = RelationDocumentsGoodsDAO().getAll();
+        switch(update){
+          case _ToUpdate.documents:
             _goodsAddedList = UserGoodsDAO().getAll();
-            _documentsList = _setGoodsToDocuments(DocumentsDAO().getAll(),
-                _relationsList,
-                _goodsAddedList);
+            _documentsList = ImplDocumentsDAO().getAll();
             _partnersList = PartnersDAO().getAll();
             break;
-          case "goodsAdded":
+          case _ToUpdate.goods:
             _sortedList = [];
             _goodsAddedList = UserGoodsDAO().getAll();
-            _relationsList = RelationDocumentsGoodsDAO().getAll();
-            _documentsList = _setGoodsToDocuments(DocumentsDAO().getAll(),
-                _relationsList,
-                _goodsAddedList);
+            _documentsList = ImplDocumentsDAO().getAll();
             _goodsList = GoodsDAO().getAll();
             _partnersList = PartnersDAO().getAll();
+            break;
+          case _ToUpdate.supplyDocuments:
+            _goodsList = GoodsDAO().getAll();
+            _supplyDocumentsList = ImplSupplyDocumentsDAO().getAll();
             break;
           default:
             _goodsList = GoodsDAO().getAll();
             _goodsAddedList = UserGoodsDAO().getAll();
-            _relationsList = RelationDocumentsGoodsDAO().getAll();
-            _documentsList = _setGoodsToDocuments(DocumentsDAO().getAll(),
-                _relationsList,
-                _goodsAddedList);
+            _documentsList = ImplDocumentsDAO().getAll();
+            _supplyDocumentsList = ImplSupplyDocumentsDAO().getAll();
             _partnersList = PartnersDAO().getAll();
         }
       });
+  }
+
+  Future<String> _scan() async {
+    try{
+      return await BarcodeScanner.scan();
+    } on PlatformException catch(e){
+      if(e.code == BarcodeScanner.CameraAccessDenied){
+        return "Помилка доступу до камери";
+      } else {
+        return "Помилка $e";
+      }
+    } on FormatException {
+      return "null";
+    } catch (e){
+      return "$e";
+    }
+  }
+
+  int _getID(String input) {
+    List<String> _list = input.split(":");
+    try {
+      switch(_list.length){
+        case 2:
+          return int.parse(_list.first);
+        case 4:
+          return int.parse(_list.last);
+        default:
+          return 0;
+      }
+    } catch (e){
+      return 0;
+    }
   }
 
 }
@@ -518,6 +759,7 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
 class _CustomSearchDelegate extends SearchDelegate {
 
   final TabController _tabController;
+
   _CustomSearchDelegate(this._tabController);
 
   @override
@@ -559,7 +801,7 @@ class _CustomSearchDelegate extends SearchDelegate {
 
     switch (_tabController.index){
       case 0:
-        Future<List<Documents>> _listDocuments = DocumentsDAO().search(query);
+        Future<List<Documents>> _listDocuments = ImplDocumentsDAO().search(query);
         return _PageOrdersState()._documents(_listDocuments);
         break;
       case 1:
@@ -567,15 +809,19 @@ class _CustomSearchDelegate extends SearchDelegate {
         return _PageOrdersState()._goods(_listAddedGoods, true);
         break;
       case 2:
+        Future<List<SupplyDocuments>> _listDocuments = ImplSupplyDocumentsDAO().search(query);
+        return _PageOrdersState()._supplyDocuments(_listDocuments);
+        break;
+      case 3:
         Future<List<Goods>> _listGoods = GoodsDAO().search(query);
         return _PageOrdersState()._goods(_listGoods, false);
         break;
-      case 3:
-        Future<List<Partners>> _listGoods = PartnersDAO().search(query);
-        return _PageOrdersState()._partners(_listGoods);
+      case 4:
+        Future<List<Partners>> _listPartners = PartnersDAO().search(query);
+        return _PageOrdersState()._partners(_listPartners);
         break;
       default:
-        Future<List<Documents>> _listDocuments = DocumentsDAO().search(query);
+        Future<List<Documents>> _listDocuments = ImplDocumentsDAO().search(query);
         return _PageOrdersState()._documents(_listDocuments);
     }
   }
@@ -587,4 +833,8 @@ class _CustomSearchDelegate extends SearchDelegate {
     return Center();
   }
 
+}
+
+enum _ToUpdate{
+  documents, goods, supplyDocuments, defaultUpdate,
 }
