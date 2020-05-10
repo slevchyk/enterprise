@@ -54,7 +54,7 @@ class DBProvider {
           "languages TEXT,"
           "disability BIT,"
           "pensioner BIT,"
-          "photo TEXT"
+          "photo_name TEXT"
           ")");
 
       await db.execute('CREATE TABLE timing ('
@@ -103,7 +103,8 @@ class DBProvider {
           'deleted_at TEXT'
           ')');
       await db.execute('CREATE TABLE helpdesk ('
-          'id INTEGER PRIMARY KEY,'
+          'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
+          'id INTEGER,'
           'user_id TEXT,'
           'date TEXT,'
           'title TEXT,'
@@ -112,9 +113,11 @@ class DBProvider {
           'answered_at TEXT,'
           'answered_by TEXT,'
           'answer TEXT,'
+          'file_paths TEXT,'
+          'files_quantity,'
           'created_at TEXT,'
           'updated_at TEXT,'
-          'is_deleted BIT,'
+          'is_deleted BIT DEFAULT 0,'
           'is_modified BIT'
           ')');
       await db.execute('CREATE TABLE paydesk ('

@@ -30,7 +30,7 @@ class PayDeskDAO {
         'is_deleted,'
         'is_modified'
         ')'
-        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
         [
           payDesk.userID,
           payDesk.paymentStatus,
@@ -68,14 +68,20 @@ class PayDeskDAO {
     return res.isNotEmpty ? PayDesk.fromMap(res.first) : null;
   }
 
-  Future<bool> update(PayDesk payDesk, {bool isModified = true}) async {
+  Future<bool> update(PayDesk payDesk,
+      {bool isModified = true, sync = true}) async {
     final db = await dbProvider.database;
+
+    if (!isModified) {
+      sync = false;
+    }
+
     payDesk.isModified = isModified;
     payDesk.updatedAt = DateTime.now();
     var res = await db.update("paydesk", payDesk.toMap(),
         where: "mob_id = ?", whereArgs: [payDesk.mobID]);
 
-    if (res.isFinite && isModified) {
+    if (res.isFinite && sync) {
       PayDesk.sync();
     }
 

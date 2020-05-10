@@ -92,9 +92,21 @@ class RouteGenerator {
       case '/turnstile':
         return MaterialPageRoute(builder: (_) => PageTurnstile());
       case '/helpdeskdetail':
-        return MaterialPageRoute(builder: (_) => PageHelpdeskDetail());
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PageHelpdeskDetail(
+                    profile: args.profile,
+                  ));
+        }
+        return _errorRoute(settings.name);
       case '/helpdesk':
-        return MaterialPageRoute(builder: (_) => PageHelpdesk());
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PageHelpDesk(
+                    profile: args.profile,
+                  ));
+        }
+        return _errorRoute(settings.name);
       case '/sign_in_out':
         return MaterialPageRoute(builder: (_) => PageSignInOut());
       case '/channel/detail':

@@ -1,55 +1,61 @@
 import 'package:enterprise/database/profile_dao.dart';
-import 'package:enterprise/pages/page_channel_detail.dart';
 import 'package:enterprise/pages/page_helpdesk_detail.dart';
 import 'package:flutter/material.dart';
-
+import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/database/help_desk_dao.dart';
 import 'package:enterprise/models/helpdesk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_main.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
-
+import 'dart:async';
+import 'package:enterprise/models/models.dart';
+import 'package:flutter/rendering.dart';
 import '../models/profile.dart';
 
-class PageHelpdesk extends StatefulWidget {
+class PageHelpDesk extends StatefulWidget {
+  final Profile profile;
+
+  PageHelpDesk({
+    this.profile,
+  });
+
   @override
-  _PageHelpdeskState createState() => _PageHelpdeskState();
+  _PageHelpDeskState createState() => _PageHelpDeskState();
 }
 
-class _PageHelpdeskState extends State<PageHelpdesk> {
-  Profile profile;
-  Future<List<Helpdesk>> helpdeskprocessed;
-  Future<List<Helpdesk>> helpdeskunprocessed;
+class _PageHelpDeskState extends State<PageHelpDesk> {
+  Profile _profile;
+  Future<List<HelpDesk>> helpDeskProcessed;
+  Future<List<HelpDesk>> helpDeskUnprocessed;
 
   @override
   void initState() {
     super.initState();
-    getprofileByUuid();
-    helpdeskprocessed = getHelpdesk(HELPDESK_STATUS_PROCESSED);
-    helpdeskunprocessed = getHelpdesk(HELPDESK_STATUS_UNPROCESSED);
+    //getprofileByUuid();
+    _profile = widget.profile;
+    _updateHelpDesk();
   }
 
-  _updateHelpdesk() async {
-    helpdeskprocessed = getHelpdesk(HELPDESK_STATUS_PROCESSED);
-    helpdeskunprocessed = getHelpdesk(HELPDESK_STATUS_UNPROCESSED);
-    setState(() {});
+  Future<void> _updateHelpDesk() async {
+    setState(() {
+      helpDeskProcessed = getHelpDesk(HELPDESK_STATUS_PROCESSED);
+      helpDeskUnprocessed = getHelpDesk(HELPDESK_STATUS_UNPROCESSED);
+    });
   }
 
-  Future<List<Helpdesk>> getHelpdesk(String Status) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return HelpdeskDAO().getByUserIdType(userID, Status);
+  Future<List<HelpDesk>> getHelpDesk(String status) async {
+//    final prefs = await SharedPreferences.getInstance();
+//
+//    String userID = prefs.getString(KEY_USER_ID) ?? "";
+    return HelpdeskDAO().getByUserIdType(_profile.userID, status);
   }
 
-  getprofileByUuid() async {
-    final prefs = await SharedPreferences.getInstance();
-    String userID = prefs.getString(KEY_USER_ID) ?? "";
-    profile = await ProfileDAO().getByUserId(userID);
-  }
+//  getProfileByUuid() async {
+//    final prefs = await SharedPreferences.getInstance();
+//    String userID = prefs.getString(KEY_USER_ID) ?? "";
+//    _profile = await ProfileDAO().getByUserId(userID);
+//  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,17 +70,29 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
               Tab(text: "Опрацьовані"),
             ],
           ),
+          actions: <Widget>[
+            FlatButton(
+              onPressed: () async {
+                await HelpDesk.sync();
+                _updateHelpDesk();
+              },
+              child: Icon(
+                Icons.update,
+                color: Colors.white,
+              ),
+            )
+          ],
         ),
         drawer: AppDrawer(
-          profile: profile,
+          profile: _profile,
         ),
         body: TabBarView(
           children: [
             RefreshIndicator(
-              onRefresh: _refreshTiming,
+              onRefresh: _updateHelpDesk,
               child: Container(
                 child: FutureBuilder(
-                  future: helpdeskprocessed,
+                  future: helpDeskProcessed,
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
                     switch (snapshot.connectionState) {
                       case ConnectionState.none:
@@ -90,36 +108,36 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
                           child: CircularProgressIndicator(),
                         );
                       case ConnectionState.done:
-                        var listHelpdesks = snapshot.data;
+                        var listHelpDesks = snapshot.data;
                         return Center(
                           child: ListView.separated(
-                            itemCount: listHelpdesks.length,
+                            itemCount: listHelpDesks.length,
                             separatorBuilder: (context, index) => Divider(),
                             itemBuilder: (BuildContext context, int index) {
-                              Helpdesk helpdesk = listHelpdesks[index];
+                              HelpDesk helpDesk = listHelpDesks[index];
                               return Card(
                                 child: InkWell(
                                   onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              PageHelpdeskDetail(
-                                                  helpdesk: helpdesk)),
-                                    );
+                                    Navigator.push(context,
+                                        MaterialPageRoute(builder: (_) {
+                                      return PageHelpdeskDetail(
+                                        helpdesk: helpDesk,
+                                        profile: _profile,
+                                      );
+                                    })).whenComplete(() => _updateHelpDesk());
                                   },
                                   child: ListTile(
                                     title: Text(
-                                      helpdesk.title,
+                                      helpDesk.title,
                                     ),
                                     isThreeLine: true,
                                     leading: CircleAvatar(
                                       backgroundColor:
                                           Theme.of(context).primaryColor,
-                                      child: Text('HD'),
+                                      child: Text(helpDesk.mobID.toString()),
                                     ),
                                     subtitle: Text(
-                                      helpdesk.description,
+                                      helpDesk.description,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -139,10 +157,10 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
               ),
             ),
             RefreshIndicator(
-              onRefresh: _refreshTiming,
+              onRefresh: _updateHelpDesk,
               child: Container(
                 child: FutureBuilder(
-                  future: helpdeskunprocessed,
+                  future: helpDeskUnprocessed,
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
                     switch (snapshot.connectionState) {
                       case ConnectionState.none:
@@ -158,36 +176,36 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
                           child: CircularProgressIndicator(),
                         );
                       case ConnectionState.done:
-                        var listHelpdesks = snapshot.data;
+                        var listHelpDesks = snapshot.data;
                         return Center(
                           child: ListView.separated(
-                            itemCount: listHelpdesks.length,
+                            itemCount: listHelpDesks.length,
                             separatorBuilder: (context, index) => Divider(),
                             itemBuilder: (BuildContext context, int index) {
-                              Helpdesk helpdesk = listHelpdesks[index];
+                              HelpDesk helpDesk = listHelpDesks[index];
                               return Card(
                                 child: InkWell(
                                   onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              PageHelpdeskDetail(
-                                                  helpdesk: helpdesk)),
-                                    );
+                                    Navigator.push(context,
+                                        MaterialPageRoute(builder: (_) {
+                                      return PageHelpdeskDetail(
+                                        helpdesk: helpDesk,
+                                        profile: _profile,
+                                      );
+                                    })).whenComplete(() => _updateHelpDesk());
                                   },
                                   child: ListTile(
                                     title: Text(
-                                      helpdesk.title,
+                                      helpDesk.title,
                                     ),
                                     isThreeLine: true,
                                     leading: CircleAvatar(
                                       backgroundColor:
                                           Theme.of(context).primaryColor,
-                                      child: Text('HD'),
+                                      child: Text(helpDesk.mobID.toString()),
                                     ),
                                     subtitle: Text(
-                                      helpdesk.description,
+                                      helpDesk.description,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -211,40 +229,20 @@ class _PageHelpdeskState extends State<PageHelpdesk> {
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
-            Navigator.of(context).pushNamed(
-              '/helpdeskdetail',
-              arguments: "",
-            );
+            RouteArgs _args = RouteArgs(profile: _profile);
+            Navigator.of(context)
+                .pushNamed(
+                  '/helpdeskdetail',
+                  arguments: _args,
+                )
+                .whenComplete(() => _updateHelpDesk());
           },
         ),
       ),
     );
   }
 
-  Future<void> _refreshTiming() async {
-    _updateHelpdesk();
-  }
-}
-
-//class HelpdeskHero extends StatefulWidget {
-//  final Helpdesk helpdesk;
-//
-//  HelpdeskHero({
-//    this.helpdesk,
-//  });
-//
-//  @override
-//  _HelpdeskHeroState createState() => _HelpdeskHeroState();
-//}
-//
-//class _HelpdeskHeroState extends State<HelpdeskHero> {
-//  Widget build(BuildContext context) {
-//    return Hero(
-//      tag: 'helpdesk_' + widget.helpdesk.id.toString(),
-//      child: Material(
-////        padding: EdgeInsets.all(16),
-//        child: PageHelpdeskNew(helpdesk: widget.helpdesk),
-//      ),
-//    );
+//  Future<void> _refreshPayDesk() async {
+//    _updateHelpDesk();
 //  }
-//}
+}

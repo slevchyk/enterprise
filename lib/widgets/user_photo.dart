@@ -25,7 +25,6 @@ class UserPhoto extends StatelessWidget {
     } else {
       return CircleAvatar(
         child: Image.file(File(profile.photoName)),
-//            File(profile.photoName)),
       );
     }
   }

@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:enterprise/models/helpdesk.dart';
 import 'package:enterprise/models/profile.dart';
 
 class ChartData {

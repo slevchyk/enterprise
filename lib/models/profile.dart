@@ -129,6 +129,7 @@ class Profile {
                 ? json["pensioner"] == "true"
                 : json["pensioner"],
         photoName: json["photo_name"],
+        photoData: json["photo_data"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -164,7 +165,7 @@ class Profile {
         "languages": languages,
         "disability": disability,
         "pensioner": pensioner,
-        "photo": photoName,
+        "photo_name": photoName,
       };
 
   static Future<Profile> downloadByPhonePin(
@@ -223,7 +224,6 @@ class Profile {
       file.writeAsBytes(_bytePhoto);
 
       profile.photoName = file.path;
-//      prefs.setString(KEY_USER_PICTURE, file.path);
     }
 
     Profile existProfile = await ProfileDAO().getByUserId(profile.userID);
