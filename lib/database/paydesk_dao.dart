@@ -17,6 +17,9 @@ class PayDeskDAO {
 
     var raw = await db.rawInsert(
         'INSERT Into paydesk ('
+        'payment_type,'
+        'purse_id,'
+        'to_whom_id,'
         'user_id,'
         'payment_status,'
         'amount,'
@@ -30,8 +33,11 @@ class PayDeskDAO {
         'is_deleted,'
         'is_modified'
         ')'
-        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
+          payDesk.paymentType,
+          payDesk.purseID,
+          payDesk.toWhomID,
           payDesk.userID,
           payDesk.paymentStatus,
           payDesk.amount,

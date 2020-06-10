@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:enterprise/database/expense_dao.dart';
 import 'package:enterprise/database/paydesk_dao.dart';
+import 'package:enterprise/database/purse_dao.dart';
 import 'package:enterprise/database/warehouse/core.dart';
 import 'package:enterprise/database/warehouse/goods_dao.dart';
 import 'package:enterprise/database/warehouse/partners_dao.dart';
@@ -8,7 +10,9 @@ import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/database/timing_dao.dart';
+import 'package:enterprise/models/expense.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/models/purse.dart';
 import 'package:enterprise/models/warehouse/goods.dart';
 import 'package:enterprise/models/warehouse/partners.dart';
 import 'package:enterprise/pages/page_timing_db.dart';
@@ -286,6 +290,22 @@ class PageDebugState extends State<PageDebug> {
                           }
                         },
                         child: Text('Add Goods'),
+                      ),
+                      FlatButton(
+                        onPressed: () {
+                          for(int i = 1; i <= 5; i++){
+                            PurseDAO().insert(Purse(mobID: i, name: 'Тестовий гаманець $i'));
+                          }
+                        },
+                        child: Text('Add Purse'),
+                      ),
+                      FlatButton(
+                        onPressed: () {
+                          for(int i = 1; i <= 10; i++){
+                            ExpenseDAO().insert(Expense(mobID: i, name: 'Тестова стаття $i'));
+                          }
+                        },
+                        child: Text('Add Expense'),
                       ),
                       FlatButton(
                         onPressed: () {

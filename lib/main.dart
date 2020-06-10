@@ -1,4 +1,6 @@
+import 'package:enterprise/models/expense.dart';
 import 'package:enterprise/models/paydesk.dart';
+import 'package:enterprise/models/purse.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/route_generator.dart';
 
@@ -17,7 +19,7 @@ class EnterpriseAppState extends State<EnterpriseApp> {
 
     Timing.closePastTiming();
     Timing.downloadByDate(DateTime.now());
-    PayDesk.sync();
+    _load();
   }
 
   @override
@@ -33,5 +35,11 @@ class EnterpriseAppState extends State<EnterpriseApp> {
         dividerColor: Colors.grey.shade400,
       ),
     );
+  }
+
+  void _load(){
+    PayDesk.sync();
+    Expense.sync();
+    Purse.sync();
   }
 }

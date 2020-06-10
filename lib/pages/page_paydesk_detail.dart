@@ -4,9 +4,12 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 
 import 'package:date_format/date_format.dart';
+import 'package:enterprise/database/expense_dao.dart';
 import 'package:enterprise/database/paydesk_dao.dart';
+import 'package:enterprise/database/purse_dao.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/models/purse.dart';
 import 'package:enterprise/widgets/attachments_carousel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -35,8 +38,15 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 
   final _amountController = TextEditingController();
   final _paymentController = TextEditingController();
+  final _purseController = TextEditingController();
+  final _purseToWhomController = TextEditingController();
+  final _expenseToWhomController = TextEditingController();
+  final _receivingToWhomController = TextEditingController();
   final _documentNumberController = TextEditingController();
   final _documentDateController = TextEditingController();
+  final _paymentTypeController = TextEditingController();
+
+  Future<List<Purse>> _purseList;
 
   PayDesk _payDesk;
   Profile profile;
@@ -45,7 +55,10 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
   DateTime _documentDate;
   String _appPath;
 
-  int _status;
+  int _purseID, _expenseID, _receivingID, _transferID;
+
+  _Types _currentType;
+
   bool _readOnly = false;
 
   final List<IconData> _icons = const [
@@ -61,6 +74,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => initAsync());
 
+    _currentType = _Types.expense;
+    _purseList = PurseDAO().getAll();
     _payDesk = widget.payDesk ?? PayDesk();
     _readOnly = _payDesk?.mobID != null;
     profile = widget.profile;
@@ -88,7 +103,20 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-//                _setStatus(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    _paymentType(_Types.expense),
+                    SizedBox(
+                      width: 10.0,
+                    ),
+                    _paymentType(_Types.receiving),
+                    SizedBox(
+                      width: 10.0,
+                    ),
+                    _paymentType(_Types.transfer),
+                  ],
+                ),
                 Text(
                   'Основне',
                   style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
@@ -117,6 +145,54 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                           return null;
                         },
                       ),
+                      Container(
+                        child: InkWell(
+                          onTap: () {
+                            if(!_readOnly)
+                              showGeneralDialog(
+                                barrierLabel: "purse",
+                                barrierDismissible: true,
+                                barrierColor: Colors.black.withOpacity(0.5),
+                                transitionDuration: Duration(milliseconds: 250),
+                                context: context,
+                                pageBuilder: (context, anim1, anim2) {
+                                  return _showPurseDialog(_purseController,
+                                      _purseList,
+                                      compare: _purseToWhomController,
+                                      action: true);
+                                },
+                                transitionBuilder: (context, anim1, anim2, child) {
+                                  return SlideTransition(
+                                    position: Tween(
+                                        begin: Offset(0, 1),
+                                        end: Offset(0, 0)).animate(anim1),
+                                    child: child,
+                                  );
+                                },
+                              );
+                          },
+                          child: IgnorePointer(
+                            child: TextFormField(
+                              enabled: !_readOnly,
+                              controller: _purseController,
+                              decoration: InputDecoration(
+                                  icon: Icon(Icons.account_balance_wallet),
+                                  labelText: 'Гаманець *',
+                                  hintText: 'Оберiть гаманець'
+                              ),
+                              validator: (validator) {
+                                if(validator.trim().isEmpty)
+                                  return 'Ви не обрали гаманець';
+                                return null;
+                              },
+                              onChanged: (_) {
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      _showAdditionalFields(_currentType),
                       TextFormField(
                         enabled: !_readOnly,
                         controller: _paymentController,
@@ -157,7 +233,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                           if (_readOnly) {
                             return;
                           }
-
+                          FocusScope.of(this.context).unfocus();
                           DateTime picked = await showDatePicker(
                               context: context,
                               firstDate: DateTime(DateTime.now().year - 1),
@@ -226,89 +302,192 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     );
   }
 
-  void _handleBottomSheet(String action) async {
-    switch (action) {
-      case "edit":
-        setState(() {
-          _readOnly = false;
-        });
-        break;
-      case "undo":
-        _setControllers();
-        setState(() {
-          _readOnly = true;
-        });
-        break;
-      case "exit":
-        Navigator.pop(_scaffoldKey.currentContext);
-        break;
-      case "save":
-        _save();
-        break;
-      case "saveExit":
-        bool _ok = await _save();
-        if (_ok) Navigator.pop(_scaffoldKey.currentContext);
+  Widget _showAdditionalFields(_Types input){
+    switch(input){
+      case _Types.expense:
+        return _expenseField();
+      case _Types.receiving:
+        return _receivingField();
+      case _Types.transfer:
+        return _transferField();
+      default:
+        return Container();
     }
   }
 
-  Future<bool> _save() async {
-    bool _ok = false;
-
-    if (!_formKey.currentState.validate()) {
-      return _ok;
-    }
-
-    PayDesk _existPayDesk;
-    if (_payDesk.mobID != null) {
-      _existPayDesk = await PayDeskDAO().getByMobID(_payDesk.mobID);
-    }
-
-    _payDesk.userID = profile.userID;
-    _payDesk.amount = _amount;
-    _payDesk.payment = _paymentController.text;
-    _payDesk.documentNumber = _documentNumberController.text;
-    _payDesk.documentDate = _documentDate;
-
-    if (_existPayDesk == null) {
-      _payDesk.mobID = await PayDeskDAO().insert(_payDesk);
-      if (_payDesk.mobID != null) {
-        _payDesk = await PayDeskDAO().getByMobID(_payDesk.mobID);
-        _ok = true;
-      }
-    } else {
-      _ok = await PayDeskDAO().update(_payDesk);
-    }
-
-    if (_ok) {
-      _saveAttachments();
-      setState(() {
-        _readOnly = true;
-      });
-    } else {
-      _displaySnackBar("Помилка збереження в базі", Colors.red);
-    }
-
-    return _ok;
+  Widget _expenseField(){
+    return Container(
+      child: InkWell(
+        onTap: () {
+          if(!_readOnly)
+            showGeneralDialog(
+              barrierLabel: "expenseToWhom",
+              barrierDismissible: true,
+              barrierColor: Colors.black.withOpacity(0.5),
+              transitionDuration: Duration(milliseconds: 250),
+              context: this.context,
+              pageBuilder: (context, anim1, anim2) {
+                return _showPurseDialog(_expenseToWhomController, ExpenseDAO().getAll());
+              },
+              transitionBuilder: (context, anim1, anim2, child) {
+                return SlideTransition(
+                  position: Tween(
+                      begin: Offset(0, 1),
+                      end: Offset(0, 0)).animate(anim1),
+                  child: child,
+                );
+              },
+            );
+        },
+        child: IgnorePointer(
+          child: TextFormField(
+            enabled: !_readOnly,
+            controller: _expenseToWhomController,
+            decoration: InputDecoration(
+                icon: Icon(Icons.account_balance_wallet),
+                labelText: 'Стаття витрат*',
+                hintText: 'Оберiть статтю витрат'
+            ),
+            validator: (validator) {
+              if(validator.trim().isEmpty)
+                return 'Ви не обрали статтю витрат';
+              return null;
+            },
+            onChanged: (_) {
+              setState(() {});
+            },
+          ),
+        ),
+      ),
+    );
   }
 
-  void _setControllers() {
-    _files.clear();
-    if (_payDesk != null) {
-      List<dynamic> _filesPaths = [];
-      if (_payDesk.filePaths != null && _payDesk.filePaths.isNotEmpty)
-        _filesPaths = jsonDecode(_payDesk.filePaths);
-      _filesPaths.forEach((value) {
-        _files.add(File(value));
-      });
+  Widget _receivingField(){
+    return Container(
+      child: InkWell(
+        onTap: () {
+          if(!_readOnly)
+            showGeneralDialog(
+              barrierLabel: "receiptToWhom",
+              barrierDismissible: true,
+              barrierColor: Colors.black.withOpacity(0.5),
+              transitionDuration: Duration(milliseconds: 250),
+              context: this.context,
+              pageBuilder: (context, anim1, anim2) {
+                return _showPurseDialog(_receivingToWhomController, ExpenseDAO().getAll());
+              },
+              transitionBuilder: (context, anim1, anim2, child) {
+                return SlideTransition(
+                  position: Tween(
+                      begin: Offset(0, 1),
+                      end: Offset(0, 0)).animate(anim1),
+                  child: child,
+                );
+              },
+            );
+        },
+        child: IgnorePointer(
+          child: TextFormField(
+            enabled: !_readOnly,
+            controller: _receivingToWhomController,
+            decoration: InputDecoration(
+                icon: Icon(Icons.account_balance_wallet),
+                labelText: 'Стаття надходження*',
+                hintText: 'Оберiть статтю надходження'
+            ),
+            validator: (validator) {
+              if(validator.trim().isEmpty)
+                return 'Ви не обрали статтю гадходження';
+              return null;
+            },
+            onChanged: (_) {
+              setState(() {});
+            },
+          ),
+        ),
+      ),
+    );
+  }
 
-      _amountController.text = _payDesk?.amount?.toStringAsFixed(2) ?? "";
-      _paymentController.text = _payDesk?.payment ?? "";
-      _documentNumberController.text = _payDesk?.documentNumber ?? "";
-      _documentDateController.text = _payDesk?.documentDate == null
-          ? ""
-          : formatDate(_payDesk.documentDate, [dd, '-', mm, '-', yyyy]);
-      _documentDate = _payDesk?.documentDate ?? null;
-    }
+  Widget _transferField(){
+    return Container(
+      child: InkWell(
+        onTap: () {
+          if(!_readOnly)
+            showGeneralDialog(
+              barrierLabel: "purseToWhom",
+              barrierDismissible: true,
+              barrierColor: Colors.black.withOpacity(0.5),
+              transitionDuration: Duration(milliseconds: 250),
+              context: this.context,
+              pageBuilder: (context, anim1, anim2) {
+                return _showPurseDialog(_purseToWhomController, _purseList,
+                    compare: _purseController, action: false);
+              },
+              transitionBuilder: (context, anim1, anim2, child) {
+                return SlideTransition(
+                  position: Tween(
+                      begin: Offset(0, 1),
+                      end: Offset(0, 0)).animate(anim1),
+                  child: child,
+                );
+              },
+            );
+        },
+        child: IgnorePointer(
+          child: TextFormField(
+            enabled: !_readOnly,
+            controller: _purseToWhomController,
+            decoration: InputDecoration(
+                icon: Icon(Icons.account_balance_wallet),
+                labelText: 'Гаманець отримувача*',
+                hintText: 'Оберiть гаманець отримувача'
+            ),
+            validator: (validator) {
+              if(validator.trim().isEmpty)
+                return 'Ви не обрали гаманець отримувача';
+              return null;
+            },
+            onChanged: (_) {
+              setState(() {});
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _paymentType(_Types _type) {
+    return ChoiceChip(
+      padding: EdgeInsets.all(5.0),
+      label: Row(
+        children: <Widget>[
+          SizedBox(
+            width: 5.0,
+          ),
+          Text(
+            _getEnumValue(_type),
+            style: TextStyle(
+              color: int.parse(_paymentTypeController.text) == _type.index
+                  ? Colors.white
+                  : Theme.of(this.context).textTheme.caption.color,
+            ),
+          ),
+        ],
+      ),
+      backgroundColor:
+      _paymentTypeController.text == "" ? Colors.green : Colors.grey.shade100,
+      selectedColor: Colors.green,
+      selected: int.parse(_paymentTypeController.text) == _type.index,
+      onSelected: (bool value) {
+        if (!_readOnly) {
+          setState(() {
+           _paymentTypeController.text = _type.index.toString();
+           _currentType = _type;
+         });
+        }
+      },
+    );
   }
 
   Widget _clearIconButton(TextEditingController textController) {
@@ -348,6 +527,10 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                 showDialog(
                   context: _scaffoldKey.currentContext,
                   builder: (context) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(20.0))
+                    ),
+                    insetPadding: EdgeInsets.only(top: 200, bottom: 200),
                     content: ListTile(
                       title: Text("Інформація про документ"),
                       subtitle: Column(
@@ -361,17 +544,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                               ),
                               Text(
                                 formatDate(_payDesk.createdAt, [
-                                  dd,
-                                  '-',
-                                  mm,
-                                  '-',
-                                  yyyy,
-                                  ' ',
-                                  HH,
-                                  ':',
-                                  nn,
-                                  ':',
-                                  ss
+                                  dd, '-', mm, '-', yyyy, ' ',
+                                  HH, ':', nn, ':', ss
                                 ]),
                               ),
                             ],
@@ -384,17 +558,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                               ),
                               Text(
                                 formatDate(_payDesk.updatedAt, [
-                                  dd,
-                                  '-',
-                                  mm,
-                                  '-',
-                                  yyyy,
-                                  ' ',
-                                  HH,
-                                  ':',
-                                  nn,
-                                  ':',
-                                  ss
+                                  dd, '-', mm, '-', yyyy, ' ',
+                                  HH, ':', nn, ':', ss
                                 ]),
                               ),
                             ],
@@ -413,42 +578,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
               }),
         ),
       ],
-    );
-  }
-
-  Widget _setStatus() {
-    String _statusText;
-    if (!_readOnly) {
-      _statusText = '';
-      return Container();
-    }
-
-    if (_status != null && _status == 0) {
-      _statusText = 'Чорновик';
-    } else {
-      _statusText = 'Робочий';
-    }
-
-    return Container(
-      margin: EdgeInsets.only(top: 8.0, left: 4.0),
-      alignment: Alignment.topLeft,
-      child: Row(
-        children: <Widget>[
-          Opacity(
-              child: Icon(
-                FontAwesomeIcons.userClock,
-                size: 18,
-              ),
-              opacity: 0.5),
-          Container(
-            margin: EdgeInsets.only(left: 16.0),
-            child: Text(
-              'Статус: $_statusText',
-              style: TextStyle(fontSize: 15),
-            ),
-          )
-        ],
-      ),
     );
   }
 
@@ -491,158 +620,90 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     return null;
   }
 
-  bool _isNotNumber(String input) {
-    try {
-      double.parse(input.trim());
-      return false;
-    } on Exception {
-      return true;
-    }
-  }
-
-  bool _isNotCorrectAmount(String value) {
-    //Check if the sum is of type *.xx
-    // (Two digits after the period)
-    List<String> tmp = value.split('.');
-    if ((tmp.last.length <= 2 || tmp.length == 1) &&
-        double.parse(tmp.first) >= 0) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-
-  bool _isNotLimitElement(int files) {
-    if (files <= 4) {
-      return true;
-    }
-    _showDialog(
-        title: 'Максимальна кількість',
-        body: 'Досягнуто максимальну кількість файлів - 4');
-    return false;
-  }
-
-  void _displaySnackBar(String title, Color color) {
-    final snackBar = SnackBar(
-      content: Text(title),
-      backgroundColor: color,
-    );
-    _scaffoldKey.currentState.showSnackBar(snackBar);
-  }
-
-  void _getFile(FileType type) async {
-    List<File> files;
-    switch (type) {
-      case FileType.IMAGE:
-        files = await FilePicker.getMultiFile(type: FileType.IMAGE);
-        break;
-      case FileType.CUSTOM:
-        files = await FilePicker.getMultiFile(
-            type: FileType.CUSTOM, fileExtension: 'pdf');
-        break;
-      default:
-        files = await FilePicker.getMultiFile(type: FileType.IMAGE);
-    }
-
-    if (files != null) {
-      if (_isNotLimitElement((files.length + _files.length))) {
-        files.forEach((file) => _files.add(file));
-      }
-      setState(() {});
-    }
-  }
-
-  void _showDialog({String title, String body}) {
-    showDialog(
-      context: _scaffoldKey.currentContext,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: new Text(title),
-          content: new Text(body),
-          actions: <Widget>[
-            new FlatButton(
-              child: new Text("Закрити"),
-              onPressed: () {
-                Navigator.of(context).pop();
+  Widget _showPurseDialog(TextEditingController _inputController,
+      Future<List> _input, {TextEditingController compare, bool action}) {
+    FocusScope.of(this.context).unfocus();
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        height: 300,
+        child: Material(
+            borderRadius: BorderRadius.circular(40),
+            child: FutureBuilder<List>(
+              future: _input,
+              builder: (context, snapshot){
+                if(snapshot.hasData) {
+                  return Container(
+                    margin: EdgeInsets.only(
+                        top: 7,
+                        bottom: 7
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: snapshot == null
+                          ? 0
+                          : snapshot.data.length,
+                      itemBuilder: (context, int index) {
+                        var _data = snapshot.data[index];
+                        if(action!=null){
+                          if(compare!=null && compare.text == _data.name){
+                            if(_currentType==_Types.transfer)
+                              return Container();
+                          }
+                        }
+                        return InkWell(
+                          onTap: () {
+                            if(action!=null && action){
+                              if(_currentType!=_Types.transfer)
+                                _purseToWhomController.clear();
+                              _purseID = _data.mobID;
+                            } else {
+                              _setAdditionalFields(_data.mobID);
+                            }
+                            _inputController.text = _data.name;
+                            Navigator.pop(context);
+                          },
+                          child: Card(
+                            margin: EdgeInsets.only(
+                                left: 20,
+                                right: 20,
+                                top: 5,
+                                bottom: 5
+                            ),
+                            child: Wrap(
+                              children: <Widget>[
+                                Center(
+                                  child: ListTile(
+                                    leading: CircleAvatar(
+                                      child: Text('${_data.mobID}'),
+                                    ),
+                                    title: Text(_currentType==_Types.transfer
+                                        || action!=null
+                                        ? "Гаманець:\n${_data.name}"
+                                        : "Стаття\n${_data.name}"),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  return Container();
+                }
               },
-            ),
-          ],
-        );
-      },
+            )
+        ),
+        margin: EdgeInsets.only(
+            top: 50,
+            bottom: 50,
+            left: 12,
+            right: 12
+        ),
+      ),
     );
-  }
-
-  Future<void> _saveAttachments() async {
-    Directory _dir = Directory('$_appPath/paydesk/${_payDesk.mobID}');
-    if (_dir.existsSync()) {
-      List<FileSystemEntity> _listFileSystemEntity = _dir.listSync();
-
-      for (var _fileSystemEntity in _listFileSystemEntity) {
-        if (_fileSystemEntity is File) {
-          for (var _f in _files) {
-            if (_fileSystemEntity != _f) {
-              _fileSystemEntity.deleteSync();
-              break;
-            }
-          }
-        }
-      }
-    } else {
-      _dir.createSync(recursive: true);
-    }
-
-    List<File> _newFiles = [];
-
-    for (var _file in _files) {
-      if (_file.path.contains(_dir.path)) {
-        _newFiles.add(_file);
-      } else {
-        final _extension = extension(_file.path);
-
-        final _fileBytes = _file.readAsBytesSync();
-        String _fileHash = sha256.convert(_fileBytes).toString();
-
-        if (_files.where((value) => value.path.contains(_fileHash)).length >
-            0) {
-          _displaySnackBar(
-              "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
-          continue;
-        }
-
-        if (_newFiles.where((value) => value.path.contains(_fileHash)).length >
-            0) {
-          _displaySnackBar(
-              "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
-          continue;
-        }
-
-        File _newFile = _file.copySync('${_dir.path}/$_fileHash$_extension');
-        _newFiles.add(_newFile);
-      }
-    }
-
-    List<String> _filesPaths = [];
-    _newFiles.forEach((value) {
-      _filesPaths.add(value.path);
-    });
-    _payDesk.filePaths = jsonEncode(_filesPaths);
-
-    _payDesk.filesQuantity = _newFiles.length;
-
-    PayDeskDAO().update(_payDesk);
-
-    setState(() {
-      _files = _newFiles;
-    });
-  }
-
-  Future _getImageCamera() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.camera);
-    setState(() {
-      if (_isNotLimitElement(_files.length + 1)) {
-        if (image != null) _files.add(image);
-      }
-    });
   }
 
   _showModalBottomSheet() {
@@ -756,4 +817,326 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
       },
     );
   }
+
+  Future<bool> _save() async {
+    bool _ok = false;
+
+    if (!_formKey.currentState.validate()) {
+      return _ok;
+    }
+
+    PayDesk _existPayDesk;
+    if (_payDesk.mobID != null) {
+      _existPayDesk = await PayDeskDAO().getByMobID(_payDesk.mobID);
+    }
+
+    _payDesk.paymentType = int.parse(_paymentTypeController.text);
+    _payDesk.purseID = _purseID;
+    _setFieldToSave();
+    _payDesk.userID = profile.userID;
+    _payDesk.amount = _amount;
+    _payDesk.payment = _paymentController.text;
+    _payDesk.documentNumber = _documentNumberController.text;
+    _payDesk.documentDate = _documentDate;
+
+    if (_existPayDesk == null) {
+      _payDesk.mobID = await PayDeskDAO().insert(_payDesk);
+      if (_payDesk.mobID != null) {
+        _payDesk = await PayDeskDAO().getByMobID(_payDesk.mobID);
+        _ok = true;
+      }
+    } else {
+      _ok = await PayDeskDAO().update(_payDesk);
+    }
+
+    if (_ok) {
+      _saveAttachments();
+      setState(() {
+        _readOnly = true;
+      });
+    } else {
+      _displaySnackBar("Помилка збереження в базі", Colors.red);
+    }
+    return _ok;
+  }
+
+  String _getEnumValue(_Types input){
+    switch (input){
+      case _Types.expense:
+        return "Видаток";
+      case _Types.receiving:
+        return "Надходження";
+      case _Types.transfer:
+        return "Перемiщення";
+      default:
+        return "Невiдомий тип";
+    }
+  }
+
+  bool _isNotNumber(String input) {
+    try {
+      double.parse(input.trim());
+      return false;
+    } on Exception {
+      return true;
+    }
+  }
+
+  bool _isNotCorrectAmount(String value) {
+    //Check if the sum is of type *.xx
+    // (Two digits after the period)
+    List<String> tmp = value.split('.');
+    if ((tmp.last.length <= 2 || tmp.length == 1) &&
+        double.parse(tmp.first) >= 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  bool _isNotLimitElement(int files) {
+    if (files <= 4) {
+      return true;
+    }
+    _showDialog(
+        title: 'Максимальна кількість',
+        body: 'Досягнуто максимальну кількість файлів - 4');
+    return false;
+  }
+
+  void _setFieldToSave(){
+    switch(_currentType){
+      case _Types.expense:
+        _payDesk.toWhomID = _expenseID;
+        break;
+      case _Types.receiving:
+        _payDesk.toWhomID = _receivingID;
+        break;
+      case _Types.transfer:
+        _payDesk.toWhomID = _transferID;
+        break;
+      default:
+        _payDesk.toWhomID = null;
+    }
+  }
+
+  void _setAdditionalFields(int intToSet){
+    switch(_currentType){
+      case _Types.expense:
+        _expenseID = intToSet;
+        break;
+      case _Types.receiving:
+        _receivingID = intToSet;
+        break;
+      case _Types.transfer:
+        _transferID = intToSet;
+        break;
+      default:
+        _payDesk.toWhomID = null;
+    }
+  }
+
+  void _setControllers() {
+    _files.clear();
+    if (_payDesk != null) {
+      List<dynamic> _filesPaths = [];
+      if (_payDesk.filePaths != null && _payDesk.filePaths.isNotEmpty)
+        _filesPaths = jsonDecode(_payDesk.filePaths);
+      _filesPaths.forEach((value) {
+        _files.add(File(value));
+      });
+
+      _purseID = _payDesk.purseID;
+      _payDesk?.purseID==null ? _purseController.text = "" :
+      PurseDAO().getByMobId(_purseID).then((pure) =>
+      _purseController.text = pure.name);
+
+      _paymentTypeController.text = _payDesk?.paymentType?.toString() ?? "0";
+      _currentType = _Types.values[int.parse(_paymentTypeController.text)];
+
+      switch(_currentType){
+        case _Types.expense:
+          _expenseID = _payDesk.toWhomID;
+          if(_expenseID!=null)ExpenseDAO().getByMobId(_expenseID).then((expense) =>
+              _expenseToWhomController.text = expense.name
+          );
+          break;
+        case _Types.receiving:
+          _receivingID = _payDesk.toWhomID;
+          if(_receivingID!=null)ExpenseDAO().getByMobId(_receivingID).then((expense) =>
+              _receivingToWhomController.text = expense.name
+          );
+          break;
+        case _Types.transfer:
+          _transferID = _payDesk.toWhomID;
+          if(_transferID!=null)PurseDAO().getByMobId(_transferID).then((purse) =>
+              _purseToWhomController.text = purse.name
+          );
+          break;
+        default:
+          _expenseToWhomController.text = "Невiдомий тип";
+          _receivingToWhomController.text = "Невiдомий тип";
+          _purseToWhomController.text = "Невiдомий тип";
+      }
+
+      _amountController.text = _payDesk?.amount?.toStringAsFixed(2) ?? "";
+      _paymentController.text = _payDesk?.payment ?? "";
+      _documentNumberController.text = _payDesk?.documentNumber ?? "";
+      _documentDateController.text = _payDesk?.documentDate == null
+          ? ""
+          : formatDate(_payDesk.documentDate, [dd, '-', mm, '-', yyyy]);
+      _documentDate = _payDesk?.documentDate ?? null;
+    }
+  }
+
+  void _handleBottomSheet(String action) async {
+    switch (action) {
+      case "edit":
+        setState(() {
+          _readOnly = false;
+        });
+        break;
+      case "undo":
+        _setControllers();
+        setState(() {
+          _readOnly = true;
+        });
+        break;
+      case "exit":
+        Navigator.pop(_scaffoldKey.currentContext);
+        break;
+      case "save":
+        _save();
+        break;
+      case "saveExit":
+        bool _ok = await _save();
+        if (_ok) Navigator.pop(_scaffoldKey.currentContext);
+    }
+  }
+
+  void _displaySnackBar(String title, Color color) {
+    final snackBar = SnackBar(
+      content: Text(title),
+      backgroundColor: color,
+    );
+    _scaffoldKey.currentState.showSnackBar(snackBar);
+  }
+
+  void _getFile(FileType type) async {
+    List<File> files;
+    switch (type) {
+      case FileType.IMAGE:
+        files = await FilePicker.getMultiFile(type: FileType.IMAGE);
+        break;
+      case FileType.CUSTOM:
+        files = await FilePicker.getMultiFile(
+            type: FileType.CUSTOM, fileExtension: 'pdf');
+        break;
+      default:
+        files = await FilePicker.getMultiFile(type: FileType.IMAGE);
+    }
+
+    if (files != null) {
+      if (_isNotLimitElement((files.length + _files.length))) {
+        files.forEach((file) => _files.add(file));
+      }
+      setState(() {});
+    }
+  }
+
+  void _showDialog({String title, String body}) {
+    showDialog(
+      context: _scaffoldKey.currentContext,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: new Text(title),
+          content: new Text(body),
+          actions: <Widget>[
+            new FlatButton(
+              child: new Text("Закрити"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _saveAttachments() async {
+    Directory _dir = Directory('$_appPath/paydesk/${_payDesk.mobID}');
+    if (_dir.existsSync()) {
+      List<FileSystemEntity> _listFileSystemEntity = _dir.listSync();
+      for (var _fileSystemEntity in _listFileSystemEntity) {
+        if (_fileSystemEntity is File) {
+          for (var _f in _files) {
+            if (_fileSystemEntity != _f) {
+              _fileSystemEntity.deleteSync();
+              break;
+            }
+          }
+        }
+      }
+    } else {
+      _dir.createSync(recursive: true);
+    }
+
+    List<File> _newFiles = [];
+
+    for (var _file in _files) {
+      if (_file.path.contains(_dir.path)) {
+        _newFiles.add(_file);
+      } else {
+        final _extension = extension(_file.path);
+
+        final _fileBytes = _file.readAsBytesSync();
+        String _fileHash = sha256.convert(_fileBytes).toString();
+
+        if (_files.where((value) => value.path.contains(_fileHash)).length >
+            0) {
+          _displaySnackBar(
+              "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+          continue;
+        }
+
+        if (_newFiles.where((value) => value.path.contains(_fileHash)).length >
+            0) {
+          _displaySnackBar(
+              "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+          continue;
+        }
+
+        File _newFile = _file.copySync('${_dir.path}/$_fileHash$_extension');
+        _newFiles.add(_newFile);
+      }
+    }
+
+    List<String> _filesPaths = [];
+    _newFiles.forEach((value) {
+      _filesPaths.add(value.path);
+    });
+    _payDesk.filePaths = jsonEncode(_filesPaths);
+
+    _payDesk.filesQuantity = _newFiles.length;
+
+    PayDeskDAO().update(_payDesk);
+
+    setState(() {
+      _files = _newFiles;
+    });
+  }
+
+  Future _getImageCamera() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.camera);
+    setState(() {
+      if (_isNotLimitElement(_files.length + 1)) {
+        if (image != null) _files.add(image);
+      }
+    });
+  }
+}
+
+enum _Types{
+  expense, receiving, transfer
 }

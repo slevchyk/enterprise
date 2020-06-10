@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/paydesk_dao.dart';
+import 'package:enterprise/models/expense.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/models/purse.dart';
 import 'package:enterprise/pages/page_paydesk_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:intl/intl.dart';
 
 class PagePayDesk extends StatefulWidget {
   final Profile profile;
@@ -43,6 +44,8 @@ class _PagePayDeskState extends State<PagePayDesk> {
           FlatButton(
             onPressed: () async {
               await PayDesk.sync();
+              await Expense.sync();
+              await Purse.sync();
               _load();
             },
             child: Icon(
@@ -74,7 +77,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
                 case ConnectionState.done:
                   var _payList = snapshot.data;
                   return ListView.builder(
-                    itemCount: _payList.length,
+                    itemCount: _payList == null ? 0 : _payList.length,
                     itemBuilder: (BuildContext context, int index) {
                       return InkWell(
                         onTap: () {
