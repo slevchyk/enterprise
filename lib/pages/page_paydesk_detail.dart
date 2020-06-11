@@ -57,7 +57,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 
   int _purseID, _expenseID, _receivingID, _transferID;
 
-  _Types _currentType;
+  Types _currentType;
 
   bool _readOnly = false;
 
@@ -74,7 +74,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => initAsync());
 
-    _currentType = _Types.expense;
+    _currentType = Types.expense;
     _purseList = PurseDAO().getAll();
     _payDesk = widget.payDesk ?? PayDesk();
     _readOnly = _payDesk?.mobID != null;
@@ -106,15 +106,15 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    _paymentType(_Types.expense),
+                    _paymentType(Types.expense),
                     SizedBox(
                       width: 10.0,
                     ),
-                    _paymentType(_Types.receiving),
+                    _paymentType(Types.receiving),
                     SizedBox(
                       width: 10.0,
                     ),
-                    _paymentType(_Types.transfer),
+                    _paymentType(Types.transfer),
                   ],
                 ),
                 Text(
@@ -302,13 +302,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     );
   }
 
-  Widget _showAdditionalFields(_Types input){
+  Widget _showAdditionalFields(Types input){
     switch(input){
-      case _Types.expense:
+      case Types.expense:
         return _expenseField();
-      case _Types.receiving:
+      case Types.receiving:
         return _receivingField();
-      case _Types.transfer:
+      case Types.transfer:
         return _transferField();
       default:
         return Container();
@@ -457,7 +457,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     );
   }
 
-  Widget _paymentType(_Types _type) {
+  Widget _paymentType(Types _type) {
     return ChoiceChip(
       padding: EdgeInsets.all(5.0),
       label: Row(
@@ -550,7 +550,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                               ),
                             ],
                           ),
-                          Row(
+                          _payDesk.updatedAt
+                              .difference(_payDesk.createdAt)
+                              .inSeconds > 0 ? Row(
                             children: <Widget>[
                               Text(
                                 'Змінений: ',
@@ -563,7 +565,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                 ]),
                               ),
                             ],
-                          ),
+                          ) : Container(),
                         ],
                       ),
                     ),
@@ -647,14 +649,14 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                         var _data = snapshot.data[index];
                         if(action!=null){
                           if(compare!=null && compare.text == _data.name){
-                            if(_currentType==_Types.transfer)
+                            if(_currentType==Types.transfer)
                               return Container();
                           }
                         }
                         return InkWell(
                           onTap: () {
                             if(action!=null && action){
-                              if(_currentType!=_Types.transfer)
+                              if(_currentType!=Types.transfer)
                                 _purseToWhomController.clear();
                               _purseID = _data.mobID;
                             } else {
@@ -677,7 +679,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                     leading: CircleAvatar(
                                       child: Text('${_data.mobID}'),
                                     ),
-                                    title: Text(_currentType==_Types.transfer
+                                    title: Text(_currentType==Types.transfer
                                         || action!=null
                                         ? "Гаманець:\n${_data.name}"
                                         : "Стаття\n${_data.name}"),
@@ -860,13 +862,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     return _ok;
   }
 
-  String _getEnumValue(_Types input){
+  String _getEnumValue(Types input){
     switch (input){
-      case _Types.expense:
+      case Types.expense:
         return "Видаток";
-      case _Types.receiving:
+      case Types.receiving:
         return "Надходження";
-      case _Types.transfer:
+      case Types.transfer:
         return "Перемiщення";
       default:
         return "Невiдомий тип";
@@ -906,13 +908,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 
   void _setFieldToSave(){
     switch(_currentType){
-      case _Types.expense:
+      case Types.expense:
         _payDesk.toWhomID = _expenseID;
         break;
-      case _Types.receiving:
+      case Types.receiving:
         _payDesk.toWhomID = _receivingID;
         break;
-      case _Types.transfer:
+      case Types.transfer:
         _payDesk.toWhomID = _transferID;
         break;
       default:
@@ -922,13 +924,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 
   void _setAdditionalFields(int intToSet){
     switch(_currentType){
-      case _Types.expense:
+      case Types.expense:
         _expenseID = intToSet;
         break;
-      case _Types.receiving:
+      case Types.receiving:
         _receivingID = intToSet;
         break;
-      case _Types.transfer:
+      case Types.transfer:
         _transferID = intToSet;
         break;
       default:
@@ -952,22 +954,22 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
       _purseController.text = pure.name);
 
       _paymentTypeController.text = _payDesk?.paymentType?.toString() ?? "0";
-      _currentType = _Types.values[int.parse(_paymentTypeController.text)];
+      _currentType = Types.values[int.parse(_paymentTypeController.text)];
 
       switch(_currentType){
-        case _Types.expense:
+        case Types.expense:
           _expenseID = _payDesk.toWhomID;
           if(_expenseID!=null)ExpenseDAO().getByMobId(_expenseID).then((expense) =>
               _expenseToWhomController.text = expense.name
           );
           break;
-        case _Types.receiving:
+        case Types.receiving:
           _receivingID = _payDesk.toWhomID;
           if(_receivingID!=null)ExpenseDAO().getByMobId(_receivingID).then((expense) =>
               _receivingToWhomController.text = expense.name
           );
           break;
-        case _Types.transfer:
+        case Types.transfer:
           _transferID = _payDesk.toWhomID;
           if(_transferID!=null)PurseDAO().getByMobId(_transferID).then((purse) =>
               _purseToWhomController.text = purse.name
@@ -1137,6 +1139,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
   }
 }
 
-enum _Types{
+enum Types{
   expense, receiving, transfer
 }

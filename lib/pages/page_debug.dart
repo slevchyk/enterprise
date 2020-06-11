@@ -294,7 +294,12 @@ class PageDebugState extends State<PageDebug> {
                       FlatButton(
                         onPressed: () {
                           for(int i = 1; i <= 5; i++){
-                            PurseDAO().insert(Purse(mobID: i, name: 'Тестовий гаманець $i'));
+                            if(i%2==0){
+                              PurseDAO().insert(Purse(name: 'Гаманець великий $i'));
+                            } else {
+                              PurseDAO().insert(Purse(name: 'Те $i'));
+                            }
+
                           }
                         },
                         child: Text('Add Purse'),
@@ -302,7 +307,12 @@ class PageDebugState extends State<PageDebug> {
                       FlatButton(
                         onPressed: () {
                           for(int i = 1; i <= 10; i++){
-                            ExpenseDAO().insert(Expense(mobID: i, name: 'Тестова стаття $i'));
+                            if(i%2==0){
+                              ExpenseDAO().insert(Expense(name: 'Стаття велика $i'));
+                            } else {
+                              ExpenseDAO().insert(Expense(name: 'С $i'));
+                            }
+
                           }
                         },
                         child: Text('Add Expense'),

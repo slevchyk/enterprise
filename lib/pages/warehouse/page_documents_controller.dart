@@ -601,17 +601,8 @@ class _DocumentsState extends State<DocumentsView>{
                               ),
                               Text(
                                 formatDate(_currentDocument.createdAt, [
-                                  dd,
-                                  '-',
-                                  mm,
-                                  '-',
-                                  yyyy,
-                                  ' ',
-                                  HH,
-                                  ':',
-                                  nn,
-                                  ':',
-                                  ss
+                                  dd, '-', mm, '-', yyyy, ' ',
+                                  HH, ':', nn, ':', ss
                                 ]),
                               ),
                             ],
@@ -626,17 +617,8 @@ class _DocumentsState extends State<DocumentsView>{
                               ),
                               Text(
                                 formatDate(_currentDocument.updatedAt, [
-                                  dd,
-                                  '-',
-                                  mm,
-                                  '-',
-                                  yyyy,
-                                  ' ',
-                                  HH,
-                                  ':',
-                                  nn,
-                                  ':',
-                                  ss
+                                  dd, '-', mm, '-', yyyy, ' ',
+                                  HH, ':', nn, ':', ss
                                 ]),
                               ),
                             ],
