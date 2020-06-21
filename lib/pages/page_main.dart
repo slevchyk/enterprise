@@ -284,9 +284,12 @@ class _AppDrawerState extends State<AppDrawer> {
               leading: Icon(Icons.help),
               title: Text('HelpDesk'),
               onTap: () {
+                RouteArgs args = RouteArgs(
+                  profile: widget.profile,
+                );
                 Navigator.of(context).pushNamed(
                   '/helpdesk',
-                  arguments: "",
+                  arguments: args,
                 );
               },
             ),

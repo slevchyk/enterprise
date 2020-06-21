@@ -192,6 +192,8 @@ class PayDesk {
 
         if (existPayDesk != null) {
           payDesk.mobID = existPayDesk.mobID;
+          payDesk.filePaths = existPayDesk.filePaths;
+          payDesk.filesQuantity = existPayDesk.filesQuantity;
           ok = await PayDeskDAO().update(payDesk, isModified: false);
         } else {
           int mobID = await PayDeskDAO().insert(payDesk, isModified: false);
