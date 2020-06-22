@@ -54,15 +54,25 @@ class _PageTurnstileState extends State<PageTurnstile> {
       } else {
         return _pageNfcProfile();
       }
+    } else if(_nfcAvailability == NFCAvailability.disabled) {
+      return _pageNfcDisabled();
     } else {
       return _pageNfcNotSupported();
     }
   }
 
+  Widget _pageNfcDisabled() {
+    return Material(
+      child: Center(
+        child: Text('На Вашому телефонi вимкнено NFC'),
+      ),
+    );
+  }
+
   Widget _pageNfcNotSupported() {
     return Material(
       child: Center(
-        child: Text('NFC doesn\'t supported'),
+        child: Text('Ваш телефон не підтримує NFC'),
       ),
     );
   }
@@ -213,7 +223,7 @@ class _PageTurnstileState extends State<PageTurnstile> {
           children: <Widget>[
             Container(
               padding: EdgeInsets.all(12.0),
-              child: _getUserpic(_profile),
+              child: _getUserPic(_profile),
             ),
             Text(
               _profile.firstName + ' ' + _profile.lastName,
@@ -428,7 +438,7 @@ class _PageTurnstileState extends State<PageTurnstile> {
     });
   }
 
-  Widget _getUserpic(profile) {
+  Widget _getUserPic(profile) {
     if (profile == null || profile.photoName == '') {
       return CircleAvatar(
         minRadius: 75,

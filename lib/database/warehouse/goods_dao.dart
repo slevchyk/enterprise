@@ -32,21 +32,6 @@ class GoodsDAO {
     return res.isNotEmpty ? Goods.fromMap(res.first) : null;
   }
 
-  Future<Goods> getTestId(int id) async {
-    final db = await dbProvider.database;
-    var res = await db.query("goods" , where: "mob_id = ?",
-        whereArgs: [id]);
-    print(res);
-    return res.isNotEmpty ? Goods.fromMap(res.first) : null;
-  }
-
-  Future<Goods> getTest(int id) async {
-    final db = await dbProvider.database;
-    var res = await db.query("goods" , where: "mob_id = ?",
-        whereArgs: [id]);
-    return Goods.fromMap(res.first);
-  }
-
   Future<List<Goods>> getAll() async {
     final db = await dbProvider.database;
     var res = await db.query("goods");

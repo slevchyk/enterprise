@@ -28,7 +28,7 @@ class DBWarehouseProvider {
           "id INTEGER,"
           "user_id  TEXT,"
           "good_status BIT,"
-          "good_count INTEGET,"
+          "good_count INTEGER,"
           "good_name TEXT,"
           "good_unit TEXT"
           ")");
@@ -37,7 +37,7 @@ class DBWarehouseProvider {
           "id INTEGER,"
           "user_id  TEXT,"
           "good_status BIT,"
-          "good_count INTEGET,"
+          "good_count INTEGER,"
           "good_name TEXT,"
           "good_unit TEXT,"
           'created_at TEXT,'
@@ -49,7 +49,7 @@ class DBWarehouseProvider {
           "id INTEGER,"
           'user_id TEXT,'
           'document_status BIT,'
-          'document_number INTEGET,'
+          'document_number INTEGER,'
           'document_date TEXT,'
           'document_partner TEXT,'
           'created_at TEXT,'
@@ -61,7 +61,7 @@ class DBWarehouseProvider {
           "id INTEGER,"
           'user_id TEXT,'
           'supply_document_status BIT,'
-          'supply_document_number INTEGET,'
+          'supply_document_number INTEGER,'
           'supply_document_date TEXT,'
           'supply_document_partner TEXT,'
           'supply_document_count INTEGER,'

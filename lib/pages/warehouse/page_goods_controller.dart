@@ -175,7 +175,6 @@ class _GoodsState extends State<GoodsView>{
                                           "${_currentGood.status? 1 : 0}",
                                       lineWidth: 4.0,
                                       barHeight: 120.0,
-                                      withText: true,
                                     ),
                                   ),
                                 ),
