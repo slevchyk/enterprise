@@ -22,19 +22,18 @@ const String KEY_AUTH_PIN = "keyAuthPin";
 const String KEY_CHANNEL_UPDATE_ID = "keyChannelUpdateID";
 
 const String KEY_IS_PROTECTION_ENABLED = "keyIsProtectionEnabled";
-const String KEY_IS_BIOMETRIC_PROTECTION_ENABLED =
-    "keyIsBiometricProtectionEnabled";
+const String KEY_IS_BIOMETRIC_PROTECTION_ENABLED = "keyIsBiometricProtectionEnabled";
 
 //Civil statuses
 const String CIVIL_STATUS_SINGLE = 'Single';
-const String CIVIL_STATUS_MERRIED = 'Married';
+const String CIVIL_STATUS_MARRIED = 'Married';
 const String CIVIL_STATUS_DIVORCED = 'Divorced';
 const String CIVIL_STATUS_WIDOWED = 'Widowed';
 const String CIVIL_STATUS_OTHER = 'Other';
 
 Map<String, String> civilStatusesAlias = {
   CIVIL_STATUS_SINGLE: "Не одружений",
-  CIVIL_STATUS_MERRIED: "Одружений",
+  CIVIL_STATUS_MARRIED: "Одружений",
   CIVIL_STATUS_DIVORCED: "Розлучений",
   CIVIL_STATUS_WIDOWED: "Вдівець",
   CIVIL_STATUS_OTHER: "Інше",
@@ -58,14 +57,14 @@ Map<int, String> educationsAlias = {
 //Timing
 const String TIMING_STATUS_WORKDAY = 'Workday';
 const String TIMING_STATUS_JOB = 'Job';
-const String TIMING_STATUS_LANCH = 'Lanch';
+const String TIMING_STATUS_LUNCH = 'Lanch';
 const String TIMING_STATUS_BREAK = 'Break';
 const String TIMING_STATUS_STOP = 'Stop';
 
 Map<String, String> timingAlias = {
   TIMING_STATUS_WORKDAY: "Турнікет",
   TIMING_STATUS_JOB: "Робота",
-  TIMING_STATUS_LANCH: "Обід",
+  TIMING_STATUS_LUNCH: "Обід",
   TIMING_STATUS_BREAK: "Перерва",
 };
 
@@ -93,3 +92,34 @@ Map<String, String> passportTypesAlias = {
 
 const String HELPDESK_STATUS_UNPROCESSED = "unprocessed";
 const String HELPDESK_STATUS_PROCESSED = "processed";
+
+//currency
+const int CURRENCY_UAH = 980;
+const int CURRENCY_USD = 840;
+const int CURRENCY_EUR = 978;
+
+Map<int, String> currencyAlias = {
+  CURRENCY_UAH: "грн",
+  CURRENCY_USD: "дол",
+  CURRENCY_EUR: "євр",
+};
+
+const Map<int, String> CURRENCY_SYMBOL = {
+  826: '\u00a3', //GBP
+  840: '\u0024', //USD
+  978: '\u20ac', //EUR
+  980: '\u20b4', //UAH
+};
+
+//pay desk
+enum PayDeskTypes {
+  costs,
+  income,
+  transfer,
+}
+
+const Map<PayDeskTypes, String> PAY_DESK_TYPES_ALIAS = {
+  PayDeskTypes.costs: "Видаток",
+  PayDeskTypes.income: "Надходження",
+  PayDeskTypes.transfer: "Переміщення",
+};

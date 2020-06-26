@@ -101,7 +101,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
           jobChartData.add(new ChartData(
               title: strDate, value: _timing.duration, color: _timing.color()));
           break;
-        case TIMING_STATUS_LANCH:
+        case TIMING_STATUS_LUNCH:
           lanchChartData.add(new ChartData(
               title: strDate, value: _timing.duration, color: _timing.color()));
           break;
@@ -125,7 +125,7 @@ class _PageTimingHistoryState extends State<PageTimingHistory> {
             charts.ColorUtil.fromDartColor(record.color),
       ),
       new charts.Series<ChartData, String>(
-        id: timingAlias[TIMING_STATUS_LANCH],
+        id: timingAlias[TIMING_STATUS_LUNCH],
         data: lanchChartData,
         domainFn: (ChartData record, _) => record.title,
         measureFn: (ChartData record, _) => record.value,

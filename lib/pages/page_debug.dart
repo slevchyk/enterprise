@@ -1,27 +1,25 @@
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:enterprise/database/expense_dao.dart';
-import 'package:enterprise/database/paydesk_dao.dart';
-import 'package:enterprise/database/purse_dao.dart';
+import 'package:enterprise/database/core.dart';
+import 'package:enterprise/database/pay_desk_dao.dart';
+import 'package:enterprise/database/profile_dao.dart';
+import 'package:enterprise/database/timing_dao.dart';
 import 'package:enterprise/database/warehouse/core.dart';
 import 'package:enterprise/database/warehouse/goods_dao.dart';
 import 'package:enterprise/database/warehouse/partners_dao.dart';
 import 'package:enterprise/models/constants.dart';
-import 'package:enterprise/database/core.dart';
-import 'package:enterprise/database/profile_dao.dart';
-import 'package:enterprise/database/timing_dao.dart';
-import 'package:enterprise/models/expense.dart';
+import 'package:enterprise/models/cost_item.dart';
+import 'package:enterprise/models/income_item.dart';
+import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/models/profile.dart';
-import 'package:enterprise/models/purse.dart';
 import 'package:enterprise/models/warehouse/goods.dart';
 import 'package:enterprise/models/warehouse/partners.dart';
 import 'package:enterprise/pages/page_timing_db.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart';
-import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PageDebug extends StatefulWidget {
   PageDebugState createState() => PageDebugState();
@@ -95,17 +93,14 @@ class PageDebugState extends State<PageDebug> {
                 children: <Widget>[
                   Text(
                     'Обліковий запис:',
-                    style:
-                        TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+                    style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
                   ),
                   TextFormField(
                     controller: _userPhoneController,
                     readOnly: _readOnly,
                     keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
-                        labelText: "Номер телефону",
-                        hintText: "номер телефону +380...",
-                        icon: Icon(Icons.phone)),
+                        labelText: "Номер телефону", hintText: "номер телефону +380...", icon: Icon(Icons.phone)),
                   ),
                   TextFormField(
                     controller: _userPinController,
@@ -134,15 +129,11 @@ class PageDebugState extends State<PageDebug> {
                   ),
                   Text(
                     'Connection:',
-                    style:
-                        TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+                    style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
                   ),
                   TextFormField(
                     controller: _serverIPController,
-                    decoration: InputDecoration(
-                        labelText: "IP",
-                        hintText: "1C server IP",
-                        icon: Icon(Icons.computer)),
+                    decoration: InputDecoration(labelText: "IP", hintText: "1C server IP", icon: Icon(Icons.computer)),
                     validator: (value) {
                       if (value.isEmpty) return 'не вказаний: IP';
                       return null;
@@ -257,8 +248,7 @@ class PageDebugState extends State<PageDebug> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => PageTimingDB()),
+                            MaterialPageRoute(builder: (context) => PageTimingDB()),
                           );
                         },
                         child: Text('Timing DB'),
@@ -276,46 +266,39 @@ class PageDebugState extends State<PageDebug> {
                         child: Text('Send fb token'),
                       ),
                       FlatButton(
-                          onPressed: () {
-                            for(int i = 1; i <= 20; i++){
-                              PartnersDAO().insert(Partners(userID: '1', name: 'Партнер тест $i'));
-                            }
-                          },
-                          child: Text('Add Partners'),
+                        onPressed: () {
+                          for (int i = 1; i <= 20; i++) {
+                            PartnersDAO().insert(Partners(userID: '1', name: 'Партнер тест $i'));
+                          }
+                        },
+                        child: Text('Add Partners'),
                       ),
                       FlatButton(
                         onPressed: () {
-                          for(int i = 1; i <= 20; i++){
-                            GoodsDAO().insert(Goods(userID: '1', status: true, count: i,name: 'Номенклатура тест $i', unit: 'smt $i'));
+                          CostItem.sync();
+                        },
+                        child: Text('Sync Cost items'),
+                      ),
+                      FlatButton(
+                        onPressed: () {
+                          IncomeItem.sync();
+                        },
+                        child: Text('Sync Income items'),
+                      ),
+                      FlatButton(
+                        onPressed: () {
+                          PayOffice.sync();
+                        },
+                        child: Text('Sync Pay offices'),
+                      ),
+                      FlatButton(
+                        onPressed: () {
+                          for (int i = 1; i <= 20; i++) {
+                            GoodsDAO().insert(Goods(
+                                userID: '1', status: true, count: i, name: 'Номенклатура тест $i', unit: 'smt $i'));
                           }
                         },
                         child: Text('Add Goods'),
-                      ),
-                      FlatButton(
-                        onPressed: () {
-                          for(int i = 1; i <= 5; i++){
-                            if(i%2==0){
-                              PurseDAO().insert(Purse(name: 'Гаманець великий $i'));
-                            } else {
-                              PurseDAO().insert(Purse(name: 'Те $i'));
-                            }
-
-                          }
-                        },
-                        child: Text('Add Purse'),
-                      ),
-                      FlatButton(
-                        onPressed: () {
-                          for(int i = 1; i <= 10; i++){
-                            if(i%2==0){
-                              ExpenseDAO().insert(Expense(name: 'Стаття велика $i'));
-                            } else {
-                              ExpenseDAO().insert(Expense(name: 'С $i'));
-                            }
-
-                          }
-                        },
-                        child: Text('Add Expense'),
                       ),
                       FlatButton(
                         onPressed: () {
@@ -379,10 +362,7 @@ class PageDebugState extends State<PageDebug> {
   }
 
   void _getSettings(GlobalKey<ScaffoldState> _scaffoldKey) async {
-    Map<String, String> requestMap = {
-      "phone": _userPhoneController.text,
-      "pin": _userPinController.text
-    };
+    Map<String, String> requestMap = {"phone": _userPhoneController.text, "pin": _userPinController.text};
 
     String requestJSON = json.encode(requestMap);
 
@@ -485,11 +465,9 @@ class PageDebugState extends State<PageDebug> {
     Response response = await post(url, headers: headers, body: requestJSON);
   }
 
-
   void _delteDBWarehouse() {
     DBWarehouseProvider.db.deleteDB();
   }
-
 }
 
 class Choice {

@@ -1,16 +1,15 @@
-import 'package:enterprise/database/profile_dao.dart';
-import 'package:enterprise/pages/page_helpdesk_detail.dart';
-import 'package:flutter/material.dart';
-import 'package:enterprise/models/profile.dart';
-import 'package:enterprise/models/constants.dart';
-import 'package:enterprise/database/help_desk_dao.dart';
-import 'package:enterprise/models/helpdesk.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:enterprise/pages/page_main.dart';
 import 'dart:async';
+
+import 'package:enterprise/database/help_desk_dao.dart';
+import 'package:enterprise/models/constants.dart';
+import 'package:enterprise/models/helpdesk.dart';
 import 'package:enterprise/models/models.dart';
+import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/pages/page_helpdesk_detail.dart';
+import 'package:enterprise/pages/page_main.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+
 import '../models/profile.dart';
 
 class PageHelpDesk extends StatefulWidget {
@@ -118,8 +117,7 @@ class _PageHelpDeskState extends State<PageHelpDesk> {
                               return Card(
                                 child: InkWell(
                                   onTap: () {
-                                    Navigator.push(context,
-                                        MaterialPageRoute(builder: (_) {
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) {
                                       return PageHelpdeskDetail(
                                         helpdesk: helpDesk,
                                         profile: _profile,
@@ -132,8 +130,7 @@ class _PageHelpDeskState extends State<PageHelpDesk> {
                                     ),
                                     isThreeLine: true,
                                     leading: CircleAvatar(
-                                      backgroundColor:
-                                          Theme.of(context).primaryColor,
+                                      backgroundColor: Theme.of(context).primaryColor,
                                       child: Text(helpDesk.mobID.toString()),
                                     ),
                                     subtitle: Text(
@@ -186,8 +183,7 @@ class _PageHelpDeskState extends State<PageHelpDesk> {
                               return Card(
                                 child: InkWell(
                                   onTap: () {
-                                    Navigator.push(context,
-                                        MaterialPageRoute(builder: (_) {
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) {
                                       return PageHelpdeskDetail(
                                         helpdesk: helpDesk,
                                         profile: _profile,
@@ -200,8 +196,7 @@ class _PageHelpDeskState extends State<PageHelpDesk> {
                                     ),
                                     isThreeLine: true,
                                     leading: CircleAvatar(
-                                      backgroundColor:
-                                          Theme.of(context).primaryColor,
+                                      backgroundColor: Theme.of(context).primaryColor,
                                       child: Text(helpDesk.mobID.toString()),
                                     ),
                                     subtitle: Text(

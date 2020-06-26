@@ -1,104 +1,118 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:enterprise/database/paydesk_dao.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:enterprise/database/pay_desk_dao.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
 
 import 'constants.dart';
 
 class PayDesk {
   int mobID;
-  int paymentType;
-  int purseID;
-  int toWhomID;
   int id;
+  int payDeskType;
+  String costItemAccID;
+  String incomeItemAccID;
+  String fromPayOfficeAccID;
+  String toPayOfficeAccID;
   String userID;
-  int paymentStatus;
   double amount;
+  String currencyAccID;
   String payment;
   String documentNumber;
   DateTime documentDate;
   String filePaths;
   int filesQuantity;
+  bool isChecked;
   DateTime createdAt;
   DateTime updatedAt;
   bool isDeleted;
   bool isModified;
+  int currencyCode;
+  String costItemName;
+  String incomeItemName;
+  String fromPayOfficeName;
+  String toPayOfficeName;
 
   PayDesk({
     this.mobID,
-    this.paymentType,
-    this.purseID,
-    this.toWhomID,
     this.id,
+    this.payDeskType,
+    this.costItemAccID,
+    this.incomeItemAccID,
+    this.fromPayOfficeAccID,
+    this.toPayOfficeAccID,
     this.userID,
-    this.paymentStatus,
     this.amount,
+    this.currencyAccID,
     this.payment,
     this.documentNumber,
     this.documentDate,
     this.filePaths,
     this.filesQuantity,
+    this.isChecked,
     this.createdAt,
     this.updatedAt,
     this.isDeleted,
     this.isModified,
+    this.currencyCode,
+    this.costItemName,
+    this.incomeItemName,
+    this.fromPayOfficeName,
+    this.toPayOfficeName,
   });
 
   factory PayDesk.fromMap(Map<String, dynamic> json) => PayDesk(
         mobID: json['mob_id'],
-        paymentType: json['payment_type'],
-        purseID: json['purse_id'],
-        toWhomID: json['to_whom_id'],
         id: json['id'],
+        payDeskType: json['pay_desk_type'],
+        currencyAccID: json["currency_acc_id"],
+        costItemAccID: json['cost_item_acc_id'],
+        incomeItemAccID: json['income_item_acc_id'],
+        fromPayOfficeAccID: json['from_pay_office_acc_id'],
+        toPayOfficeAccID: json['to_pay_office_acc_id'],
         userID: json['user_id'],
-        paymentStatus: json['payment_status'],
-        amount: json["amount"] is double
-            ? json["amount"]
-            : json["amount"].toDouble(),
+        amount: json["amount"] is double ? json["amount"] : json["amount"].toDouble(),
         payment: json["payment"],
         documentNumber: json["document_number"],
-        documentDate: json['document_date'] != null
-            ? DateTime.parse(json["document_date"])
-            : null,
+        documentDate: json['document_date'] != null ? DateTime.parse(json["document_date"]) : null,
         filePaths: json['file_paths'],
         filesQuantity: json['files_quantity'],
-        createdAt: json['created_at'] != null
-            ? DateTime.parse(json["created_at"])
-            : null,
-        updatedAt: json['updated_at'] != null
-            ? DateTime.parse(json["updated_at"])
-            : null,
+        isChecked: json["is_checked"] == null
+            ? false
+            : json["is_checked"] is int ? json["is_checked"] == 1 ? true : false : json["is_checked"],
+        createdAt: json['created_at'] != null ? DateTime.parse(json["created_at"]) : null,
+        updatedAt: json['updated_at'] != null ? DateTime.parse(json["updated_at"]) : null,
         isDeleted: json["is_deleted"] == null
             ? false
-            : json["is_deleted"] is int
-                ? json["is_deleted"] == 1 ? true : false
-                : json["is_deleted"],
+            : json["is_deleted"] is int ? json["is_deleted"] == 1 ? true : false : json["is_deleted"],
         isModified: json["is_modified"] == null
             ? false
-            : json["is_modified"] is int
-                ? json["is_modified"] == 1 ? true : false
-                : json["is_modified"],
+            : json["is_modified"] is int ? json["is_modified"] == 1 ? true : false : json["is_modified"],
+        currencyCode: json["currency_code"],
+        costItemName: json["cost_item_name"],
+        incomeItemName: json["income_item_name"],
+        fromPayOfficeName: json["from_pay_office_name"],
+        toPayOfficeName: json["to_pay_office_name"],
       );
 
   Map<String, dynamic> toMap() => {
         'mob_id': mobID,
-        'payment_type' : paymentType,
-        'purse_id' : purseID,
-        'to_whom_id' : toWhomID,
         'id': id,
+        'pay_desk_type': payDeskType,
+        'currency_acc_id': currencyAccID,
+        'cost_item_acc_id': costItemAccID,
+        'income_item_acc_id': incomeItemAccID,
+        'from_pay_office_acc_id': fromPayOfficeAccID,
+        'to_pay_office_acc_id': toPayOfficeAccID,
         'user_id': userID,
-        'payment_status': paymentStatus,
         'amount': amount,
         'payment': payment,
         'document_number': documentNumber,
-        'document_date':
-            documentDate != null ? documentDate.toIso8601String() : null,
+        'document_date': documentDate != null ? documentDate.toIso8601String() : null,
         'file_paths': filePaths,
         'files_quantity': filesQuantity,
+        'is_checked': isChecked == null ? 0 : isChecked ? 1 : 0,
         'created_at': createdAt != null ? createdAt.toIso8601String() : null,
         'updated_at': updatedAt != null ? updatedAt.toIso8601String() : null,
         "is_deleted": isDeleted == null ? 0 : isDeleted ? 1 : 0,
@@ -159,8 +173,7 @@ class PayDesk {
     final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
     final String _userID = prefs.getString(KEY_USER_ID) ?? "";
 
-    final String url =
-        'http://$_serverIP/api/paydesk?for=mobile&userid=$_userID';
+    final String url = 'http://$_serverIP/api/paydesk?for=mobile&userid=$_userID';
 
     final credentials = '$_serverUser:$_serverPassword';
     final stringToBase64 = utf8.fuse(base64);
@@ -204,8 +217,7 @@ class PayDesk {
         }
 
         if (ok) {
-          String urlProcessed =
-              'http://$_serverIP/api/paydesk/processed?from=mobile&id=${payDesk.id.toString()}';
+          String urlProcessed = 'http://$_serverIP/api/paydesk/processed?from=mobile&id=${payDesk.id.toString()}';
           post(urlProcessed, headers: headers);
         }
       }

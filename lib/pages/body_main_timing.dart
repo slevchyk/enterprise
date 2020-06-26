@@ -167,7 +167,7 @@ class _TimingMainState extends State<TimingMain> {
         await TimingDAO().updateByMobID(timing);
       }
     } else if (timingStatus == TIMING_STATUS_JOB ||
-        timingStatus == TIMING_STATUS_LANCH ||
+        timingStatus == TIMING_STATUS_LUNCH ||
         timingStatus == TIMING_STATUS_BREAK) {
       List<Timing> listTiming =
           await TimingDAO().getOpenStatusByDateUserId(dayBegin, userID);
@@ -268,7 +268,7 @@ class _TimingMainState extends State<TimingMain> {
         return Icon(FontAwesomeIcons.building);
       case TIMING_STATUS_JOB:
         return Icon(FontAwesomeIcons.hammer);
-      case TIMING_STATUS_LANCH:
+      case TIMING_STATUS_LUNCH:
         return Icon(Icons.fastfood);
       case TIMING_STATUS_BREAK:
         return Icon(Icons.toys);
@@ -467,7 +467,7 @@ class _TimingFABState extends State<TimingFAB> {
       label: "Обід",
       child: Icon(Icons.fastfood),
       onTap: () {
-        widget.onPressed(TIMING_STATUS_LANCH);
+        widget.onPressed(TIMING_STATUS_LUNCH);
       },
     );
   }
@@ -544,7 +544,7 @@ class _TimingFABState extends State<TimingFAB> {
             homeSDC(),
           ],
         );
-      case (TIMING_STATUS_LANCH):
+      case (TIMING_STATUS_LUNCH):
         return SpeedDial(
           animatedIcon: AnimatedIcons.menu_close,
           closeManually: false,

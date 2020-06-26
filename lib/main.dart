@@ -1,8 +1,9 @@
-import 'package:enterprise/models/expense.dart';
-import 'package:enterprise/models/paydesk.dart';
-import 'package:enterprise/models/purse.dart';
-import 'package:flutter/material.dart';
+import 'package:enterprise/models/cost_item.dart';
+import 'package:enterprise/models/currency.dart';
+import 'package:enterprise/models/income_item.dart';
+import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/route_generator.dart';
+import 'package:flutter/material.dart';
 
 import 'models/timing.dart';
 
@@ -19,7 +20,7 @@ class EnterpriseAppState extends State<EnterpriseApp> {
 
     Timing.closePastTiming();
     Timing.downloadByDate(DateTime.now());
-    _load();
+    _sync();
   }
 
   @override
@@ -37,9 +38,10 @@ class EnterpriseAppState extends State<EnterpriseApp> {
     );
   }
 
-  void _load(){
-    PayDesk.sync();
-    Expense.sync();
-    Purse.sync();
+  void _sync() {
+    CostItem.sync();
+    IncomeItem.sync();
+    Currency.sync();
+    PayOffice.sync();
   }
 }

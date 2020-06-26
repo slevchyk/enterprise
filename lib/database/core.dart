@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -21,8 +22,7 @@ class DBProvider {
   initDB() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, "main.db");
-    return await openDatabase(path, version: 1, onOpen: (db) {},
-        onCreate: (Database db, int version) async {
+    return await openDatabase(path, version: 1, onOpen: (db) {}, onCreate: (Database db, int version) async {
       await db.execute("CREATE TABLE Profile ("
           "id INTEGER PRIMARY KEY,"
           "blocked BIT,"
@@ -120,18 +120,21 @@ class DBProvider {
           'is_deleted BIT DEFAULT 0,'
           'is_modified BIT'
           ')');
-      await db.execute('CREATE TABLE paydesk ('
+      await db.execute('CREATE TABLE pay_desk ('
           'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
-          'payment_type INTEGER,'
-          'purse_id INTEGER,'
-          'to_whom_id INTEGER,'
           'id INTEGER,'
+          'pay_desk_type INTEGER,'
+          'currency_acc_id TEXT,'
+          'cost_item_acc_id TEXT,'
+          'income_item_acc_id TEXT,'
+          'from_pay_office_acc_id TEXT,'
+          'to_pay_office_acc_id TEXT,'
           'user_id TEXT,'
-          'payment_status BOOLEAN,'
           'amount DOUBLE,'
           'payment TEXT,'
           'document_number TEXT,'
           'document_date TEXT,'
+          'is_checked BIT,'
           'file_paths TEXT,'
           'files_quantity,'
           'created_at TEXT,'
@@ -139,23 +142,35 @@ class DBProvider {
           'is_deleted BIT DEFAULT 0,'
           'is_modified BIT'
           ')');
-      await db.execute('CREATE TABLE purse ('
+      await db.execute('CREATE TABLE cost_items ('
           'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
           'id INTEGER,'
-          'user_id TEXT,'
+          'acc_id TEXT,'
           'name TEXT,'
-          'created_at TEXT,'
-          'updated_at TEXT,'
-          'is_modified BIT'
+          'is_deleted BIT'
           ')');
-      await db.execute('CREATE TABLE expense ('
+      await db.execute('CREATE TABLE income_items ('
           'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
           'id INTEGER,'
-          'user_id TEXT,'
+          'acc_id TEXT,'
           'name TEXT,'
-          'created_at TEXT,'
-          'updated_at TEXT,'
-          'is_modified BIT'
+          'is_deleted BIT'
+          ')');
+      await db.execute('CREATE TABLE pay_offices ('
+          'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
+          'id INTEGER,'
+          'acc_id TEXT,'
+          'currency_acc_id TEXT,'
+          'name TEXT,'
+          'is_deleted BIT'
+          ')');
+      await db.execute('CREATE TABLE currency ('
+          'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
+          'id INTEGER,'
+          'acc_id TEXT,'
+          'code INTEGER,'
+          'name TEXT,'
+          'is_deleted BIT'
           ')');
 //      await db.execute('CREATE TRIGGER log_timing_after_update'
 //          'AFTER UPDATE ON timing'

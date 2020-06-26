@@ -92,7 +92,7 @@ class PageProfileState extends State<PageProfile> {
             height: _isLoadingProfile ? 50 : 0,
             child: Center(
               child:
-                  _isLoadingProfile ? CircularProgressIndicator() : SizedBox(),
+              _isLoadingProfile ? CircularProgressIndicator() : SizedBox(),
             ),
           ),
           FlatButton(
@@ -169,29 +169,29 @@ class PageProfileState extends State<PageProfile> {
                         ),
                         FormField<String>(
                             builder: (FormFieldState<String> state) {
-                          return InputDecorator(
-                            decoration: InputDecoration(
-                              icon: Icon(FontAwesomeIcons.venusMars),
-                              border: InputBorder.none,
-                              labelText: 'Стать',
-                            ),
-                            child: Row(
-                              children: <Widget>[
-                                _genderChoiceChip(
-                                    GENDER_FEMALE,
-                                    Colors.pinkAccent.shade100,
-                                    FontAwesomeIcons.female),
-                                SizedBox(
-                                  width: 10.0,
+                              return InputDecorator(
+                                decoration: InputDecoration(
+                                  icon: Icon(FontAwesomeIcons.venusMars),
+                                  border: InputBorder.none,
+                                  labelText: 'Стать',
                                 ),
-                                _genderChoiceChip(
-                                    GENDER_MALE,
-                                    Colors.blueAccent.shade100,
-                                    FontAwesomeIcons.male)
-                              ],
-                            ),
-                          );
-                        }),
+                                child: Row(
+                                  children: <Widget>[
+                                    _genderChoiceChip(
+                                        GENDER_FEMALE,
+                                        Colors.pinkAccent.shade100,
+                                        FontAwesomeIcons.female),
+                                    SizedBox(
+                                      width: 10.0,
+                                    ),
+                                    _genderChoiceChip(
+                                        GENDER_MALE,
+                                        Colors.blueAccent.shade100,
+                                        FontAwesomeIcons.male)
+                                  ],
+                                ),
+                              );
+                            }),
                         TextFormField(
                           controller: _phoneController,
                           readOnly: _readOnly,
@@ -239,7 +239,7 @@ class PageProfileState extends State<PageProfile> {
                               decoration: new InputDecoration(
                                 icon: Icon(FontAwesomeIcons.birthdayCake),
                                 suffixIcon:
-                                    _clearIconButton(_birthdayController),
+                                _clearIconButton(_birthdayController),
                                 labelText: 'Дата народження',
                               ),
                               validator: (value) {
@@ -320,11 +320,11 @@ class PageProfileState extends State<PageProfile> {
                         AnimatedCrossFade(
                           firstChild: _passportID(_formKeyPassportID),
                           secondChild:
-                              _passportOriginal(_formKeyPassportOriginal),
+                          _passportOriginal(_formKeyPassportOriginal),
                           crossFadeState:
-                              _passportTypeController.text == PASSPORT_TYPE_ID
-                                  ? CrossFadeState.showFirst
-                                  : CrossFadeState.showSecond,
+                          _passportTypeController.text == PASSPORT_TYPE_ID
+                              ? CrossFadeState.showFirst
+                              : CrossFadeState.showSecond,
                           duration: Duration(milliseconds: 500),
                         ),
                       ],
@@ -439,7 +439,7 @@ class PageProfileState extends State<PageProfile> {
                             width: 24.0,
                           ),
                           suffixIcon:
-                              _clearIconButton(_additionalEducationController),
+                          _clearIconButton(_additionalEducationController),
                           labelText: 'Додаткова освіта',
                         ),
                       ),
@@ -493,7 +493,7 @@ class PageProfileState extends State<PageProfile> {
                         decoration: InputDecoration(
                             icon: Icon(FontAwesomeIcons.building),
                             suffixIcon:
-                                _clearIconButton(_lastWorkPlaceController),
+                            _clearIconButton(_lastWorkPlaceController),
                             labelText: 'Останнє місце роботи',
                             hintText: 'місто, компанія, посада'),
                       ),
@@ -525,7 +525,7 @@ class PageProfileState extends State<PageProfile> {
                             child: SwitchListTile(
                                 title: Text('Пенсіонер'),
                                 value:
-                                    _isPensioner == null ? false : _isPensioner,
+                                _isPensioner == null ? false : _isPensioner,
                                 onChanged: (bool value) {
                                   setState(() {
                                     _isPensioner = value;
@@ -764,7 +764,7 @@ class PageProfileState extends State<PageProfile> {
         ],
       ),
       backgroundColor:
-          _genderController.text == "" ? _color : Colors.grey.shade100,
+      _genderController.text == "" ? _color : Colors.grey.shade100,
       selectedColor: Colors.green,
       selected: _genderController.text == _gender,
       onSelected: (bool value) {

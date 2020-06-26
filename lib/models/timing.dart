@@ -274,7 +274,7 @@ class Timing {
     switch (status) {
       case TIMING_STATUS_JOB:
         return Colors.green.shade600;
-      case TIMING_STATUS_LANCH:
+      case TIMING_STATUS_LUNCH:
         return Colors.green.shade500;
       case TIMING_STATUS_BREAK:
         return Colors.green.shade400;
