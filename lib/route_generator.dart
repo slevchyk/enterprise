@@ -7,7 +7,9 @@ import 'package:enterprise/pages/page_helpdesk_detail.dart';
 import 'package:enterprise/pages/page_helpdesk.dart';
 import 'package:enterprise/pages/auth/page_login.dart';
 import 'package:enterprise/pages/page_paydesk.dart';
+import 'package:enterprise/pages/page_paydesk_confirm.dart';
 import 'package:enterprise/pages/page_paydesk_detail.dart';
+import 'package:enterprise/pages/page_paydesk_sort.dart';
 import 'package:enterprise/pages/page_settings.dart';
 import 'package:enterprise/pages/page_timing_hitory.dart';
 import 'package:enterprise/pages/page_turnstile.dart';
@@ -64,6 +66,23 @@ class RouteGenerator {
               builder: (_) => PagePayDeskDetail(
                     profile: args.profile,
                   ));
+        }
+        return _errorRoute(settings.name);
+      case '/paydesk/confirm':
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PagePayDeskConfirm(
+                profile: args.profile,
+              ));
+        }
+        return _errorRoute(settings.name);
+      case '/paydesk/sort':
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PagePayDeskSort(
+                profile: args.profile,
+                dateSort: args.dateSort,
+              ));
         }
         return _errorRoute(settings.name);
       case '/timinghistory':

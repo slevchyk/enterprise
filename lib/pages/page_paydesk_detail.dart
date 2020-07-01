@@ -17,7 +17,9 @@ import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/widgets/attachments_carousel.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_simple_calculator/flutter_simple_calculator.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
@@ -57,7 +59,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
   PayDesk _payDesk;
   Profile profile;
 
-  double _amount;
+  double _amount, _currentValue;
   DateTime _documentDate;
   String _appPath;
 
@@ -79,6 +81,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => initAsync());
 
+    _currentValue = 0;
     _currencyList = CurrencyDAO().getUnDeleted();
     _costItemsList = CostItemDAO().getUnDeleted();
     _incomeItemsList = IncomeItemDAO().getUnDeleted();
@@ -226,6 +229,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                       ),
                       TextFormField(
                         enabled: !_readOnly,
+                        autofocus: true,
                         keyboardType: TextInputType.number,
                         controller: _amountController,
                         decoration: InputDecoration(
@@ -238,10 +242,67 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                   fontSize: 24.0, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
                             ),
                           ),
-                          suffixIcon: _clearIconButton(_amountController),
+                          suffixIcon: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              IconButton(
+                                  icon: Icon(FontAwesomeIcons.calculator, size: 22,),
+                                  onPressed: (){
+                                    showModalBottomSheet(
+                                        isScrollControlled: true,
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return Wrap(
+                                            children: <Widget>[
+                                              SizedBox(
+                                                height: MediaQuery.of(context).size.height * 0.5,
+                                                child: _calc(context),
+                                              ),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: <Widget>[
+                                                  Container(
+                                                    width: MediaQuery.of(context).size.width/2,
+                                                    child: RaisedButton(
+                                                      onPressed: (){
+                                                        Navigator.of(context).pop();
+                                                        _currentValue = 0;
+                                                      },
+                                                      child: Text("Вiдмiнити"),
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    width: MediaQuery.of(context).size.width/2,
+                                                    child: RaisedButton(
+                                                      color: Colors.green,
+                                                      onPressed: (){
+                                                        Navigator.of(context).pop();
+                                                        if(_currentValue!=0){
+                                                          _amount = _currentValue;
+                                                          _amountController.text = _currentValue.toStringAsFixed(2);
+                                                          _currentValue = 0;
+                                                        }
+                                                      },
+                                                      child: Text("Додати", style: TextStyle(color: Colors.white),),
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            ],
+                                          );
+                                        });
+                                  }),
+                              _clearIconButton(_amountController)!=null
+                                  ? _clearIconButton(_amountController)
+                                  : Container(),
+                            ],
+                          ),
                           hintText: 'Вкажiть суму',
                           labelText: 'Сума*',
                         ),
+                        onChanged: (_) {
+                          setState(() {});
+                        },
                         validator: (value) {
                           String _input = value.trim().replaceAll(',', '.');
                           if (_input.isEmpty) return 'Ви не вказали суму';
@@ -445,6 +506,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                           hintText: 'Вкажiть призначення платежу',
                           labelText: 'Призначення платежу*',
                         ),
+                        onChanged: (_) {
+                          setState(() {});
+                        },
                         validator: (value) {
                           if (value.isEmpty) return 'Ви не вказали призначення платежу';
                           return null;
@@ -480,6 +544,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                           hintText: 'номер чеку',
                           labelText: 'Номер',
                         ),
+                        onChanged: (_) {
+                          setState(() {});
+                        },
                       ),
                       InkWell(
                         onLongPress: () {
@@ -505,7 +572,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                           if (picked != null)
                             setState(() {
                               _documentDate = picked;
-                              _documentDateController.text = formatDate(picked, [dd, '-', mm, '-', yyyy]);
+                              _documentDateController.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
                             });
                         },
                         child: IgnorePointer(
@@ -556,8 +623,133 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
           _showModalBottomSheet();
         },
       ),
-      bottomNavigationBar: _setNavigationBar(),
+      bottomNavigationBar: _payDesk.payDeskType == 2
+          && !_payDesk.isChecked
+          && _readOnly ? _confirmButton() : _setNavigationBar(),
     );
+  }
+
+  Widget _confirmButton(){
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 7.0),
+      child: ChoiceChip(
+        padding: EdgeInsets.all(5.0),
+        label: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text("Пiдтвердити",
+              style: TextStyle(
+                  color: Colors.white
+              ),
+            ),
+          ],
+        ),
+        selected: true,
+        selectedColor: Colors.green,
+        onSelected: (bool value) {
+          _confirmingDialog();
+        },
+      ),
+    );
+  }
+
+  _confirmingDialog(){
+    showGeneralDialog(
+      barrierLabel: 'confirmDialog',
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.8),
+      transitionDuration: Duration(milliseconds: 250),
+      context: _scaffoldKey.currentContext,
+      transitionBuilder: (context, anim1, anim2, child) {
+        return SlideTransition(
+          position: Tween(
+              begin: Offset(0, 1),
+              end: Offset(0, 0)).animate(anim1),
+          child: child,
+        );
+      },
+      pageBuilder: (context, anim1, anim2) => AlertDialog(
+        contentPadding: EdgeInsets.all(0.0),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20.0))
+        ),
+        content: ListTile(
+          title: Container(
+            height: 60,
+            alignment: Alignment.center,
+            child: Text("Пiдтвердження переказу", style: TextStyle(
+                fontWeight: FontWeight.bold
+            ),),
+          ),
+          subtitle: Container(
+            height: 320,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Text("Дата", style: TextStyle(fontWeight: FontWeight.w800),),
+                SizedBox(height: 4,),
+                Text('${formatDate(
+                  _payDesk.createdAt,
+                  [dd, '.', mm, '.', yyyy, ' ', HH, ':', nn, ':', ss,],
+                )}\n', style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),),
+                Row(
+                  children: <Widget>[
+                  ],
+                ),
+                Text("Сума ", style: TextStyle(fontWeight: FontWeight.w800),),
+                SizedBox(height: 4,),
+                Text("${_amountController.text} ${String.fromCharCode(0x000020B4)}\n",
+                  style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),),
+                Row(
+                  children: <Widget>[
+                  ],
+                ),
+                Text("З гаманьця ", style: TextStyle(fontWeight: FontWeight.w800),),
+                SizedBox(height: 4,),
+                Text("${_fromPayOfficeController.text}\n",
+                  style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),),
+                Text("На гаменець ", style: TextStyle(fontWeight: FontWeight.w800),),
+                SizedBox(height: 4,),
+                Text("${_toPayOfficeController.text}",
+                  style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),),
+                SizedBox(height: 30,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    RaisedButton(
+                      color: Color.fromARGB(80, 90, 90, 90),
+                      child: Text('Вiдмiнити', style: TextStyle(color: Colors.white),),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12.0))
+                      ),
+                    ),
+                    RaisedButton(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12.0))
+                      ),
+                      color: Colors.green,
+                      child: Text('Так', style: TextStyle(color: Colors.white),),
+                      onPressed: () {
+                        _payDesk.isChecked = true;
+                        _save().whenComplete(() => _closeWindow(context));
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _closeWindow(BuildContext context){
+    Navigator.of(context).pop();
+    Navigator.pop(_scaffoldKey.currentContext);
   }
 
   Widget _paymentType(PayDeskTypes _type) {
@@ -662,17 +854,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                               ),
                               Text(
                                 formatDate(_payDesk.createdAt, [
-                                  dd,
-                                  '-',
-                                  mm,
-                                  '-',
-                                  yyyy,
-                                  ' ',
-                                  HH,
-                                  ':',
-                                  nn,
-                                  ':',
-                                  ss,
+                                  dd, '-', mm, '-', yyyy, ' ',
+                                  HH, ':', nn, ':', ss,
                                 ]),
                               ),
                             ],
@@ -686,7 +869,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                     ),
                                     Text(
                                       formatDate(
-                                          _payDesk.updatedAt, [dd, '-', mm, '-', yyyy, ' ', HH, ':', nn, ':', ss]),
+                                          _payDesk.updatedAt,
+                                          [dd, '-', mm, '-', yyyy, ' ',
+                                            HH, ':', nn, ':', ss]),
                                     ),
                                   ],
                                 )
@@ -1056,7 +1241,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
       _paymentController.text = _payDesk?.payment ?? "";
       _documentNumberController.text = _payDesk?.documentNumber ?? "";
       _documentDateController.text =
-          _payDesk?.documentDate == null ? "" : formatDate(_payDesk.documentDate, [dd, '-', mm, '-', yyyy]);
+          _payDesk?.documentDate == null ? "" : formatDate(_payDesk.documentDate, [dd, '.', mm, '.', yyyy]);
       _documentDate = _payDesk?.documentDate ?? null;
       _currentType = _payDesk?.payDeskType == null ? PayDeskTypes.costs : PayDeskTypes.values[_payDesk.payDeskType];
     }
@@ -1203,6 +1388,19 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
         if (image != null) _files.add(image);
       }
     });
+  }
+
+  Widget _calc(BuildContext context){
+    return SimpleCalculator(
+      value: _currentValue,
+      hideExpression: false,
+      hideSurroundingBorder: true,
+      onChanged: (key, value, expression) {
+        setState(() {
+          _currentValue = value;
+        });
+      },
+    );
   }
 }
 

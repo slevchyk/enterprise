@@ -23,7 +23,7 @@ class PayDesk {
   DateTime documentDate;
   String filePaths;
   int filesQuantity;
-  bool isChecked;
+  bool isChecked = false;
   DateTime createdAt;
   DateTime updatedAt;
   bool isDeleted;
