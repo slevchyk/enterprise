@@ -1,7 +1,7 @@
 import 'dart:ui';
 
-import 'package:enterprise/models/helpdesk.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:flutter/cupertino.dart';
 
 class ChartData {
   String title;
@@ -27,8 +27,12 @@ class UploadFile {
 
 class RouteArgs {
   Profile profile;
+  ScrollController scrollController;
+  DateTime dateSort;
 
   RouteArgs({
     this.profile,
+    this.scrollController,
+    this.dateSort,
   });
 }

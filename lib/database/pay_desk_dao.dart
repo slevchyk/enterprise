@@ -47,7 +47,7 @@ class PayDeskDAO {
           payDesk.documentDate != null ? payDesk.documentDate.toIso8601String() : null,
           payDesk.filePaths,
           payDesk.filesQuantity,
-          0,
+          payDesk.isChecked,
           createdAt,
           updatedAt,
           payDesk.isDeleted,
@@ -156,6 +156,133 @@ class PayDeskDAO {
     var res = await db.query("pay_desk", where: 'is_deleted=1', orderBy: "id DESC");
 
     List<PayDesk> list = res.isNotEmpty ? res.map((c) => PayDesk.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  Future<List<PayDesk>> getTransfer() async {
+    final db = await dbProvider.database;
+    var res =
+    await db.rawQuery(
+        'SELECT '
+        'pd.mob_id, '
+        'pd.id, '
+        'pd.pay_desk_type, '
+        'pd.currency_acc_id, '
+        'c.code AS currency_code, '
+        'pd.cost_item_acc_id, '
+        'ci.name AS cost_item_name, '
+        'pd.income_item_acc_id, '
+        'ii.name AS income_item_name, '
+        'pd.from_pay_office_acc_id, '
+        'fpo.name AS from_pay_office_name, '
+        'pd.to_pay_office_acc_id, '
+        'tpo.name AS to_pay_office_name, '
+        'pd.user_id, '
+        'pd.amount, '
+        'pd.payment, '
+        'pd.document_number, '
+        'pd.document_date, '
+        'pd.file_paths, '
+        'pd.files_quantity, '
+        'pd.is_checked, '
+        'pd.created_at, '
+        'pd.updated_at, '
+        'pd.is_deleted, '
+        'pd.is_modified '
+        'FROM '
+        ' pay_desk pd '
+        'LEFT JOIN '
+        '   currency c '
+        ' ON '
+        '   pd.currency_acc_id = c.acc_id '
+        'LEFT JOIN '
+        '   cost_items ci '
+        ' ON '
+        '   pd.cost_item_acc_id = ci.acc_id '
+        'LEFT JOIN '
+        '   income_items ii '
+        ' ON '
+        '   pd.income_item_acc_id = ii.acc_id '
+        'LEFT JOIN '
+        '   pay_offices fpo '
+        ' ON '
+        '   pd.from_pay_office_acc_id = fpo.acc_id '
+        'LEFT JOIN '
+        '   pay_offices tpo '
+        ' ON '
+        '   pd.to_pay_office_acc_id = tpo.acc_id '
+        'WHERE '
+        ' pay_desk_type=2 AND is_checked=0 '
+        'ORDER BY '
+        ' pd.id DESC');
+
+    List<PayDesk> list =
+    res.isNotEmpty ? res.map((c) => PayDesk.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  Future<List<PayDesk>> getByDate(String date) async {
+    date = "$date%";
+    final db = await dbProvider.database;
+    var res =
+    await db.rawQuery(
+        'SELECT '
+            'pd.mob_id, '
+            'pd.id, '
+            'pd.pay_desk_type, '
+            'pd.currency_acc_id, '
+            'c.code AS currency_code, '
+            'pd.cost_item_acc_id, '
+            'ci.name AS cost_item_name, '
+            'pd.income_item_acc_id, '
+            'ii.name AS income_item_name, '
+            'pd.from_pay_office_acc_id, '
+            'fpo.name AS from_pay_office_name, '
+            'pd.to_pay_office_acc_id, '
+            'tpo.name AS to_pay_office_name, '
+            'pd.user_id, '
+            'pd.amount, '
+            'pd.payment, '
+            'pd.document_number, '
+            'pd.document_date, '
+            'pd.file_paths, '
+            'pd.files_quantity, '
+            'pd.is_checked, '
+            'pd.created_at, '
+            'pd.updated_at, '
+            'pd.is_deleted, '
+            'pd.is_modified '
+            'FROM '
+            ' pay_desk pd '
+            'LEFT JOIN '
+            '   currency c '
+            ' ON '
+            '   pd.currency_acc_id = c.acc_id '
+            'LEFT JOIN '
+            '   cost_items ci '
+            ' ON '
+            '   pd.cost_item_acc_id = ci.acc_id '
+            'LEFT JOIN '
+            '   income_items ii '
+            ' ON '
+            '   pd.income_item_acc_id = ii.acc_id '
+            'LEFT JOIN '
+            '   pay_offices fpo '
+            ' ON '
+            '   pd.from_pay_office_acc_id = fpo.acc_id '
+            'LEFT JOIN '
+            '   pay_offices tpo '
+            ' ON '
+            '   pd.to_pay_office_acc_id = tpo.acc_id '
+            'where created_at like ?'
+            'ORDER BY '
+            ' pd.id DESC' ,
+        [
+          date,
+        ]);
+
+    List<PayDesk> list =
+    res.isNotEmpty ? res.map((c) => PayDesk.fromMap(c)).toList() : [];
     return list;
   }
 

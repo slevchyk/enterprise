@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PageSignInOut extends StatefulWidget {
@@ -20,10 +20,13 @@ class _PageSignInOutState extends State<PageSignInOut> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _userPhoneController = TextEditingController();
   final _userPinController = TextEditingController();
+  MaskTextInputFormatter maskTextInputFormatter;
 
   @override
   void initState() {
     super.initState();
+    maskTextInputFormatter = MaskTextInputFormatter(mask: '+38 0## ### ####', filter: { "#": RegExp(r'[0-9]') });
+//    _userPhoneController.text = "+38 0";
   }
 
   bool get isInDebugMode {
@@ -67,25 +70,45 @@ class _PageSignInOutState extends State<PageSignInOut> {
                 backgroundColor: Colors.white,
               ),
               TextFormField(
+                autofocus: true,
                 controller: _userPhoneController,
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
                     labelText: "Номер телефону",
-                    hintText: "+380...",
                     icon: Icon(Icons.phone)),
                 inputFormatters: [
-                  WhitelistingTextInputFormatter(RegExp("[+0-9]"))
+                  maskTextInputFormatter,
                 ],
                 validator: (value) {
                   if (value.isEmpty) {
                     return "ви не вказали номер телефону";
-                  } else if (value.length != 13) {
+                  } else if (!maskTextInputFormatter.isFill()) {
                     return "невірний формат";
                   }
-
+                  _userPhoneController.text="+380${maskTextInputFormatter.getUnmaskedText()}";
                   return null;
                 },
               ),
+//              TextFormField(
+//                controller: _userPhoneController,
+//                keyboardType: TextInputType.phone,
+//                decoration: InputDecoration(
+//                    labelText: "Номер телефону",
+//                    hintText: "+380...",
+//                    icon: Icon(Icons.phone)),
+//                inputFormatters: [
+//                  WhitelistingTextInputFormatter(RegExp("[+0-9]"))
+//                ],
+//                validator: (value) {
+//                  if (value.isEmpty) {
+//                    return "ви не вказали номер телефону";
+//                  } else if (value.length != 13) {
+//                    return "невірний формат";
+//                  }
+//
+//                  return null;
+//                },
+//              ),
               TextFormField(
                   controller: _userPinController,
                   obscureText: true,
@@ -99,7 +122,6 @@ class _PageSignInOutState extends State<PageSignInOut> {
                     if (value.isEmpty) {
                       return "ви не вказали секретний pin";
                     }
-
                     return null;
                   }),
               SizedBox(
