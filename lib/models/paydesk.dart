@@ -33,6 +33,7 @@ class PayDesk {
   String incomeItemName;
   String fromPayOfficeName;
   String toPayOfficeName;
+  double percentage;
 
   PayDesk({
     this.mobID,
@@ -60,6 +61,7 @@ class PayDesk {
     this.incomeItemName,
     this.fromPayOfficeName,
     this.toPayOfficeName,
+    this.percentage,
   });
 
   factory PayDesk.fromMap(Map<String, dynamic> json) => PayDesk(

@@ -5,7 +5,7 @@ import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/widgets/notification_icon.dart';
-import 'package:enterprise/widgets/paydes_list.dart';
+import 'package:enterprise/widgets/paydesk_list.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -114,7 +114,12 @@ class _PagePayDeskState extends State<PagePayDesk> {
       ),
       body: RefreshIndicator(
         onRefresh: _load,
-        child: PayDeskList(payList: payList, profile: _profile, scrollController: _scrollController,),
+        child: PayDeskList(
+          payList: payList,
+          profile: _profile,
+          scrollController: _scrollController,
+          showStatus: false,
+        ),
       ),
       floatingActionButton: Visibility(
         visible: _isVisible,

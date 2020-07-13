@@ -2,6 +2,7 @@ import 'package:enterprise/models/models.dart';
 import 'package:enterprise/pages/auth/page_auth.dart';
 import 'package:enterprise/pages/auth/page_root.dart';
 import 'package:enterprise/pages/auth/page_set_pin.dart';
+import 'package:enterprise/pages/page_balance.dart';
 import 'package:enterprise/pages/page_channel_detail.dart';
 import 'package:enterprise/pages/page_helpdesk_detail.dart';
 import 'package:enterprise/pages/page_helpdesk.dart';
@@ -10,10 +11,12 @@ import 'package:enterprise/pages/page_paydesk.dart';
 import 'package:enterprise/pages/page_paydesk_confirm.dart';
 import 'package:enterprise/pages/page_paydesk_detail.dart';
 import 'package:enterprise/pages/page_paydesk_sort.dart';
+import 'package:enterprise/pages/page_analytic.dart';
 import 'package:enterprise/pages/page_settings.dart';
 import 'package:enterprise/pages/page_timing_hitory.dart';
 import 'package:enterprise/pages/page_turnstile.dart';
 import 'package:enterprise/pages/warehouse/page_orders.dart';
+import 'package:enterprise/widgets/image_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:enterprise/pages/page_profile.dart';
@@ -52,6 +55,14 @@ class RouteGenerator {
         return _errorRoute(settings.name);
       case '/set_pin':
         return MaterialPageRoute(builder: (_) => PageSetPin());
+      case '/image/detail':
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => ImageDetail(
+                fileImage: args.image,
+              ));
+        }
+        return _errorRoute(settings.name);
       case '/paydesk':
         if (args is RouteArgs) {
           return MaterialPageRoute(
@@ -76,6 +87,17 @@ class RouteGenerator {
               ));
         }
         return _errorRoute(settings.name);
+      case '/balance':
+        return MaterialPageRoute(builder: (_) => PageBalance());
+      case '/results':
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PageResults(
+                profile: args.profile,
+              ));
+        }
+        return _errorRoute(settings.name);
+//        return MaterialPageRoute(builder: (_) => PageResults());
       case '/paydesk/sort':
         if (args is RouteArgs) {
           return MaterialPageRoute(

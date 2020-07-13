@@ -76,29 +76,31 @@ class _PagePayDeskConfirmState extends State<PagePayDeskConfirm>{
                     child: Card(
                       child: ListTile(
                         isThreeLine: true,
-                        title: Text("Переміщення"),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Row(
-                              children: <Widget>[
-                                _setIcon(_payList[index].payDeskType),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    _getPayDeskDetailsLine1(_payList[index]),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            Text('${formatDate(
-                              _payList[index].createdAt,
-                              [dd, '.', mm, '.', yy, ' ', HH, ':', nn],
-                            )}'),
-                          ],
+                        title: _getPayDeskDetailsTransfer(_payList[index], context),
+                        subtitle: Container(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Row(
+                                children: <Widget>[
+                                  _setIcon(_payList[index].payDeskType),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      _getPayDeskDetailsLine1(_payList[index]),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              Text('${formatDate(
+                                _payList[index].createdAt,
+                                [dd, '.', mm, '.', yy, ' ', HH, ':', nn],
+                              )}'),
+                            ],
+                          ),
                         ),
                         trailing: Container(
-                          width: 120,
+                          width: MediaQuery.of(context).size.width/2.8,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: <Widget>[
@@ -121,7 +123,9 @@ class _PagePayDeskConfirmState extends State<PagePayDeskConfirm>{
 //                                  ],
 //                                ),
 //                              ),
-                              _getStatus(_payList[index].isChecked),
+                              Container(
+                                child: _getStatus(_payList[index].isChecked),
+                              ),
                             ],
                           ),
                         ),
@@ -153,13 +157,13 @@ class _PagePayDeskConfirmState extends State<PagePayDeskConfirm>{
         _details = "До ${_payDesk.fromPayOfficeName}";
         break;
       case PayDeskTypes.transfer:
-        _details = "З ${_payDesk.fromPayOfficeName}";
+        _details = "${_payDesk.toPayOfficeName}";
         break;
     }
 
-    if (_details.length > 25) {
-      _details = _details.substring(0, 24) + '...';
-    }
+//    if (_details.length > 25) {
+//      _details = _details.substring(0, 24) + '...';
+//    }
 
     return Container(
       child: Text(
@@ -221,7 +225,7 @@ class _PagePayDeskConfirmState extends State<PagePayDeskConfirm>{
       '${_payDesk.payDeskType == 0 ? '-' : ''} '
           '${amountFormatter.text} '
           '${CURRENCY_SYMBOL[_payDesk.currencyCode] == null ? '' : CURRENCY_SYMBOL[_payDesk.currencyCode]}',
-      style: TextStyle(color: textColor, fontSize: 18.0),
+      style: TextStyle(color: textColor, fontSize: 18.0,), maxLines: 2,
       textAlign: TextAlign.right,
     );
   }
@@ -243,4 +247,21 @@ class _PagePayDeskConfirmState extends State<PagePayDeskConfirm>{
     });
 
   }
+
+  Widget _getPayDeskDetailsTransfer(PayDesk payDesk, BuildContext context){
+    String _details = "";
+    PayDeskTypes _payDeskType;
+
+    _payDeskType = PayDeskTypes.values[payDesk.payDeskType];
+    if(_payDeskType==PayDeskTypes.transfer){
+      _details = "${payDesk.fromPayOfficeName}";
+      return Text(
+        _details,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
+      );
+    }
+    return Container();
+  }
+
 }
