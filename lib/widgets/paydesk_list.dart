@@ -1,3 +1,4 @@
+
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/paydesk.dart';
@@ -6,7 +7,6 @@ import 'package:enterprise/pages/page_paydesk_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 
-
 class PayDeskList extends StatelessWidget {
   final Future<List<PayDesk>> payList;
   final DateTime dateSort;
@@ -14,6 +14,12 @@ class PayDeskList extends StatelessWidget {
   final ScrollController scrollController;
   final String textIfEmpty;
   final bool showStatus;
+  final amountFormatter =
+  MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: ' ');
+  final physics;
+  final bool shrinkWrap;
+  final bool showPercent;
+  final bool showFileAttach;
 
   PayDeskList({
     @required this.payList,
@@ -21,7 +27,11 @@ class PayDeskList extends StatelessWidget {
     this.dateSort,
     this.scrollController,
     this.textIfEmpty,
-    this.showStatus,
+    this.showStatus = true,
+    this.physics = const AlwaysScrollableScrollPhysics(),
+    this.shrinkWrap = false,
+    this.showPercent = false,
+    this.showFileAttach = true,
   });
 
   @override
@@ -44,24 +54,23 @@ class PayDeskList extends StatelessWidget {
             );
           case ConnectionState.done:
             List<PayDesk> _payList = snapshot.data;
-            _payList.sort((first, second) {
-              return second.createdAt.compareTo(first.createdAt);
-            });
+            _payList.sort((first, second) =>
+                second.createdAt.compareTo(first.createdAt));
             return _setEmptyText(_payList) ?
             Container(
               child: Center(
                 child: Text(textIfEmpty),),) :
             ListView.separated(
               controller: scrollController,
+              physics: physics,
+              shrinkWrap: shrinkWrap,
               itemCount: _payList == null ? 0 : _payList.length,
               itemBuilder: (BuildContext context, int index) {
                 if(index==0){
                   return Column(
                     children: <Widget>[
                       _setSeparatorWithDate(_payList[index].createdAt),
-                      _payList[index].payDeskType != 2
-                          || _payList[index].isChecked ?
-                      _listBuilder(_payList, index, context) : Container(),
+                      _listBuilder(_payList, index, context)
                     ],
                   );
                 } else if(_payList[index].payDeskType != 2
@@ -104,8 +113,8 @@ class PayDeskList extends StatelessWidget {
         child: ListTile(
           isThreeLine: true,
           title: _payList[index].payDeskType == 2
-              ? Text("Переміщення")
-              : _getPayDeskDetailsLine2(_payList[index]), //
+              ? _getPayDeskDetailsTransfer(_payList[index], context)
+              : _getPayDeskDetailsLine2(_payList[index], context),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -127,20 +136,26 @@ class PayDeskList extends StatelessWidget {
             ],
           ),
           trailing: Container(
-            width: 120,
+            width: MediaQuery.of(context).size.width/2.9,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: <Widget>[
                 _getAmount(_payList[index]),
-                _payList[index].filesQuantity != null && _payList[index].filesQuantity != 0 ?
+                showPercent ?
+                Text("${_payList[index].percentage.toStringAsFixed(2)} %",
+                  style: TextStyle(fontSize: 15, color: _setColor(_payList[index].payDeskType)),) :
+                Container() ,
+                _payList[index].filesQuantity != null && _payList[index].filesQuantity != 0 && showFileAttach ?
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
                     Text(_payList[index].filesQuantity.toString()),
                     Icon(Icons.attach_file, size: 23,),
                   ],) :
-                SizedBox(height: 23,),
-                showStatus!=null && showStatus || _payList[index].payDeskType==2 ?
+                showStatus || _payList[index].payDeskType==2 ?
+                SizedBox(height: 23,) :
+                Container(),
+                showStatus || _payList[index].payDeskType==2 ?
                 _getStatus(_payList[index].isChecked) :
                 Container(),
               ],
@@ -149,6 +164,39 @@ class PayDeskList extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _setColor(int typeID){
+    PayDeskTypes _type = PayDeskTypes.values[typeID];
+    switch (_type) {
+      case PayDeskTypes.costs:
+        return Colors.red;
+        break;
+      case PayDeskTypes.income:
+        return Colors.green;
+        break;
+      case PayDeskTypes.transfer:
+        return Colors.blue;
+        break;
+      default:
+        return Colors.black;
+    }
+  }
+
+  Widget _getPayDeskDetailsTransfer(PayDesk payDesk, BuildContext context){
+    String _details = "";
+    PayDeskTypes _payDeskType;
+
+    _payDeskType = PayDeskTypes.values[payDesk.payDeskType];
+    if(_payDeskType==PayDeskTypes.transfer){
+      _details = "${payDesk.fromPayOfficeName}";
+      return Text(
+        _details,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
+      );
+    }
+    return Container();
   }
 
   Widget _getPayDeskDetailsLine1(PayDesk _payDesk) {
@@ -164,13 +212,13 @@ class PayDeskList extends StatelessWidget {
         _details = "До ${_payDesk.fromPayOfficeName}";
         break;
       case PayDeskTypes.transfer:
-        _details = "З ${_payDesk.fromPayOfficeName}";
+        _details = "${_payDesk.toPayOfficeName}";
         break;
     }
 
-    if (_details.length > 25) {
-      _details = _details.substring(0, 24) + '...';
-    }
+//    if (_details.length > 25) {
+//      _details = _details.substring(0, 24) + '...';
+//    }
 
     return Container(
       child: Text(
@@ -181,26 +229,26 @@ class PayDeskList extends StatelessWidget {
     );
   }
 
-  Widget _getPayDeskDetailsLine2(PayDesk _payDesk) {
-    String _details = "";
+  Widget _getPayDeskDetailsLine2(PayDesk _payDesk, BuildContext context) {
+    String _details;
     PayDeskTypes _payDeskType;
 
     _payDeskType = PayDeskTypes.values[_payDesk.payDeskType];
     switch (_payDeskType) {
       case PayDeskTypes.costs:
-        _details = "По ${_payDesk.costItemName}";
+        _details = _payDesk.costItemName;
         break;
       case PayDeskTypes.income:
-        _details = "По ${_payDesk.incomeItemName}";
+        _details = _payDesk.incomeItemName;
         break;
       case PayDeskTypes.transfer:
-        _details = "До: ${_payDesk.toPayOfficeName}";
+        _details = _payDesk.toPayOfficeName;
         break;
     }
 
-    if (_details.length > 25) {
-      _details = _details.substring(0, 24) + '...';
-    }
+//    if (_details.length > 25 && MediaQuery.of(context).orientation==Orientation.portrait) {
+//      _details = _details.substring(0, 24) + '...';
+//    }
 
     return Container(
       child: Text(
@@ -287,7 +335,7 @@ class PayDeskList extends StatelessWidget {
     return Container(
       child: Row(children: <Widget>[
         Expanded(
-          child: new Container(
+          child: Container(
               margin: const EdgeInsets.only(left: 10.0, right: 20.0),
               child: Divider(
                 color: Colors.black,
@@ -296,7 +344,7 @@ class PayDeskList extends StatelessWidget {
         ),
         Text("$dayName, ${input.day} $monthName, ${input.year}"),
         Expanded(
-          child: new Container(
+          child: Container(
               margin: const EdgeInsets.only(left: 20.0, right: 10.0),
               child: Divider(
                 color: Colors.black,
@@ -349,8 +397,6 @@ class PayDeskList extends StatelessWidget {
       default:
         textColor = Colors.black;
     }
-    final amountFormatter =
-    MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: ' ');
 
     amountFormatter.text = _payDesk.amount.toStringAsFixed(2);
 

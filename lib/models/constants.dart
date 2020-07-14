@@ -111,6 +111,13 @@ const Map<int, String> CURRENCY_SYMBOL = {
   980: '\u20b4', //UAH
 };
 
+const Map<int, String> CURRENCY_NAME = {
+  826: 'GBP', //GBP
+  840: 'USD', //USD
+  978: 'EUR', //EUR
+  980: 'грн', //UAH
+};
+
 //pay desk
 enum PayDeskTypes {
   costs,

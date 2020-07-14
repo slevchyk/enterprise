@@ -2,7 +2,7 @@ import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/pay_desk_dao.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
-import 'package:enterprise/widgets/paydes_list.dart';
+import 'package:enterprise/widgets/paydesk_list.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -47,6 +47,7 @@ class _PagePayDeskSortState extends State<PagePayDeskSort>{
         profile: _profile,
         payList: _payList,
         dateSort: _dateSort,
+        showStatus: false,
         textIfEmpty: "Платежiв за датою ${formatDate(
           _dateSort,
           [dd, '.', mm, '.', yyyy],

@@ -958,7 +958,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                   }
 
                   return Container(
-                    margin: EdgeInsets.only(top: 7, bottom: 7),
+                    margin: EdgeInsets.only(top: 0, bottom: 7),
                     child: ListView.builder(
                       shrinkWrap: true,
                       itemCount: snapshot == null ? 0 : snapshot.data.length,

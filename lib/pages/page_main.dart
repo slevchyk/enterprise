@@ -271,6 +271,29 @@ class _AppDrawerState extends State<AppDrawer> {
               },
             ),
             ListTile(
+              leading: Icon(Icons.account_balance),
+              title: Text('Баланс'),
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                  '/balance',
+                  arguments: "",
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(FontAwesomeIcons.chartPie),
+              title: Text('Аналiтика'),
+              onTap: () {
+                RouteArgs args = RouteArgs(
+                  profile: widget.profile,
+                );
+                Navigator.of(context).pushNamed(
+                  '/results',
+                  arguments: args,
+                );
+              },
+            ),
+            ListTile(
               leading: Icon(Icons.play_circle_outline),
               title: Text('Турнікет'),
               onTap: () {

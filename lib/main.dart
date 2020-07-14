@@ -34,6 +34,7 @@ class EnterpriseAppState extends State<EnterpriseApp> {
         primaryColorLight: Colors.grey.shade100,
         accentColor: Colors.lightGreen.shade700,
         dividerColor: Colors.grey.shade400,
+//        dividerColor: Colors.transparent,
       ),
     );
   }
