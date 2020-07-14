@@ -41,6 +41,9 @@ dependencies:
   flutter_simple_calculator: ^1.0.2
   mask_text_input_formatter: ^1.0.7
   crypto: ^2.1.4
+  percent_indicator: ^2.1.5
+  photo_view: ^0.9.2
+  bubble_bottom_bar: ^1.2.0
 
 dev_dependenfcies:
   flutter_test:

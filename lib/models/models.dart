@@ -29,10 +29,14 @@ class RouteArgs {
   Profile profile;
   ScrollController scrollController;
   DateTime dateSort;
+  bool showTransfer;
+  ImageProvider image;
 
   RouteArgs({
     this.profile,
     this.scrollController,
     this.dateSort,
+    this.showTransfer,
+    this.image,
   });
 }
