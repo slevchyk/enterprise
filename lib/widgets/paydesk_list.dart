@@ -55,7 +55,7 @@ class PayDeskList extends StatelessWidget {
           case ConnectionState.done:
             List<PayDesk> _payList = snapshot.data;
             _payList.sort((first, second) =>
-                second.createdAt.compareTo(first.createdAt));
+                second.documentDate.compareTo(first.documentDate));
             return _setEmptyText(_payList) ?
             Container(
               child: Center(
@@ -69,7 +69,7 @@ class PayDeskList extends StatelessWidget {
                 if(index==0){
                   return Column(
                     children: <Widget>[
-                      _setSeparatorWithDate(_payList[index].createdAt),
+                      _setSeparatorWithDate(_payList[index].documentDate),
                       _listBuilder(_payList, index, context)
                     ],
                   );
@@ -81,10 +81,10 @@ class PayDeskList extends StatelessWidget {
                 }
               },
               separatorBuilder: (BuildContext context, int index) {
-                if(_payList[index].createdAt.day.compareTo(_payList[index+1].createdAt.day)==1
-                    || _payList[index+1].createdAt.day.compareTo(_payList[index].createdAt.day)==1
+                if(_payList[index].documentDate.day.compareTo(_payList[index+1].documentDate.day)==1
+                    || _payList[index+1].documentDate.day.compareTo(_payList[index].documentDate.day)==1
                 ){
-                  return _setSeparatorWithDate(_payList[index+1].createdAt);
+                  return _setSeparatorWithDate(_payList[index+1].documentDate);
                 } else {
                   return Container();
                 }
@@ -130,7 +130,7 @@ class PayDeskList extends StatelessWidget {
                 ],
               ),
               Text('${formatDate(
-                _payList[index].createdAt,
+                _payList[index].documentDate,
                 [dd, '.', mm, '.', yy, ' ', HH, ':', nn],
               )}'),
             ],

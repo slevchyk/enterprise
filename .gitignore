@@ -13,7 +13,6 @@
 .buildlog/
 .history
 .svn/
-.flutter-plugins-dependencies
 pubspec.lock
 
 # IntelliJ related

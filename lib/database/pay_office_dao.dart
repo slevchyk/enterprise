@@ -1,7 +1,8 @@
 import 'package:enterprise/database/core.dart';
+import 'package:enterprise/interfaces/pay_office_dao_interface.dart';
 import 'package:enterprise/models/pay_office.dart';
 
-class PayOfficeDAO {
+class PayOfficeDAO implements PayOfficeInterface{
   final dbProvider = DBProvider.db;
 
   insert(PayOffice payOffice) async {
@@ -50,6 +51,18 @@ class PayOfficeDAO {
   Future<List<PayOffice>> getAll() async {
     final db = await dbProvider.database;
     var res = await db.query("pay_offices", orderBy: "name");
+
+    List<PayOffice> toReturn = res.isNotEmpty ? res.map((ci) => PayOffice.fromMap(ci)).toList() : [];
+    return toReturn;
+  }
+
+  Future<List<PayOffice>> getAllExceptId(String name, String accID) async {
+    final db = await dbProvider.database;
+    var res = await db.rawQuery("SELECT * FROM pay_offices"
+        " WHERE name!=? "
+        "AND currency_acc_id=?",
+      [name, accID]
+    );
 
     List<PayOffice> toReturn = res.isNotEmpty ? res.map((ci) => PayOffice.fromMap(ci)).toList() : [];
     return toReturn;
