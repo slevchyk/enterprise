@@ -1,7 +1,7 @@
 name: enterprise
 description: Corporate Application
 
-version: 0.8.1+11
+version: 0.8.4+14
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
