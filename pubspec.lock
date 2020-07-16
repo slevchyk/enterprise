@@ -203,7 +203,7 @@ packages:
     source: hosted
     version: "0.6.3+4"
   intl:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: intl
       url: "https://pub.dartlang.org"

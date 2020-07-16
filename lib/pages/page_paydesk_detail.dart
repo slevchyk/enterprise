@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/cost_item_dao.dart';
 import 'package:enterprise/database/currency_dao.dart';
+import 'package:enterprise/database/impl/pay_office_dao.dart';
 import 'package:enterprise/database/income_item_dao.dart';
 import 'package:enterprise/database/pay_desk_dao.dart';
 import 'package:enterprise/database/pay_office_dao.dart';
@@ -22,6 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_simple_calculator/flutter_simple_calculator.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -49,18 +51,21 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
   final _incomeItemController = TextEditingController();
   final _fromPayOfficeController = TextEditingController();
   final _toPayOfficeController = TextEditingController();
-  final _documentNumberController = TextEditingController();
   final _documentDateController = TextEditingController();
+  final _documentTimeController = TextEditingController();
+//  final _documentNumberController = TextEditingController();
+//  final _documentDateController = TextEditingController();
 
-  Future<List<Currency>> _currencyList;
+//  Future<List<Currency>> _currencyList;
   Future<List<CostItem>> _costItemsList;
   Future<List<IncomeItem>> _incomeItemsList;
+  Future<List<PayOffice>> _payOfficeList;
 
   PayDesk _payDesk;
   Profile profile;
 
   double _amount, _currentValue;
-  DateTime _documentDate;
+//  DateTime _documentDate;
   String _appPath;
 
   Currency _currency;
@@ -82,13 +87,34 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     WidgetsBinding.instance.addPostFrameCallback((_) => initAsync());
 
     _currentValue = 0;
-    _currencyList = CurrencyDAO().getUnDeleted();
+//    _currencyList = CurrencyDAO().getUnDeleted();
     _costItemsList = CostItemDAO().getUnDeleted();
     _incomeItemsList = IncomeItemDAO().getUnDeleted();
+    _payOfficeList = ImplPayOfficeDAO().getAll();
     _payDesk = widget.payDesk ?? PayDesk();
     _readOnly = _payDesk?.mobID != null;
     profile = widget.profile;
     _setControllers();
+    _setDefaultPayOffice();
+  }
+  _setDefaultPayOffice(){
+     _payOfficeList.then((payOfficeList) {
+       try{
+         _setPayOfficeAndCurrency(payOfficeList.first);
+       } catch (e){
+         print("no items $e");
+      }
+     });
+  }
+
+  _setPayOfficeAndCurrency(PayOffice input){
+    _fromPayOfficeController.text = input.name;
+    _fromPayOffice = input;
+    CurrencyDAO().getByAccId(input.currencyAccID).then((currency) =>
+        setState((){
+          _currency = currency;
+        })
+    );
   }
 
   Future<void> initAsync() async {
@@ -143,10 +169,18 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     });
 
     _currencyController.text = _currency?.name ?? '';
-    _costItemController.text = _costItem?.name ?? '';
+//    _costItemController.text = _costItem?.name ?? '';
+    _costItemController.text = _setField(_costItem?.name ?? '');
     _incomeItemController.text = _incomeItem?.name ?? '';
     _fromPayOfficeController.text = _fromPayOffice?.name ?? '';
     _toPayOfficeController.text = _toPayOffice?.name ?? '';
+  }
+
+  _setField(String input){
+    if(input.length>=35 && MediaQuery.of(this.context).orientation == Orientation.portrait){
+      return "${input.substring(0,35)}...";
+    }
+    return input;
   }
 
   @override
@@ -191,39 +225,130 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                   margin: EdgeInsets.only(left: 20.0),
                   child: Column(
                     children: <Widget>[
-                      InkWell(
-                        onTap: () {
-                          if (!_readOnly)
-                            showGeneralDialog(
-                              barrierLabel: "currency",
-                              barrierDismissible: true,
-                              barrierColor: Colors.black.withOpacity(0.5),
-                              transitionDuration: Duration(milliseconds: 250),
-                              context: this.context,
-                              pageBuilder: (context, anim1, anim2) {
-                                return _selectionDialog(
-                                    _currencyController, _currencyList, payDeskVariablesTypes.currency, _scaffoldKey);
+//                      InkWell(
+//                        onTap: () {
+//                          if (!_readOnly)
+//                            showGeneralDialog(
+//                              barrierLabel: "currency",
+//                              barrierDismissible: true,
+//                              barrierColor: Colors.black.withOpacity(0.5),
+//                              transitionDuration: Duration(milliseconds: 250),
+//                              context: this.context,
+//                              pageBuilder: (context, anim1, anim2) {
+//                                return _selectionDialog(
+//                                    _currencyController, _currencyList, payDeskVariablesTypes.currency, _scaffoldKey);
+//                              },
+//                              transitionBuilder: (context, anim1, anim2, child) {
+//                                return SlideTransition(
+//                                  position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
+//                                  child: child,
+//                                );
+//                              },
+//                            );
+//                        },
+//                        child: IgnorePointer(
+//                          child: TextFormField(
+//                            enabled: !_readOnly,
+//                            controller: _currencyController,
+//                            decoration: InputDecoration(
+//                                icon: Icon(FontAwesomeIcons.moneyBillAlt),
+//                                labelText: 'Валюта*',
+//                                hintText: 'Оберiть валюту'),
+//                            validator: (value) {
+//                              if (value.trim().isEmpty) return 'Ви не вибради валюту';
+//                              return null;
+//                            },
+//                          ),
+//                        ),
+//                      ),
+                      Container(
+                        child: InkWell(
+                          onTap: () {
+                            if (!_readOnly)
+                              showGeneralDialog(
+                                barrierLabel: "fromPayOffices",
+                                barrierDismissible: true,
+                                barrierColor: Colors.black.withOpacity(0.5),
+                                transitionDuration: Duration(milliseconds: 250),
+                                context: context,
+                                pageBuilder: (context, anim1, anim2) {
+                                  return _selectionDialog(
+                                    _fromPayOfficeController,
+                                    _payOfficeList,
+                                    payDeskVariablesTypes.fromPayOffice,
+                                    _scaffoldKey,
+                                  );
+                                },
+                                transitionBuilder: (context, anim1, anim2, child) {
+                                  return SlideTransition(
+                                    position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
+                                    child: child,
+                                  );
+                                },
+                              );
+                          },
+                          child: IgnorePointer(
+                            child: TextFormField(
+                              enabled: !_readOnly,
+                              controller: _fromPayOfficeController,
+                              decoration: InputDecoration(
+                                  icon: Icon(Icons.account_balance_wallet),
+                                  labelText: 'Гаманець *',
+                                  hintText: 'Оберiть гаманець'),
+                              validator: (value) {
+                                if (value.trim().isEmpty) return 'Ви не обрали гаманець';
+                                return null;
                               },
-                              transitionBuilder: (context, anim1, anim2, child) {
-                                return SlideTransition(
-                                  position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
-                                  child: child,
-                                );
+                              onChanged: (_) {
+                                setState(() {});
                               },
-                            );
-                        },
-                        child: IgnorePointer(
-                          child: TextFormField(
-                            enabled: !_readOnly,
-                            controller: _currencyController,
-                            decoration: InputDecoration(
-                                icon: Icon(FontAwesomeIcons.moneyBillAlt),
-                                labelText: 'Валюта*',
-                                hintText: 'Оберiть валюту'),
-                            validator: (value) {
-                              if (value.trim().isEmpty) return 'Ви не вибради валюту';
-                              return null;
-                            },
+                            ),
+                          ),
+                        ),
+                      ),
+                      Visibility(
+                        visible: _currentType == PayDeskTypes.transfer,
+                        child: InkWell(
+                          onTap: () {
+                            if (!_readOnly)
+                              showGeneralDialog(
+                                barrierLabel: "toPayOffices",
+                                barrierDismissible: true,
+                                barrierColor: Colors.black.withOpacity(0.5),
+                                transitionDuration: Duration(milliseconds: 250),
+                                context: this.context,
+                                pageBuilder: (context, anim1, anim2) {
+                                  return _selectionDialog(
+                                    _toPayOfficeController,
+                                    ImplPayOfficeDAO().getAllExceptId(_fromPayOffice.name, _fromPayOffice.currencyAccID),
+                                    payDeskVariablesTypes.toPayOffice,
+                                    _scaffoldKey,
+                                  );
+                                },
+                                transitionBuilder: (context, anim1, anim2, child) {
+                                  return SlideTransition(
+                                    position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
+                                    child: child,
+                                  );
+                                },
+                              );
+                          },
+                          child: IgnorePointer(
+                            child: TextFormField(
+                              enabled: !_readOnly,
+                              controller: _toPayOfficeController,
+                              decoration: InputDecoration(
+                                  icon: Icon(Icons.account_balance_wallet),
+                                  labelText: 'Гаманець отримувач*',
+                                  hintText: 'Оберiть гаманець отримувача'),
+                              validator: (value) {
+                                if (value.trim().isEmpty) return 'Ви не гаманець отримувач';
+                                return null;
+                              },
+                              onChanged: (_) {
+                                setState(() {});
+                              },
+                            ),
                           ),
                         ),
                       ),
@@ -311,51 +436,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                           _amount = double.parse(_input);
                           return null;
                         },
-                      ),
-                      Container(
-                        child: InkWell(
-                          onTap: () {
-                            if (!_readOnly)
-                              showGeneralDialog(
-                                barrierLabel: "fromPayOffices",
-                                barrierDismissible: true,
-                                barrierColor: Colors.black.withOpacity(0.5),
-                                transitionDuration: Duration(milliseconds: 250),
-                                context: context,
-                                pageBuilder: (context, anim1, anim2) {
-                                  return _selectionDialog(
-                                    _fromPayOfficeController,
-                                    PayOfficeDAO().getByCurrencyAccID(_currency.accID),
-                                    payDeskVariablesTypes.fromPayOffice,
-                                    _scaffoldKey,
-                                  );
-                                },
-                                transitionBuilder: (context, anim1, anim2, child) {
-                                  return SlideTransition(
-                                    position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
-                                    child: child,
-                                  );
-                                },
-                              );
-                          },
-                          child: IgnorePointer(
-                            child: TextFormField(
-                              enabled: !_readOnly,
-                              controller: _fromPayOfficeController,
-                              decoration: InputDecoration(
-                                  icon: Icon(Icons.account_balance_wallet),
-                                  labelText: 'Гаманець *',
-                                  hintText: 'Оберiть гаманець'),
-                              validator: (value) {
-                                if (value.trim().isEmpty) return 'Ви не обрали гаманець';
-                                return null;
-                              },
-                              onChanged: (_) {
-                                setState(() {});
-                              },
-                            ),
-                          ),
-                        ),
                       ),
                       Visibility(
                         visible: _currentType == PayDeskTypes.costs,
@@ -449,52 +529,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                           ),
                         ),
                       ),
-                      Visibility(
-                        visible: _currentType == PayDeskTypes.transfer,
-                        child: InkWell(
-                          onTap: () {
-                            if (!_readOnly)
-                              showGeneralDialog(
-                                barrierLabel: "toPayOffices",
-                                barrierDismissible: true,
-                                barrierColor: Colors.black.withOpacity(0.5),
-                                transitionDuration: Duration(milliseconds: 250),
-                                context: this.context,
-                                pageBuilder: (context, anim1, anim2) {
-                                  return _selectionDialog(
-                                    _toPayOfficeController,
-                                    PayOfficeDAO().getByCurrencyAccID(_currency.accID),
-                                    payDeskVariablesTypes.toPayOffice,
-                                    _scaffoldKey,
-                                  );
-                                },
-                                transitionBuilder: (context, anim1, anim2, child) {
-                                  return SlideTransition(
-                                    position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
-                                    child: child,
-                                  );
-                                },
-                              );
-                          },
-                          child: IgnorePointer(
-                            child: TextFormField(
-                              enabled: !_readOnly,
-                              controller: _toPayOfficeController,
-                              decoration: InputDecoration(
-                                  icon: Icon(Icons.account_balance_wallet),
-                                  labelText: 'Гаманець отримувач*',
-                                  hintText: 'Оберiть гаманець отримувача'),
-                              validator: (value) {
-                                if (value.trim().isEmpty) return 'Ви не гаманець отримувач';
-                                return null;
-                              },
-                              onChanged: (_) {
-                                setState(() {});
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
                       TextFormField(
                         enabled: !_readOnly,
                         controller: _paymentController,
@@ -510,85 +544,186 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                           setState(() {});
                         },
                         validator: (value) {
-                          if (value.isEmpty) return 'Ви не вказали призначення платежу';
+//                          if (value.isEmpty) return 'Ви не вказали призначення платежу';
                           return null;
                         },
                       ),
                     ],
                   ),
                 ),
-                SizedBox(
-                  height: 24.0,
-                ),
-                Text(
-                  'Підтверджуючий документ',
-                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                Padding(
+                  padding: EdgeInsets.only(top: 24),
+                  child: Text("Дата операції",
+                    style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),),
                 ),
                 Container(
-                  margin: EdgeInsets.only(left: 20.0),
-                  child: Column(
+                  padding: EdgeInsets.only(left: 25, right: MediaQuery.of(context).orientation==Orientation.portrait? 50 : 100 ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      TextFormField(
-                        enabled: !_readOnly,
-                        controller: _documentNumberController,
-                        decoration: InputDecoration(
-                          icon: SizedBox(
-                            width: 24.0,
-                            child: Text(
-                              '\u2116',
-                              style: TextStyle(
-                                  fontSize: 24.0, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
-                            ),
-                          ),
-                          suffixIcon: _clearIconButton(_documentNumberController),
-                          hintText: 'номер чеку',
-                          labelText: 'Номер',
-                        ),
-                        onChanged: (_) {
-                          setState(() {});
-                        },
-                      ),
-                      InkWell(
-                        onLongPress: () {
-                          if (!_readOnly) {
-                            _documentDateController.clear();
-                            setState(() {
-                              _payDesk.documentDate = null;
-                              _documentDate = null;
-                            });
-                          }
-                        },
-                        onTap: () async {
-                          if (_readOnly) {
-                            return;
-                          }
-                          FocusScope.of(this.context).unfocus();
-                          DateTime picked = await showDatePicker(
-                              context: context,
-                              firstDate: DateTime(DateTime.now().year - 1),
-                              initialDate: _payDesk?.documentDate != null ? _payDesk.documentDate : DateTime.now(),
-                              lastDate: DateTime(DateTime.now().year + 1));
+                      Container(
+                        width: 125,
+                        child: InkWell(
+                          onTap: () async {
+                            if (_readOnly) {
+                              return;
+                            }
+                            FocusScope.of(this.context).unfocus();
+                            DateTime picked = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(DateTime.now().year - 1),
+                                initialDate: _payDesk?.documentDate != null ? _payDesk.documentDate : DateTime.now(),
+                                lastDate: DateTime(DateTime.now().year + 1));
 
-                          if (picked != null)
-                            setState(() {
-                              _documentDate = picked;
-                              _documentDateController.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
-                            });
-                        },
-                        child: IgnorePointer(
-                          child: TextFormField(
-                            controller: _documentDateController,
-                            readOnly: _readOnly,
-                            decoration: InputDecoration(
-                              icon: Icon(FontAwesomeIcons.calendar),
-                              labelText: 'Дата',
+                            if (picked != null) {
+                              if(picked.isAfter(DateTime.now())){
+                                _displaySnackBar("Дата операції не повинна перевищувати поточну дату",  Colors.amber.shade700);
+                                return;
+                              }
+                              setState(() {
+                                MaterialLocalizations localizations = MaterialLocalizations.of(context);
+                                String formattedTime = localizations.formatTimeOfDay(
+                                    TimeOfDay.now(),
+                                    alwaysUse24HourFormat: true
+                                );
+                                _documentDateController.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
+                                _documentTimeController.text = formattedTime;
+                              });
+                            }
+
+                          },
+                          child: IgnorePointer(
+                            child: TextFormField(
+                              controller: _documentDateController,
+                              enabled: !_readOnly,
+                              decoration: InputDecoration(
+                                  icon: Icon(FontAwesomeIcons.calendar),
+                                  labelText: "Дата"
+                              ),
                             ),
                           ),
                         ),
+                      ),
+                      Container(
+                        width: 85,
+                        child: InkWell(
+                          onTap: () async {
+                            if (_readOnly) {
+                              return;
+                            }
+                            FocusScope.of(this.context).unfocus();
+                            TimeOfDay selectedTime = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.now(),
+                            );
+                            if(selectedTime==null){
+                              return;
+                            }
+
+                            MaterialLocalizations localizations = MaterialLocalizations.of(context);
+                            String formattedTime = localizations.formatTimeOfDay(
+                                selectedTime,
+                                alwaysUse24HourFormat: true
+                            );
+
+                            if (DateFormat("dd.MM.yyyy").parse("${_documentDateController.text}").isAtSameMomentAs(DateFormat("yyyy-MM-dd").parse(DateTime.now().toString())) && (selectedTime.hour * 60 + selectedTime.minute) > (TimeOfDay.now().hour * 60 + TimeOfDay.now().minute)){
+                              _displaySnackBar("Час операції не повинен перевищувати поточний час",  Colors.amber.shade700);
+                              return;
+                            }
+
+                            if (formattedTime != null) {
+                              setState(() {
+                                _documentTimeController.text = formattedTime;
+                              });
+                              }
+                          },
+                          child: IgnorePointer(
+                            child: TextFormField(
+                              controller: _documentTimeController,
+                              enabled: !_readOnly,
+                              decoration: InputDecoration(
+                                  icon: Icon(Icons.timer),
+                                  labelText: "Час"
+                              ),
+                            ),
+                          ),
+                        )
                       ),
                     ],
                   ),
                 ),
+//                SizedBox(
+//                  height: 24.0,
+//                ),
+//                Text(
+//                  'Підтверджуючий документ',
+//                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+//                ),
+//                Container(
+//                  margin: EdgeInsets.only(left: 20.0),
+//                  child: Column(
+//                    children: <Widget>[
+//                      TextFormField(
+//                        enabled: !_readOnly,
+//                        controller: _documentNumberController,
+//                        decoration: InputDecoration(
+//                          icon: SizedBox(
+//                            width: 24.0,
+//                            child: Text(
+//                              '\u2116',
+//                              style: TextStyle(
+//                                  fontSize: 24.0, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
+//                            ),
+//                          ),
+//                          suffixIcon: _clearIconButton(_documentNumberController),
+//                          hintText: 'номер чеку',
+//                          labelText: 'Номер',
+//                        ),
+//                        onChanged: (_) {
+//                          setState(() {});
+//                        },
+//                      ),
+//                      InkWell(
+//                        onLongPress: () {
+//                          if (!_readOnly) {
+//                            _documentDateController.clear();
+//                            setState(() {
+//                              _payDesk.documentDate = null;
+//                              _documentDate = null;
+//                            });
+//                          }
+//                        },
+//                        onTap: () async {
+//                          if (_readOnly) {
+//                            return;
+//                          }
+//                          FocusScope.of(this.context).unfocus();
+//                          DateTime picked = await showDatePicker(
+//                              context: context,
+//                              firstDate: DateTime(DateTime.now().year - 1),
+//                              initialDate: _payDesk?.documentDate != null ? _payDesk.documentDate : DateTime.now(),
+//                              lastDate: DateTime(DateTime.now().year + 1));
+//
+//                          if (picked != null)
+//                            setState(() {
+//                              _documentDate = picked;
+//                              _documentDateController.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
+//                            });
+//                        },
+//                        child: IgnorePointer(
+//                          child: TextFormField(
+//                            controller: _documentDateController,
+//                            readOnly: _readOnly,
+//                            decoration: InputDecoration(
+//                              icon: Icon(FontAwesomeIcons.calendar),
+//                              labelText: 'Дата',
+//                            ),
+//                          ),
+//                        ),
+//                      ),
+//                    ],
+//                  ),
+//                ),
                 Visibility(
                   visible: _files.length > 0,
                   child: Column(
@@ -840,33 +975,53 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                   context: _scaffoldKey.currentContext,
                   builder: (context) => AlertDialog(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
-                    insetPadding: EdgeInsets.only(top: 200, bottom: 200),
+                    insetPadding: MediaQuery.of(context).orientation == Orientation.landscape ? EdgeInsets.only() : EdgeInsets.only(top: 200, bottom: 200),
                     content: ListTile(
-                      title: Text("Інформація про документ"),
+                      title: Container(
+                        height: 40,
+                        child: Column(
+                          children: <Widget>[
+                            Text("Інформація про операцiю", style: TextStyle(fontWeight: FontWeight.bold),),
+                            SizedBox(height: 2,),
+                            Text("${PAY_DESK_TYPES_ALIAS.values.elementAt(_payDesk.payDeskType)}", style: TextStyle(fontWeight: FontWeight.bold),),
+                          ],
+                        ),
+                      ),
                       subtitle: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              Text(
-                                'Створений: ',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                formatDate(_payDesk.createdAt, [
-                                  dd, '-', mm, '-', yyyy, ' ',
-                                  HH, ':', nn, ':', ss,
-                                ]),
-                              ),
-                            ],
+                          Text(
+                            'Дата документа: ',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 5,),
+                          Text(
+                            formatDate(_payDesk.documentDate, [
+                              dd, '-', mm, '-', yyyy, ' ',
+                              HH, ':', nn,
+                            ]),
+                          ),
+                          SizedBox(height: 15,),
+                          Text(
+                            'Документ створено: ',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 5,),
+                          Text(
+                            formatDate(_payDesk.createdAt, [
+                              dd, '-', mm, '-', yyyy, ' ',
+                              HH, ':', nn, ':', ss,
+                            ]),
                           ),
                           _payDesk.updatedAt.difference(_payDesk.createdAt).inSeconds > 0
-                              ? Row(
+                              ? Column(
                                   children: <Widget>[
+                                    SizedBox(height: 15,),
                                     Text(
-                                      'Змінений: ',
+                                      'Документ був змінений: ',
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
+                                    SizedBox(height: 5,),
                                     Text(
                                       formatDate(
                                           _payDesk.updatedAt,
@@ -1003,7 +1158,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                   _incomeItem = _data;
                                   break;
                                 case payDeskVariablesTypes.fromPayOffice:
+                                  if(_toPayOfficeController.text.isNotEmpty){
+                                    _toPayOffice = null;
+                                    _toPayOfficeController.text = "";
+                                  }
                                   _fromPayOffice = _data;
+                                  CurrencyDAO().getByAccId(_data.currencyAccID)
+                                      .then((value) => _currency = value);
                                   break;
                                 case payDeskVariablesTypes.toPayOffice:
                                   _toPayOffice = _data;
@@ -1021,7 +1182,24 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                     leading: CircleAvatar(
                                       child: Text(_data.name.toString().substring(0, 1).toUpperCase()),
                                     ),
-                                    title: Text(_data.name),
+                                    title: Row(
+                                      children: <Widget>[
+                                        Container(
+                                          width: MediaQuery.of(context).size.width/(_data.runtimeType == PayOffice ? 2 : 1.8),
+                                          child: Text(_data.name,
+                                            maxLines: 5,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        _data.runtimeType == PayOffice ? Container(
+                                          width: 35,
+                                          child: Text(_data.currencyName,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ) : Container()
+                                      ],
+                                    ),
                                   ),
                                 )
                               ],
@@ -1173,8 +1351,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     _payDesk.userID = profile?.userID;
     _payDesk.amount = _amount;
     _payDesk.payment = _paymentController.text;
-    _payDesk.documentNumber = _documentNumberController.text;
-    _payDesk.documentDate = _documentDate;
+//    _payDesk.documentNumber = _documentNumberController.text;
+    _payDesk.documentDate = DateFormat("dd.MM.yyyy HH:mm")
+        .parse("${_documentDateController.text} ${_documentTimeController.text}");
 
     if (_existPayDesk == null) {
       _payDesk.mobID = await PayDeskDAO().insert(_payDesk, sync: false);
@@ -1239,11 +1418,20 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
       _toPayOfficeController.text = _toPayOffice?.name ?? '';
       _amountController.text = _payDesk?.amount?.toStringAsFixed(2) ?? "";
       _paymentController.text = _payDesk?.payment ?? "";
-      _documentNumberController.text = _payDesk?.documentNumber ?? "";
-      _documentDateController.text =
-          _payDesk?.documentDate == null ? "" : formatDate(_payDesk.documentDate, [dd, '.', mm, '.', yyyy]);
-      _documentDate = _payDesk?.documentDate ?? null;
+//      _documentNumberController.text = _payDesk?.documentNumber ?? "";
+//      _documentDateController.text =
+//          _payDesk?.documentDate == null ? "" : formatDate(_payDesk.documentDate, [dd, '.', mm, '.', yyyy]);
+//      _documentDate = _payDesk?.documentDate ?? null;
       _currentType = _payDesk?.payDeskType == null ? PayDeskTypes.costs : PayDeskTypes.values[_payDesk.payDeskType];
+
+      _documentDateController.text = formatDate(
+        _payDesk?.documentDate ?? DateTime.now(),
+        [dd, '.', mm, '.', yyyy,],
+      );
+      _documentTimeController.text = formatDate(
+        _payDesk?.documentDate ?? DateTime.now(),
+        [HH, ':', nn],
+      );
     }
   }
 

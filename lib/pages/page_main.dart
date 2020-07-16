@@ -247,6 +247,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 );
               },
             ),
+            Divider(),
             ListTile(
               leading: Icon(FontAwesomeIcons.cashRegister),
               title: Text('Каса'),
@@ -261,17 +262,7 @@ class _AppDrawerState extends State<AppDrawer> {
               },
             ),
             ListTile(
-              leading: Icon(FontAwesomeIcons.boxes),
-              title: Text('Склад'),
-              onTap: () {
-                Navigator.of(context).pushNamed(
-                  '/warehouse/orders',
-                  arguments: "",
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.account_balance),
+              leading: Icon(Icons.receipt),
               title: Text('Баланс'),
               onTap: () {
                 Navigator.of(context).pushNamed(
@@ -290,6 +281,17 @@ class _AppDrawerState extends State<AppDrawer> {
                 Navigator.of(context).pushNamed(
                   '/results',
                   arguments: args,
+                );
+              },
+            ),
+            Divider(),
+            ListTile(
+              leading: Icon(FontAwesomeIcons.boxes),
+              title: Text('Склад'),
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                  '/warehouse/orders',
+                  arguments: "",
                 );
               },
             ),

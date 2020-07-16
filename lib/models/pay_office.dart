@@ -13,6 +13,7 @@ class PayOffice {
   String accID;
   String currencyAccID;
   String name;
+  String currencyName;
   bool isDeleted;
 
   PayOffice({
@@ -21,6 +22,7 @@ class PayOffice {
     this.accID,
     this.currencyAccID,
     this.name,
+    this.currencyName,
     this.isDeleted,
   });
 
