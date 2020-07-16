@@ -1,6 +1,7 @@
+import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:date_format/date_format.dart';
-import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/database/timing_dao.dart';
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/timing.dart';
 import 'package:enterprise/pages/page_main.dart';
@@ -9,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 
 import '../models/profile.dart';
 
@@ -81,8 +81,7 @@ class _TimingMainState extends State<TimingMain> {
     return await TimingDAO().getUndeletedByDateUserId(beginningDay, userID);
   }
 
-  Future<List<charts.Series<ChartData, String>>> _createChartData(
-      Future<List<Timing>> listTiming) async {
+  Future<List<charts.Series<ChartData, String>>> _createChartData(Future<List<Timing>> listTiming) async {
     List<Timing> _listTiming = await listTiming;
     List<ChartData> _chartData = [];
     double timingHours = 0.0;
@@ -97,28 +96,20 @@ class _TimingMainState extends State<TimingMain> {
         endDate = DateTime.now();
       }
 
-      double duration = (endDate.millisecondsSinceEpoch -
-              _timing.startedAt.millisecondsSinceEpoch) /
-          3600000;
+      double duration = (endDate.millisecondsSinceEpoch - _timing.startedAt.millisecondsSinceEpoch) / 3600000;
       timingHours += duration;
 
-      int existIndex = _chartData
-          .indexWhere((record) => record.title.contains(_timing.status));
+      int existIndex = _chartData.indexWhere((record) => record.title.contains(_timing.status));
       if (existIndex == -1) {
-        _chartData.add(new ChartData(
-            title: _timing.status, value: duration, color: _timing.color()));
+        _chartData.add(new ChartData(title: _timing.status, value: duration, color: _timing.color()));
       } else {
         _chartData[existIndex].value += duration;
       }
     }
 
     for (var _record in _chartData) {
-      _record.title = timingAlias[_record.title] +
-          ' - ' +
-          _record.value.toStringAsFixed(2) +
-          ' год';
-      _record.value =
-          ((_record.value / timingHours * 100.0).round().toDouble());
+      _record.title = timingAlias[_record.title] + ' - ' + _record.value.toStringAsFixed(2) + ' год';
+      _record.value = ((_record.value / timingHours * 100.0).round().toDouble());
     }
 
     return [
@@ -130,15 +121,13 @@ class _TimingMainState extends State<TimingMain> {
 
           // Set a label accessor to control the text of the arc label.
           labelAccessorFn: (ChartData record, _) => '${record.title}',
-          colorFn: (ChartData record, _) =>
-              charts.ColorUtil.fromDartColor(record.color)),
+          colorFn: (ChartData record, _) => charts.ColorUtil.fromDartColor(record.color)),
     ];
   }
 
   _handleTiming(String timingStatus) async {
     final dateTimeNow = DateTime.now();
-    final dayBegin =
-        new DateTime(dateTimeNow.year, dateTimeNow.month, dateTimeNow.day);
+    final dayBegin = new DateTime(dateTimeNow.year, dateTimeNow.month, dateTimeNow.day);
 
     final prefs = await SharedPreferences.getInstance();
     String userID = prefs.getString(KEY_USER_ID) ?? "";
@@ -153,15 +142,13 @@ class _TimingMainState extends State<TimingMain> {
 
       await TimingDAO().insert(timing);
     } else if (timingStatus == '') {
-      List<Timing> listTiming =
-          await TimingDAO().getOpenStatusByDateUserId(dayBegin, userID);
+      List<Timing> listTiming = await TimingDAO().getOpenStatusByDateUserId(dayBegin, userID);
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
         await TimingDAO().updateByMobID(timing);
       }
 
-      listTiming =
-          await TimingDAO().getOpenWorkdayByDateUserId(dayBegin, userID);
+      listTiming = await TimingDAO().getOpenWorkdayByDateUserId(dayBegin, userID);
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
         await TimingDAO().updateByMobID(timing);
@@ -169,24 +156,18 @@ class _TimingMainState extends State<TimingMain> {
     } else if (timingStatus == TIMING_STATUS_JOB ||
         timingStatus == TIMING_STATUS_LUNCH ||
         timingStatus == TIMING_STATUS_BREAK) {
-      List<Timing> listTiming =
-          await TimingDAO().getOpenStatusByDateUserId(dayBegin, userID);
+      List<Timing> listTiming = await TimingDAO().getOpenStatusByDateUserId(dayBegin, userID);
 
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
         await TimingDAO().updateByMobID(timing);
       }
 
-      Timing timing = Timing(
-          date: dayBegin,
-          userID: userID,
-          status: timingStatus,
-          startedAt: dateTimeNow);
+      Timing timing = Timing(date: dayBegin, userID: userID, status: timingStatus, startedAt: dateTimeNow);
 
       await TimingDAO().insert(timing);
     } else if (timingStatus == TIMING_STATUS_STOP) {
-      List<Timing> listTiming =
-          await TimingDAO().getOpenStatusByDateUserId(dayBegin, userID);
+      List<Timing> listTiming = await TimingDAO().getOpenStatusByDateUserId(dayBegin, userID);
 
       for (var timing in listTiming) {
         timing.endedAt = dateTimeNow;
@@ -218,8 +199,7 @@ class _TimingMainState extends State<TimingMain> {
   }
 
   void _setCurrentStatus(userID) async {
-    String _currentTimeStatus =
-        await TimingDAO().getCurrentStatusByUser(userID);
+    String _currentTimeStatus = await TimingDAO().getCurrentStatusByUser(userID);
     setState(() {
       currentTimeStatus = _currentTimeStatus;
     });
@@ -299,12 +279,8 @@ class _TimingMainState extends State<TimingMain> {
             ],
           ),
         )),
-        DataCell(Text(timing.startedAt != null
-            ? formatDate(timing.startedAt, [HH, ':', nn, ':', ss])
-            : "")),
-        DataCell(Text(timing.endedAt != null
-            ? formatDate(timing.endedAt, [HH, ':', nn, ':', ss])
-            : "")),
+        DataCell(Text(timing.startedAt != null ? formatDate(timing.startedAt, [HH, ':', nn, ':', ss]) : "")),
+        DataCell(Text(timing.endedAt != null ? formatDate(timing.endedAt, [HH, ':', nn, ':', ss]) : "")),
       ]));
     }
 
@@ -598,9 +574,7 @@ class DonutAutoLabelChart extends StatelessWidget {
         //          insideLabelStyleSpec: new charts.TextStyleSpec(...),
         //          outsideLabelStyleSpec: new charts.TextStyleSpec(...)),
         defaultRenderer: new charts.ArcRendererConfig(
-            arcWidth: 100,
-            startAngle: 30,
-            arcRendererDecorators: [new charts.ArcLabelDecorator()]));
+            arcWidth: 100, startAngle: 30, arcRendererDecorators: [new charts.ArcLabelDecorator()]));
   }
 }
 
