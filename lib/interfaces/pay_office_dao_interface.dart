@@ -1,4 +1,3 @@
-import 'package:enterprise/models/pay_office.dart';
 
 abstract class PayOfficeInterface {
   getByID(int id) async {}

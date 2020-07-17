@@ -562,7 +562,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Container(
-                        width: 125,
+                        width: 130,
                         child: InkWell(
                           onTap: () async {
                             if (_readOnly) {
@@ -605,7 +605,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                         ),
                       ),
                       Container(
-                        width: 85,
+                        width: 90,
                         child: InkWell(
                           onTap: () async {
                             if (_readOnly) {

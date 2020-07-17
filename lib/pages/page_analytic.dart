@@ -2,8 +2,8 @@
 import 'dart:collection';
 
 import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
+import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/cost_item_dao.dart';
-import 'package:enterprise/database/impl/pay_office_dao.dart';
 import 'package:enterprise/database/income_item_dao.dart';
 import 'package:enterprise/database/pay_desk_dao.dart';
 import 'package:enterprise/models/constants.dart';
@@ -177,6 +177,117 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     super.dispose();
   }
 
+  Future _showPeriodDialog(){
+    final _dateFrom = TextEditingController();
+    final _dateTo = TextEditingController();
+    _dateFrom.text = formatDate(DateTime.now(), [dd, '.', mm, '.', yyyy]);
+    _dateTo.text = formatDate(DateTime.now(), [dd, '.', mm, '.', yyyy]);
+    return showDialog(
+        context: context,
+        builder: (context) => GestureDetector(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                        color: Colors.white
+                    ),
+                    width: MediaQuery.of(context).size.width/1.3,
+                    child: ListView(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.all(20.0),
+                      children: <Widget>[
+                        Text("Встановити період", style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),),
+                        Padding(
+                          padding: EdgeInsets.only(top: 30),
+                          child: Text("Дата вiд (включно)"),
+                        ),
+                        InkWell(
+                          onTap: () async {
+                            DateTime picked = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(DateTime.now().year - 1),
+                                initialDate: DateTime.now(),
+                                lastDate: DateTime(DateTime.now().year + 1));
+
+                            if (picked != null) {
+                              setState(() {
+                                _dateFrom.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
+                              });
+                            }
+                          },
+                          child: TextFormField(
+                            controller: _dateFrom,
+                            enabled: false,
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 10),
+                          child: Text("Дата по (включно)"),
+                        ),
+                        InkWell(
+                          onTap: () async {
+                            DateTime picked = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(DateTime.now().year - 1),
+                                initialDate: DateTime.now(),
+                                lastDate: DateTime(DateTime.now().year + 1));
+
+                            if (picked != null) {
+                              setState(() {
+                                _dateTo.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
+                              });
+                            }
+                          },
+                          child: TextFormField(
+                            controller: _dateTo,
+                            enabled: false,
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 0),
+                          child: Container(
+                            margin: EdgeInsets.all(0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: <Widget>[
+                                FlatButton(
+                                  child: Text("Застосувати період"),
+                                  onPressed: (){},
+                                ),
+                                FlatButton(
+                                  child: Text("Сьогодні"),
+                                  onPressed: (){},
+                                ),
+                                FlatButton(
+                                  child: Text("Вчора"),
+                                  onPressed: (){},
+                                ),
+                                FlatButton(
+                                  child: Text("Поточний місяць"),
+                                  onPressed: (){},
+                                ),
+                                FlatButton(
+                                  child: Text("Попередній місяць"),
+                                  onPressed: (){},
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  )
+              )
+          ),
+        )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -188,7 +299,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
               IconButton(
                   icon: Icon(Icons.calendar_today),
                   onPressed: (){
-
+                    _showPeriodDialog();
                   }
               ),
             ],
@@ -377,30 +488,6 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                   title: Text("ПІДСУМКИ")),
             ],
           ),
-//          bottomNavigationBar: BottomNavigationBar(
-//            iconSize: 0,
-//            onTap: onTabTapped, // new
-//            currentIndex: _currentIndex,
-//            unselectedItemColor: Colors.black,
-//            selectedItemColor: Colors.lightGreen,
-//            selectedLabelStyle: TextStyle(
-//                fontWeight: FontWeight.bold
-//            ),
-//            items: [
-//              BottomNavigationBarItem(
-//                icon: Icon(Icons.donut_small),
-//                title: Text('ВИДАТКИ'),
-//              ),
-//              BottomNavigationBarItem(
-//                icon: Icon(Icons.input),
-//                title: Text('НАДХОДЖЕННЯ'),
-//              ),
-//              BottomNavigationBarItem(
-//                  icon: Icon(Icons.account_balance),
-//                  title: Text('ПІДСУМКИ')
-//              )
-//            ],
-//          ),
         )
     );
   }
@@ -494,7 +581,6 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
       ..sort((k1, k2) => _temp[k2].percentage.compareTo(_temp[k1].percentage));
     LinkedHashMap _sortedMap = new LinkedHashMap
         .fromIterable(_sortedKeys, key: (k) => k, value: (k) => _temp[k]);
-//    Map<dynamic, PayDesk> _tmp = _preparedMap;
     return ListView.builder(
       itemCount: _sortedMap.length,
       shrinkWrap: true,
