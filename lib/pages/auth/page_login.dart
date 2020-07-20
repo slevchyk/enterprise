@@ -20,12 +20,12 @@ class _PageSignInOutState extends State<PageSignInOut> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _userPhoneController = TextEditingController();
   final _userPinController = TextEditingController();
-  MaskTextInputFormatter maskTextInputFormatter;
+  final MaskTextInputFormatter maskTextInputFormatter =
+  MaskTextInputFormatter(mask: '## ### ####', filter: { "#": RegExp(r'[0-9]') });
 
   @override
   void initState() {
     super.initState();
-    maskTextInputFormatter = MaskTextInputFormatter(mask: '+38 0## ### ####', filter: { "#": RegExp(r'[0-9]') });
 //    _userPhoneController.text = "+38 0";
   }
 
@@ -75,6 +75,8 @@ class _PageSignInOutState extends State<PageSignInOut> {
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
                     labelText: "Номер телефону",
+                    prefixStyle: TextStyle(color: Colors.black, fontSize: 16),
+                    prefixText: "+38 0",
                     icon: Icon(Icons.phone)),
                 inputFormatters: [
                   maskTextInputFormatter,
@@ -85,7 +87,7 @@ class _PageSignInOutState extends State<PageSignInOut> {
                   } else if (!maskTextInputFormatter.isFill()) {
                     return "невірний формат";
                   }
-                  _userPhoneController.text="+380${maskTextInputFormatter.getUnmaskedText()}";
+//                  _userPhoneController.text = maskTextInputFormatter.getUnmaskedText();
                   return null;
                 },
               ),
@@ -155,7 +157,7 @@ class _PageSignInOutState extends State<PageSignInOut> {
   void _getLocalServerSettingsProfile(
       GlobalKey<ScaffoldState> _scaffoldKey) async {
     Map<String, String> requestMap = {
-      "phone": _userPhoneController.text,
+      "phone": "+380${maskTextInputFormatter.getUnmaskedText()}",
       "pin": _userPinController.text
     };
 
@@ -188,7 +190,7 @@ class _PageSignInOutState extends State<PageSignInOut> {
 
       final prefs = await SharedPreferences.getInstance();
 
-      prefs.setString(KEY_USER_PHONE, _userPhoneController.text);
+      prefs.setString(KEY_USER_PHONE, "+380${maskTextInputFormatter.getUnmaskedText()}");
       prefs.setString(KEY_USER_PIN, _userPinController.text);
 
       prefs.setString(KEY_SERVER_IP, localSrvIP);

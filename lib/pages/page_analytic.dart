@@ -2,6 +2,7 @@
 import 'dart:collection';
 
 import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
+import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/cost_item_dao.dart';
 import 'package:enterprise/database/income_item_dao.dart';
 import 'package:enterprise/database/pay_desk_dao.dart';
@@ -56,14 +57,6 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
 
   List<charts.Series<AnalyticData, String>> _seriesList;
 
-  static List<Tab> _setTabs(){
-    List<Tab> _toReturn = [];
-    CURRENCY_NAME.values.forEach((element) {
-      _toReturn.add(Tab(text: element,));
-    });
-    return _toReturn.reversed.toList();
-  }
-
   @override
   void initState() {
     super.initState();
@@ -73,12 +66,20 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     _sceneMap = {
       "видаткiв" : 0,
       "надходжень" : 1,
-      "пiдсумки" : 5,
+      "" : 1,
     };
     _load();
     _profile = widget.profile;
     _scrollController = ScrollController();
     _tabController = TabController(vsync: this, length: _myTabs.length);
+  }
+
+  static List<Tab> _setTabs(){
+    List<Tab> _toReturn = [];
+    CURRENCY_NAME.values.forEach((element) {
+      _toReturn.add(Tab(text: element,));
+    });
+    return _toReturn.reversed.toList();
   }
 
   Map<dynamic, PayDesk> _getPrepared(List<PayDesk> payDeskList, List<CostItem> costList,  List<IncomeItem> incomeList,  double sumInput){
@@ -107,8 +108,28 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
           toReturn.addAll({income:PayDesk(amount: sum, costItemName: income.name, percentage: sum/sumInput*100)});
         });
         break;
+      case 2:
+        double sum = 0;
+        incomeList.forEach((income) {
+          List<PayDesk> _tmp = payDeskList.where((payment) => payment.incomeItemName==income.name).toList();
+          sum = sum + _tmp.fold(0, (previousValue, payment) => previousValue + payment.amount);
+          if(_tmp.isEmpty){
+            return;
+          }
+          toReturn.addAll({const Types(name: "Надходження") : PayDesk(amount: sum, percentage: sum/sumInput*100)});
+        });
+        sum = 0;
+        costList.forEach((cost) {
+          List<PayDesk> _tmp = payDeskList.where((payment) => payment.costItemName==cost.name).toList();
+          sum = sum +  _tmp.fold(0, (previousValue, payment) => previousValue + payment.amount);
+          _currentColor = 200;
+          if(_tmp.isEmpty){
+            return;
+          }
+          toReturn.addAll({const Types(name: "Видаток") : PayDesk(amount: sum, percentage: sum/sumInput*100)});
+        });
+        break;
     }
-
     return toReturn;
   }
 
@@ -124,11 +145,12 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     _preparedMap = _getPrepared(payDeskList, costList, incomeList, _sum);
 
     _preparedMap.forEach((key, value) {
+      _currentIndex == 2 ? _sum = _preparedMap.values.first.amount-_preparedMap.values.last.amount : _sum = _sum;
       _amountFormatter.text = value.amount.toStringAsFixed(2);
       _data.add(AnalyticData(
-        amount: _amountFormatter.text,
+        amount: value.amount,
         name: key.name,
-        color: _setColor(value),
+        color: _setColor(value, type: key),
         percent: value.percentage,
         sum: _sum,
       ));
@@ -138,8 +160,11 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
       charts.Series(
         data: _data,
         id: 'analytical',
-        domainFn: (AnalyticData analyticData, _) => "${analyticData.name}\n ${analyticData.amount} ${CURRENCY_SYMBOL[currency]}",
-        measureFn: (AnalyticData analyticData, _) => analyticData.percent,
+        domainFn: (AnalyticData analyticData, _) {
+          _amountFormatter.text = analyticData.amount.toStringAsFixed(2);
+          return "${analyticData.name}\n ${(_amountFormatter.text)} ${CURRENCY_SYMBOL[currency]}";
+        },
+        measureFn: (AnalyticData analyticData, _) => _currentIndex == 2 ? analyticData.amount : analyticData.percent,
         labelAccessorFn: (AnalyticData analyticData, _) => "${analyticData.percent.toStringAsFixed(2).replaceAll(".", ",")} %",
         colorFn: (AnalyticData analyticalData, _) => charts.ColorUtil.fromDartColor(analyticalData.color),
       )
@@ -152,12 +177,115 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     super.dispose();
   }
 
-  _load() async {
-    setState(() {
-      _payDeskList = PayDeskDAO().getByType(_sceneMap.values.elementAt(_currentIndex));
-      _costItemsList = CostItemDAO().getUnDeleted();
-      _incomeItemsList = IncomeItemDAO().getUnDeleted();
-    });
+  Future _showPeriodDialog(){
+    final _dateFrom = TextEditingController();
+    final _dateTo = TextEditingController();
+    _dateFrom.text = formatDate(DateTime.now(), [dd, '.', mm, '.', yyyy]);
+    _dateTo.text = formatDate(DateTime.now(), [dd, '.', mm, '.', yyyy]);
+    return showDialog(
+        context: context,
+        builder: (context) => GestureDetector(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                        color: Colors.white
+                    ),
+                    width: MediaQuery.of(context).size.width/1.3,
+                    child: ListView(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.all(20.0),
+                      children: <Widget>[
+                        Text("Встановити період", style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),),
+                        Padding(
+                          padding: EdgeInsets.only(top: 30),
+                          child: Text("Дата вiд (включно)"),
+                        ),
+                        InkWell(
+                          onTap: () async {
+                            DateTime picked = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(DateTime.now().year - 1),
+                                initialDate: DateTime.now(),
+                                lastDate: DateTime(DateTime.now().year + 1));
+
+                            if (picked != null) {
+                              setState(() {
+                                _dateFrom.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
+                              });
+                            }
+                          },
+                          child: TextFormField(
+                            controller: _dateFrom,
+                            enabled: false,
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 10),
+                          child: Text("Дата по (включно)"),
+                        ),
+                        InkWell(
+                          onTap: () async {
+                            DateTime picked = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(DateTime.now().year - 1),
+                                initialDate: DateTime.now(),
+                                lastDate: DateTime(DateTime.now().year + 1));
+
+                            if (picked != null) {
+                              setState(() {
+                                _dateTo.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
+                              });
+                            }
+                          },
+                          child: TextFormField(
+                            controller: _dateTo,
+                            enabled: false,
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 0),
+                          child: Container(
+                            margin: EdgeInsets.all(0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: <Widget>[
+                                FlatButton(
+                                  child: Text("Застосувати період"),
+                                  onPressed: (){},
+                                ),
+                                FlatButton(
+                                  child: Text("Сьогодні"),
+                                  onPressed: (){},
+                                ),
+                                FlatButton(
+                                  child: Text("Вчора"),
+                                  onPressed: (){},
+                                ),
+                                FlatButton(
+                                  child: Text("Поточний місяць"),
+                                  onPressed: (){},
+                                ),
+                                FlatButton(
+                                  child: Text("Попередній місяць"),
+                                  onPressed: (){},
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  )
+              )
+          ),
+        )
+    );
   }
 
   @override
@@ -167,6 +295,14 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
         child: Scaffold(
           appBar: AppBar(
             title: Text("Аналiтика"),
+            actions: <Widget>[
+              IconButton(
+                  icon: Icon(Icons.calendar_today),
+                  onPressed: (){
+                    _showPeriodDialog();
+                  }
+              ),
+            ],
           ),
           body: FutureBuilder(
             future: Future.wait([
@@ -217,7 +353,6 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                         ),
                       ) :
                       ListView(
-//                        padding: EdgeInsets.only(bottom: 28),
                         controller: _scrollController,
                         children: <Widget>[
                           Container(
@@ -233,8 +368,9 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                                 padding: EdgeInsets.symmetric(vertical: 10),
                                 child: Stack(
                                   children: <Widget>[
+                                    _currentIndex == 2 ? _toShowChartsSimple() :
                                     _toShowCharts(),
-                                    Container(
+                                    _currentIndex == 2 ? Container() : Container(
                                       child: Center(
                                         child: Text("${_amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}"
                                           , style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
@@ -261,7 +397,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                                   ),
                                   Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 5),
-                                    child: Text("${_amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}"
+                                    child: Text("${_currentIndex == 2 ? _preparedMap.values.first.amount >= _preparedMap.values.last.amount ? "" : "-" : ""} ${_amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}"
                                       , style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
                                   ),
                                 ],
@@ -324,11 +460,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
             currentIndex: _currentIndex,
             onTap: onTabTapped,
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-//            elevation: 8,
-//            fabLocation: BubbleBottomBarFabLocation.end, //new
-//            hasNotch: true, //new
-//            hasInk: true ,//new, gives a cute ink effect
-            inkColor: Colors.black12, //optional, uses theme color if not specified
+            inkColor: Colors.black12,
             items: <BubbleBottomBarItem>[
               BubbleBottomBarItem(
                   backgroundColor: Colors.red,
@@ -356,30 +488,6 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                   title: Text("ПІДСУМКИ")),
             ],
           ),
-//          bottomNavigationBar: BottomNavigationBar(
-//            iconSize: 0,
-//            onTap: onTabTapped, // new
-//            currentIndex: _currentIndex,
-//            unselectedItemColor: Colors.black,
-//            selectedItemColor: Colors.lightGreen,
-//            selectedLabelStyle: TextStyle(
-//                fontWeight: FontWeight.bold
-//            ),
-//            items: [
-//              BottomNavigationBarItem(
-//                icon: Icon(Icons.donut_small),
-//                title: Text('ВИДАТКИ'),
-//              ),
-//              BottomNavigationBarItem(
-//                icon: Icon(Icons.input),
-//                title: Text('НАДХОДЖЕННЯ'),
-//              ),
-//              BottomNavigationBarItem(
-//                  icon: Icon(Icons.account_balance),
-//                  title: Text('ПІДСУМКИ')
-//              )
-//            ],
-//          ),
         )
     );
   }
@@ -406,6 +514,13 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
           ]
       ),
     );
+  }
+
+  Widget _toShowChartsSimple(){
+   return charts.BarChart(
+     _seriesList,
+     animate: true,
+   );
   }
 
   Widget _showGeneralInformation(int currency){
@@ -435,8 +550,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                           Text("${_amountFormatter.text} ${CURRENCY_SYMBOL[currency]}" ),
                           SizedBox(height: 5,),
                           Text("${_sortedMap.values.elementAt(index).percentage.toStringAsFixed(2).replaceAll(".", ",")} %",
-                          style: TextStyle(color: _currentIndex ==0? Colors.red : Colors.green[800]),),
-//                          style: TextStyle(color: _setColor(_sortedMap.values.elementAt(index)),)),
+                          style: TextStyle(color: _currentIndex == 2 ? _setColor(_sortedMap.values.elementAt(index), type: _sortedMap.keys.elementAt(index)) : _currentIndex == 0 ? Colors.red : Colors.green[800]),),
                         ],
                       ),
                     ),
@@ -449,7 +563,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                       lineHeight: 10,
                       linearStrokeCap: LinearStrokeCap.roundAll,
                       percent: _sortedMap.values.elementAt(index).percentage/100,
-                      progressColor: _setColor(_sortedMap.values.elementAt(index)),
+                      progressColor: _setColor(_sortedMap.values.elementAt(index), type: _sortedMap.keys.elementAt(index)),
                     ),
                   ),
                 ],
@@ -461,8 +575,57 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     );
   }
 
-  Color _setColor(PayDesk value){
+  Widget _showChartsLabels(int currency) {
+    var _temp = _preparedMap;
+    var _sortedKeys = _temp.keys.toList(growable:false)
+      ..sort((k1, k2) => _temp[k2].percentage.compareTo(_temp[k1].percentage));
+    LinkedHashMap _sortedMap = new LinkedHashMap
+        .fromIterable(_sortedKeys, key: (k) => k, value: (k) => _temp[k]);
+    return ListView.builder(
+      itemCount: _sortedMap.length,
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (BuildContext context, int index) {
+        _amountFormatter.text = _sortedMap.values.elementAt(index).amount.toStringAsFixed(2);
+        return Container(
+          child: ListTile(
+            title: Row(
+              children: <Widget>[
+                Container(
+                  margin: EdgeInsets.only(right: 15),
+                  height: 8,
+                  width: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _setColor(_sortedMap.values.elementAt(index), type: _sortedMap.keys.elementAt(index)),
+                  ),
+                ),
+                Container(
+                  width: MediaQuery.of(context).size.width/1.2,
+                  child: Text(
+                    "${_sortedMap.keys.elementAt(index).name} ${_amountFormatter.text} ${CURRENCY_SYMBOL[currency]}",
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 3,
+                    softWrap: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Color _setColor(PayDesk value, {var type}){
     ///Change chart labels color hue from percentage value of PayDesk
+    if(type!=null){
+      if(type.runtimeType==Types && type.name == "Видаток"){
+        return Colors.red;
+      } else if (type.name == "Надходження"){
+        return Colors.green;
+      }
+    }
     switch(_currentColor){
       case 255: //set for color 'red' 2.5
         return Color.fromRGBO(_currentColor, 255-int.parse((value.percentage*2.5).toStringAsFixed(0)), 0, 1);
@@ -489,54 +652,19 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     }
   }
 
-  Widget _showChartsLabels(int currency) {
-    var _temp = _preparedMap;
-    var _sortedKeys = _temp.keys.toList(growable:false)
-      ..sort((k1, k2) => _temp[k2].percentage.compareTo(_temp[k1].percentage));
-    LinkedHashMap _sortedMap = new LinkedHashMap
-        .fromIterable(_sortedKeys, key: (k) => k, value: (k) => _temp[k]);
-//    Map<dynamic, PayDesk> _tmp = _preparedMap;
-    return ListView.builder(
-      itemCount: _sortedMap.length,
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      itemBuilder: (BuildContext context, int index) {
-        _amountFormatter.text = _sortedMap.values.elementAt(index).amount.toStringAsFixed(2);
-        return Container(
-          child: ListTile(
-            title: Row(
-              children: <Widget>[
-                Container(
-                  margin: EdgeInsets.only(right: 15),
-                  height: 8,
-                  width: 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _setColor(_sortedMap.values.elementAt(index)),
-                  ),
-                ),
-                Container(
-                  width: MediaQuery.of(context).size.width/1.2,
-                  child: Text(
-                    "${_sortedMap.keys.elementAt(index).name} ${_amountFormatter.text} ${CURRENCY_SYMBOL[currency]}",
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 3,
-                    softWrap: true,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+  _load() async {
+    setState(() {
+      _currentIndex == 2 ? _payDeskList = PayDeskDAO().getAllExceptTransfer() : _payDeskList = PayDeskDAO().getByType(_sceneMap.values.elementAt(_currentIndex));
+      _costItemsList = CostItemDAO().getUnDeleted();
+      _incomeItemsList = IncomeItemDAO().getUnDeleted();
+    });
   }
 }
 
 class AnalyticData{
   final double percent;
   final String name;
-  final String amount;
+  final double amount;
   final double sum;
   final Color color;
 
@@ -546,5 +674,13 @@ class AnalyticData{
     this.amount,
     this.sum,
     this.color,
+  });
+}
+
+class Types{
+  final String name;
+
+  const Types({
+    this.name
   });
 }
