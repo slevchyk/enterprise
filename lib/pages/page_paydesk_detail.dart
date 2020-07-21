@@ -97,24 +97,23 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     _setControllers();
     _setDefaultPayOffice();
   }
-  _setDefaultPayOffice(){
-     _payOfficeList.then((payOfficeList) {
-       try{
-         _setPayOfficeAndCurrency(payOfficeList.first);
-       } catch (e){
-         print("no items $e");
+
+  _setDefaultPayOffice() {
+    _payOfficeList.then((payOfficeList) {
+      try {
+        _setPayOfficeAndCurrency(payOfficeList.first);
+      } catch (e) {
+        print("no items $e");
       }
-     });
+    });
   }
 
-  _setPayOfficeAndCurrency(PayOffice input){
+  _setPayOfficeAndCurrency(PayOffice input) {
     _fromPayOfficeController.text = input.name;
     _fromPayOffice = input;
-    CurrencyDAO().getByAccId(input.currencyAccID).then((currency) =>
-        setState((){
+    CurrencyDAO().getByAccId(input.currencyAccID).then((currency) => setState(() {
           _currency = currency;
-        })
-    );
+        }));
   }
 
   Future<void> initAsync() async {
@@ -176,9 +175,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     _toPayOfficeController.text = _toPayOffice?.name ?? '';
   }
 
-  _setField(String input){
-    if(input.length>=35 && MediaQuery.of(this.context).orientation == Orientation.portrait){
-      return "${input.substring(0,35)}...";
+  _setField(String input) {
+    if (input.length >= 35 && MediaQuery.of(this.context).orientation == Orientation.portrait) {
+      return "${input.substring(0, 35)}...";
     }
     return input;
   }
@@ -320,7 +319,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                 pageBuilder: (context, anim1, anim2) {
                                   return _selectionDialog(
                                     _toPayOfficeController,
-                                    ImplPayOfficeDAO().getAllExceptId(_fromPayOffice.name, _fromPayOffice.currencyAccID),
+                                    ImplPayOfficeDAO()
+                                        .getAllExceptId(_fromPayOffice.name, _fromPayOffice.currencyAccID),
                                     payDeskVariablesTypes.toPayOffice,
                                     _scaffoldKey,
                                   );
@@ -371,8 +371,11 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
                               IconButton(
-                                  icon: Icon(FontAwesomeIcons.calculator, size: 22,),
-                                  onPressed: (){
+                                  icon: Icon(
+                                    FontAwesomeIcons.calculator,
+                                    size: 22,
+                                  ),
+                                  onPressed: () {
                                     showModalBottomSheet(
                                         isScrollControlled: true,
                                         context: context,
@@ -387,9 +390,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                                 mainAxisAlignment: MainAxisAlignment.center,
                                                 children: <Widget>[
                                                   Container(
-                                                    width: MediaQuery.of(context).size.width/2,
+                                                    width: MediaQuery.of(context).size.width / 2,
                                                     child: RaisedButton(
-                                                      onPressed: (){
+                                                      onPressed: () {
                                                         Navigator.of(context).pop();
                                                         _currentValue = 0;
                                                       },
@@ -397,18 +400,21 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                                     ),
                                                   ),
                                                   Container(
-                                                    width: MediaQuery.of(context).size.width/2,
+                                                    width: MediaQuery.of(context).size.width / 2,
                                                     child: RaisedButton(
                                                       color: Colors.green,
-                                                      onPressed: (){
+                                                      onPressed: () {
                                                         Navigator.of(context).pop();
-                                                        if(_currentValue!=0){
+                                                        if (_currentValue != 0) {
                                                           _amount = _currentValue;
                                                           _amountController.text = _currentValue.toStringAsFixed(2);
                                                           _currentValue = 0;
                                                         }
                                                       },
-                                                      child: Text("Додати", style: TextStyle(color: Colors.white),),
+                                                      child: Text(
+                                                        "Додати",
+                                                        style: TextStyle(color: Colors.white),
+                                                      ),
                                                     ),
                                                   ),
                                                 ],
@@ -417,7 +423,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                           );
                                         });
                                   }),
-                              _clearIconButton(_amountController)!=null
+                              _clearIconButton(_amountController) != null
                                   ? _clearIconButton(_amountController)
                                   : Container(),
                             ],
@@ -553,11 +559,14 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: 24),
-                  child: Text("Дата операції",
-                    style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),),
+                  child: Text(
+                    "Дата операції",
+                    style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 Container(
-                  padding: EdgeInsets.only(left: 25, right: MediaQuery.of(context).orientation==Orientation.portrait? 50 : 100 ),
+                  padding: EdgeInsets.only(
+                      left: 25, right: MediaQuery.of(context).orientation == Orientation.portrait ? 50 : 100),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
@@ -576,79 +585,73 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                 lastDate: DateTime(DateTime.now().year + 1));
 
                             if (picked != null) {
-                              if(picked.isAfter(DateTime.now())){
-                                _displaySnackBar("Дата операції не повинна перевищувати поточну дату",  Colors.amber.shade700);
+                              if (picked.isAfter(DateTime.now())) {
+                                _displaySnackBar(
+                                    "Дата операції не повинна перевищувати поточну дату", Colors.amber.shade700);
                                 return;
                               }
                               setState(() {
                                 MaterialLocalizations localizations = MaterialLocalizations.of(context);
-                                String formattedTime = localizations.formatTimeOfDay(
-                                    TimeOfDay.now(),
-                                    alwaysUse24HourFormat: true
-                                );
+                                String formattedTime =
+                                    localizations.formatTimeOfDay(TimeOfDay.now(), alwaysUse24HourFormat: true);
                                 _documentDateController.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
                                 _documentTimeController.text = formattedTime;
                               });
                             }
-
                           },
                           child: IgnorePointer(
                             child: TextFormField(
                               controller: _documentDateController,
                               enabled: !_readOnly,
-                              decoration: InputDecoration(
-                                  icon: Icon(FontAwesomeIcons.calendar),
-                                  labelText: "Дата"
-                              ),
+                              decoration: InputDecoration(icon: Icon(FontAwesomeIcons.calendar), labelText: "Дата"),
                             ),
                           ),
                         ),
                       ),
                       Container(
-                        width: 90,
-                        child: InkWell(
-                          onTap: () async {
-                            if (_readOnly) {
-                              return;
-                            }
-                            FocusScope.of(this.context).unfocus();
-                            TimeOfDay selectedTime = await showTimePicker(
-                              context: context,
-                              initialTime: TimeOfDay.now(),
-                            );
-                            if(selectedTime==null){
-                              return;
-                            }
-
-                            MaterialLocalizations localizations = MaterialLocalizations.of(context);
-                            String formattedTime = localizations.formatTimeOfDay(
-                                selectedTime,
-                                alwaysUse24HourFormat: true
-                            );
-
-                            if (DateFormat("dd.MM.yyyy").parse("${_documentDateController.text}").isAtSameMomentAs(DateFormat("yyyy-MM-dd").parse(DateTime.now().toString())) && (selectedTime.hour * 60 + selectedTime.minute) > (TimeOfDay.now().hour * 60 + TimeOfDay.now().minute)){
-                              _displaySnackBar("Час операції не повинен перевищувати поточний час",  Colors.amber.shade700);
-                              return;
-                            }
-
-                            if (formattedTime != null) {
-                              setState(() {
-                                _documentTimeController.text = formattedTime;
-                              });
+                          width: 90,
+                          child: InkWell(
+                            onTap: () async {
+                              if (_readOnly) {
+                                return;
                               }
-                          },
-                          child: IgnorePointer(
-                            child: TextFormField(
-                              controller: _documentTimeController,
-                              enabled: !_readOnly,
-                              decoration: InputDecoration(
-                                  icon: Icon(Icons.timer),
-                                  labelText: "Час"
+                              FocusScope.of(this.context).unfocus();
+                              TimeOfDay selectedTime = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay.now(),
+                              );
+                              if (selectedTime == null) {
+                                return;
+                              }
+
+                              MaterialLocalizations localizations = MaterialLocalizations.of(context);
+                              String formattedTime =
+                                  localizations.formatTimeOfDay(selectedTime, alwaysUse24HourFormat: true);
+
+                              if (DateFormat("dd.MM.yyyy")
+                                      .parse("${_documentDateController.text}")
+                                      .isAtSameMomentAs(DateFormat("yyyy-MM-dd").parse(DateTime.now().toString())) &&
+                                  (selectedTime.hour * 60 + selectedTime.minute) >
+                                      (TimeOfDay.now().hour * 60 + TimeOfDay.now().minute)) {
+                                _displaySnackBar(
+                                    "Час операції не повинен перевищувати поточний час", Colors.amber.shade700);
+                                return;
+                              }
+
+                              if (formattedTime != null) {
+                                setState(() {
+                                  _documentTimeController.text = formattedTime;
+                                });
+                              }
+                            },
+                            child: IgnorePointer(
+                              child: TextFormField(
+                                controller: _documentTimeController,
+                                enabled: !_readOnly,
+                                decoration: InputDecoration(icon: Icon(Icons.timer), labelText: "Час"),
                               ),
                             ),
-                          ),
-                        )
-                      ),
+                          )),
                     ],
                   ),
                 ),
@@ -758,13 +761,12 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
           _showModalBottomSheet();
         },
       ),
-      bottomNavigationBar: _payDesk.payDeskType == 2
-          && !_payDesk.isChecked
-          && _readOnly ? _confirmButton() : _setNavigationBar(),
+      bottomNavigationBar:
+          _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly ? _confirmButton() : _setNavigationBar(),
     );
   }
 
-  Widget _confirmButton(){
+  Widget _confirmButton() {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 7.0),
       child: ChoiceChip(
@@ -772,10 +774,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
         label: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text("Пiдтвердити",
-              style: TextStyle(
-                  color: Colors.white
-              ),
+            Text(
+              "Пiдтвердити",
+              style: TextStyle(color: Colors.white),
             ),
           ],
         ),
@@ -788,7 +789,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     );
   }
 
-  _confirmingDialog(){
+  _confirmingDialog() {
     showGeneralDialog(
       barrierLabel: 'confirmDialog',
       barrierDismissible: true,
@@ -797,76 +798,116 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
       context: _scaffoldKey.currentContext,
       transitionBuilder: (context, anim1, anim2, child) {
         return SlideTransition(
-          position: Tween(
-              begin: Offset(0, 1),
-              end: Offset(0, 0)).animate(anim1),
+          position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
           child: child,
         );
       },
       pageBuilder: (context, anim1, anim2) => AlertDialog(
         contentPadding: EdgeInsets.all(0.0),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(20.0))
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
         content: ListTile(
           title: Container(
             height: 60,
             alignment: Alignment.center,
-            child: Text("Пiдтвердження переказу", style: TextStyle(
-                fontWeight: FontWeight.bold
-            ),),
+            child: Text(
+              "Пiдтвердження переказу",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
           subtitle: Container(
             height: 320,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Text("Дата", style: TextStyle(fontWeight: FontWeight.w800),),
-                SizedBox(height: 4,),
-                Text('${formatDate(
-                  _payDesk.createdAt,
-                  [dd, '.', mm, '.', yyyy, ' ', HH, ':', nn, ':', ss,],
-                )}\n', style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),),
-                Row(
-                  children: <Widget>[
-                  ],
+                Text(
+                  "Дата",
+                  style: TextStyle(fontWeight: FontWeight.w800),
                 ),
-                Text("Сума ", style: TextStyle(fontWeight: FontWeight.w800),),
-                SizedBox(height: 4,),
-                Text("${_amountController.text} ${String.fromCharCode(0x000020B4)}\n",
-                  style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),),
-                Row(
-                  children: <Widget>[
-                  ],
+                SizedBox(
+                  height: 4,
                 ),
-                Text("З гаманьця ", style: TextStyle(fontWeight: FontWeight.w800),),
-                SizedBox(height: 4,),
-                Text("${_fromPayOfficeController.text}\n",
-                  style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),),
-                Text("На гаменець ", style: TextStyle(fontWeight: FontWeight.w800),),
-                SizedBox(height: 4,),
-                Text("${_toPayOfficeController.text}",
-                  style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),),
-                SizedBox(height: 30,),
+                Text(
+                  '${formatDate(
+                    _payDesk.createdAt,
+                    [
+                      dd,
+                      '.',
+                      mm,
+                      '.',
+                      yyyy,
+                      ' ',
+                      HH,
+                      ':',
+                      nn,
+                      ':',
+                      ss,
+                    ],
+                  )}\n',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                ),
+                Row(
+                  children: <Widget>[],
+                ),
+                Text(
+                  "Сума ",
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+                SizedBox(
+                  height: 4,
+                ),
+                Text(
+                  "${_amountController.text} ${String.fromCharCode(0x000020B4)}\n",
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                ),
+                Row(
+                  children: <Widget>[],
+                ),
+                Text(
+                  "З гаманьця ",
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+                SizedBox(
+                  height: 4,
+                ),
+                Text(
+                  "${_fromPayOfficeController.text}\n",
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                ),
+                Text(
+                  "На гаменець ",
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+                SizedBox(
+                  height: 4,
+                ),
+                Text(
+                  "${_toPayOfficeController.text}",
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                ),
+                SizedBox(
+                  height: 30,
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: <Widget>[
                     RaisedButton(
                       color: Color.fromARGB(80, 90, 90, 90),
-                      child: Text('Вiдмiнити', style: TextStyle(color: Colors.white),),
+                      child: Text(
+                        'Вiдмiнити',
+                        style: TextStyle(color: Colors.white),
+                      ),
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12.0))
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12.0))),
                     ),
                     RaisedButton(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12.0))
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12.0))),
                       color: Colors.green,
-                      child: Text('Так', style: TextStyle(color: Colors.white),),
+                      child: Text(
+                        'Так',
+                        style: TextStyle(color: Colors.white),
+                      ),
                       onPressed: () {
                         _payDesk.isChecked = true;
                         _save().whenComplete(() => _closeWindow(context));
@@ -882,7 +923,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     );
   }
 
-  void _closeWindow(BuildContext context){
+  void _closeWindow(BuildContext context) {
     Navigator.of(context).pop();
     Navigator.pop(_scaffoldKey.currentContext);
   }
@@ -975,15 +1016,25 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                   context: _scaffoldKey.currentContext,
                   builder: (context) => AlertDialog(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
-                    insetPadding: MediaQuery.of(context).orientation == Orientation.landscape ? EdgeInsets.only() : EdgeInsets.only(top: 200, bottom: 200),
+                    insetPadding: MediaQuery.of(context).orientation == Orientation.landscape
+                        ? EdgeInsets.only()
+                        : EdgeInsets.only(top: 200, bottom: 200),
                     content: ListTile(
                       title: Container(
                         height: 40,
                         child: Column(
                           children: <Widget>[
-                            Text("Інформація про операцiю", style: TextStyle(fontWeight: FontWeight.bold),),
-                            SizedBox(height: 2,),
-                            Text("${PAY_DESK_TYPES_ALIAS.values.elementAt(_payDesk.payDeskType)}", style: TextStyle(fontWeight: FontWeight.bold),),
+                            Text(
+                              "Інформація про операцiю",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(
+                              height: 2,
+                            ),
+                            Text(
+                              "${PAY_DESK_TYPES_ALIAS.values.elementAt(_payDesk.payDeskType)}",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                           ],
                         ),
                       ),
@@ -994,39 +1045,63 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                             'Дата документа: ',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          SizedBox(height: 5,),
+                          SizedBox(
+                            height: 5,
+                          ),
                           Text(
                             formatDate(_payDesk.documentDate, [
-                              dd, '-', mm, '-', yyyy, ' ',
-                              HH, ':', nn,
+                              dd,
+                              '-',
+                              mm,
+                              '-',
+                              yyyy,
+                              ' ',
+                              HH,
+                              ':',
+                              nn,
                             ]),
                           ),
-                          SizedBox(height: 15,),
+                          SizedBox(
+                            height: 15,
+                          ),
                           Text(
                             'Документ створено: ',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          SizedBox(height: 5,),
+                          SizedBox(
+                            height: 5,
+                          ),
                           Text(
                             formatDate(_payDesk.createdAt, [
-                              dd, '-', mm, '-', yyyy, ' ',
-                              HH, ':', nn, ':', ss,
+                              dd,
+                              '-',
+                              mm,
+                              '-',
+                              yyyy,
+                              ' ',
+                              HH,
+                              ':',
+                              nn,
+                              ':',
+                              ss,
                             ]),
                           ),
                           _payDesk.updatedAt.difference(_payDesk.createdAt).inSeconds > 0
                               ? Column(
                                   children: <Widget>[
-                                    SizedBox(height: 15,),
+                                    SizedBox(
+                                      height: 15,
+                                    ),
                                     Text(
                                       'Документ був змінений: ',
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
-                                    SizedBox(height: 5,),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
                                     Text(
                                       formatDate(
-                                          _payDesk.updatedAt,
-                                          [dd, '-', mm, '-', yyyy, ' ',
-                                            HH, ':', nn, ':', ss]),
+                                          _payDesk.updatedAt, [dd, '-', mm, '-', yyyy, ' ', HH, ':', nn, ':', ss]),
                                     ),
                                   ],
                                 )
@@ -1064,16 +1139,16 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 
                 switch (index) {
                   case 0:
-                    _getFile(FileType.IMAGE);
+                    _getFile(FileType.image);
                     break;
                   case 1:
-                    _getFile(FileType.CUSTOM);
+                    _getFile(FileType.custom);
                     break;
                   case 2:
                     _getImageCamera();
                     break;
                   default:
-                    _getFile(FileType.IMAGE);
+                    _getFile(FileType.image);
                 }
               },
             ),
@@ -1158,13 +1233,12 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                   _incomeItem = _data;
                                   break;
                                 case payDeskVariablesTypes.fromPayOffice:
-                                  if(_toPayOfficeController.text.isNotEmpty){
+                                  if (_toPayOfficeController.text.isNotEmpty) {
                                     _toPayOffice = null;
                                     _toPayOfficeController.text = "";
                                   }
                                   _fromPayOffice = _data;
-                                  CurrencyDAO().getByAccId(_data.currencyAccID)
-                                      .then((value) => _currency = value);
+                                  CurrencyDAO().getByAccId(_data.currencyAccID).then((value) => _currency = value);
                                   break;
                                 case payDeskVariablesTypes.toPayOffice:
                                   _toPayOffice = _data;
@@ -1185,19 +1259,24 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                     title: Row(
                                       children: <Widget>[
                                         Container(
-                                          width: MediaQuery.of(context).size.width/(_data.runtimeType == PayOffice ? 2 : 1.8),
-                                          child: Text(_data.name,
+                                          width: MediaQuery.of(context).size.width /
+                                              (_data.runtimeType == PayOffice ? 2 : 1.8),
+                                          child: Text(
+                                            _data.name,
                                             maxLines: 5,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                        _data.runtimeType == PayOffice ? Container(
-                                          width: 35,
-                                          child: Text(_data.currencyName,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ) : Container()
+                                        _data.runtimeType == PayOffice
+                                            ? Container(
+                                                width: 35,
+                                                child: Text(
+                                                  _data.currencyName,
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              )
+                                            : Container()
                                       ],
                                     ),
                                   ),
@@ -1352,8 +1431,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     _payDesk.amount = _amount;
     _payDesk.payment = _paymentController.text;
 //    _payDesk.documentNumber = _documentNumberController.text;
-    _payDesk.documentDate = DateFormat("dd.MM.yyyy HH:mm")
-        .parse("${_documentDateController.text} ${_documentTimeController.text}");
+    _payDesk.documentDate =
+        DateFormat("dd.MM.yyyy HH:mm").parse("${_documentDateController.text} ${_documentTimeController.text}");
 
     if (_existPayDesk == null) {
       _payDesk.mobID = await PayDeskDAO().insert(_payDesk, sync: false);
@@ -1426,7 +1505,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 
       _documentDateController.text = formatDate(
         _payDesk?.documentDate ?? DateTime.now(),
-        [dd, '.', mm, '.', yyyy,],
+        [
+          dd,
+          '.',
+          mm,
+          '.',
+          yyyy,
+        ],
       );
       _documentTimeController.text = formatDate(
         _payDesk?.documentDate ?? DateTime.now(),
@@ -1471,14 +1556,14 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
   void _getFile(FileType type) async {
     List<File> files;
     switch (type) {
-      case FileType.IMAGE:
-        files = await FilePicker.getMultiFile(type: FileType.IMAGE);
+      case FileType.image:
+        files = await FilePicker.getMultiFile(type: FileType.image);
         break;
-      case FileType.CUSTOM:
-        files = await FilePicker.getMultiFile(type: FileType.CUSTOM, fileExtension: 'pdf');
+      case FileType.custom:
+        files = await FilePicker.getMultiFile(type: FileType.custom, allowedExtensions: ['pdf']);
         break;
       default:
-        files = await FilePicker.getMultiFile(type: FileType.IMAGE);
+        files = await FilePicker.getMultiFile(type: FileType.image);
     }
 
     if (files != null) {
@@ -1578,7 +1663,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     });
   }
 
-  Widget _calc(BuildContext context){
+  Widget _calc(BuildContext context) {
     return SimpleCalculator(
       value: _currentValue,
       hideExpression: false,
