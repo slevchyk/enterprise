@@ -106,11 +106,11 @@ class BodyChannelState extends State<BodyChannel> {
     setState(() {});
   }
 
-  Future<List<Channel>> getChannels(String Status) async {
+  Future<List<Channel>> getChannels(String status) async {
     final prefs = await SharedPreferences.getInstance();
 
     String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return ChannelDAO().getByUserIdType(userID, Status);
+    return ChannelDAO().getByUserIdType(userID, status);
   }
 
   Future<List<Channel>> getArchived() async {

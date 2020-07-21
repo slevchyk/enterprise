@@ -112,10 +112,10 @@ class ProfileDAO {
     return res;
   }
 
-  Future<Profile> getByUserId(String user_id) async {
+  Future<Profile> getByUserId(String userID) async {
     final db = await dbProvider.database;
     var res =
-        await db.query("profile", where: "user_id = ?", whereArgs: [user_id]);
+        await db.query("profile", where: "user_id = ?", whereArgs: [userID]);
     return res.isNotEmpty ? Profile.fromMap(res.first) : null;
   }
 

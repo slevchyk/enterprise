@@ -4,20 +4,27 @@ import 'dart:collection';
 import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/cost_item_dao.dart';
+import 'package:enterprise/database/impl/pay_desk_dao.dart';
+import 'package:enterprise/database/impl/pay_office_dao.dart';
 import 'package:enterprise/database/income_item_dao.dart';
 import 'package:enterprise/database/pay_desk_dao.dart';
+import 'package:enterprise/models/analytic_data.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/cost_item.dart';
 import 'package:enterprise/models/income_item.dart';
+import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/models/result_types.dart';
+import 'package:enterprise/widgets/charts_list.dart';
 import 'package:enterprise/widgets/paydesk_list.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:intl/intl.dart';
 
 class PageResults extends StatefulWidget{
   final Profile profile;
@@ -28,7 +35,6 @@ class PageResults extends StatefulWidget{
 
   @override
   _PageResultsState createState() => _PageResultsState();
-
 }
 
 class _PageResultsState extends State<PageResults> with SingleTickerProviderStateMixin {
@@ -37,18 +43,28 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
   final List<Tab> _myTabs = _setTabs();
   TabController _tabController;
 
+  final TextEditingController _dateFrom = TextEditingController();
+  final TextEditingController _dateTo = TextEditingController();
+
   Future<List<PayDesk>> _payDeskList;
   Future<List<CostItem>> _costItemsList;
   Future<List<IncomeItem>> _incomeItemsList;
+  List<PayOffice> _payOfficeList;
 
-  ScrollController _scrollController;
+  List<PayDesk> _sortedPayDeskList = [];
+
+  ScrollController _scrollController, _dialogScrollController;
 
   Map<dynamic, PayDesk> _preparedMap;
 
   double _sum;
 
   int _currencyCode, _currentIndex, _currentColor;
-  bool _isDetail;
+
+  bool _isDetail, _isReload, _isPeriod, _isSwitched, _isSortByPayOffice;
+
+  static final _now = DateTime.now();
+  final _firstDayOfMonth = DateTime(_now.year, _now.month, 1);
 
   final _amountFormatter =
   MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: ' ');
@@ -60,9 +76,15 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
+    _dateFrom.text = formatDate(_firstDayOfMonth, [dd, '.', mm, '.', yyyy]);
+    _dateTo.text = formatDate(_now, [dd, '.', mm, '.', yyyy]);
+    _isReload = false;
+    _isPeriod = true;
+    _isDetail = false;
+    _isSwitched = true;
+    _isSortByPayOffice = false;
     _currentIndex = 0;
     _currentColor = 255;
-    _isDetail = false;
     _sceneMap = {
       "видаткiв" : 0,
       "надходжень" : 1,
@@ -71,6 +93,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     _load();
     _profile = widget.profile;
     _scrollController = ScrollController();
+    _dialogScrollController = ScrollController();
     _tabController = TabController(vsync: this, length: _myTabs.length);
   }
 
@@ -94,7 +117,6 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
             return;
           }
           toReturn.addAll({cost:PayDesk(amount: sum, costItemName: cost.name, percentage: sum/sumInput*100)});
-
         });
         break;
       case 1:
@@ -116,7 +138,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
           if(_tmp.isEmpty){
             return;
           }
-          toReturn.addAll({const Types(name: "Надходження") : PayDesk(amount: sum, percentage: sum/sumInput*100)});
+          toReturn.addAll({const ResultTypes(name: "Надходження", color: Colors.green) : PayDesk(amount: sum, percentage: sum/sumInput*100)});
         });
         sum = 0;
         costList.forEach((cost) {
@@ -126,7 +148,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
           if(_tmp.isEmpty){
             return;
           }
-          toReturn.addAll({const Types(name: "Видаток") : PayDesk(amount: sum, percentage: sum/sumInput*100)});
+          toReturn.addAll({const ResultTypes(name: "Видаток", color: Colors.red) : PayDesk(amount: sum, percentage: sum/sumInput*100)});
         });
         break;
     }
@@ -134,7 +156,34 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
   }
 
   List<charts.Series<AnalyticData, String>> _createSampleData(List<PayDesk> payDeskList, int currency,
-      List<CostItem> costList, List<IncomeItem> incomeList) {
+      List<CostItem> costList, List<IncomeItem> incomeList, {DateTime first, DateTime second}) {
+    if(first!=null && !_isPeriod){
+      payDeskList = payDeskList.where((element) => DateFormat('yyyy-MM-dd').parse(element.documentDate.toString()).isAtSameMomentAs(first)).toList();
+      _sortedPayDeskList = payDeskList;
+      _sum = 0;
+    }
+
+    if(second!=null && _isPeriod){
+      payDeskList = payDeskList.where((element) {
+        var parse = DateFormat('yyyy-MM-dd').parse(element.documentDate.toString());
+        return parse.isBefore(first) && parse.isAfter(second) || parse.isAtSameMomentAs(first) || parse.isAtSameMomentAs(second);
+      }).toList();
+      _sortedPayDeskList = payDeskList;
+      _sum = 0;
+    }
+
+    if(_isSortByPayOffice){
+      List<PayDesk> toReturn = [];
+      _payOfficeList.forEach((payOffice) {
+        payDeskList.where((payDesk) => payDesk.fromPayOfficeAccID == payOffice.accID && payOffice.isShow)
+            .forEach((payDeskOutput) {
+          toReturn.add(payDeskOutput);
+        });
+      });
+      payDeskList = toReturn;
+      _sortedPayDeskList = payDeskList;
+    }
+
     List<AnalyticData> _data = [];
     _sum =
       payDeskList.fold(0, (previousValue, element) => previousValue + element.amount);
@@ -142,20 +191,24 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
       payDesk.percentage = payDesk.amount/_sum*100;
     });
 
-    _preparedMap = _getPrepared(payDeskList, costList, incomeList, _sum);
+    _preparedMap = _sort(_getPrepared(payDeskList, costList, incomeList, _sum));
 
     _preparedMap.forEach((key, value) {
-      _currentIndex == 2 ? _sum = _preparedMap.values.first.amount-_preparedMap.values.last.amount : _sum = _sum;
+      if(_currentIndex == 2){
+        _sum = _preparedMap.values.first.amount-_preparedMap.values.last.amount;
+        if(_preparedMap.keys.first.name==_preparedMap.keys.last.name){
+          _sum = _preparedMap.values.first.amount;
+        }
+      }
       _amountFormatter.text = value.amount.toStringAsFixed(2);
       _data.add(AnalyticData(
         amount: value.amount,
         name: key.name,
-        color: _setColor(value, type: key),
+        color: _currentIndex == 2 ? key.color : _setColor(value),
         percent: value.percentage,
         sum: _sum,
       ));
     });
-    _data.sort((k1, k2) => k2.amount.compareTo(k1.amount));
     return [
       charts.Series(
         data: _data,
@@ -177,115 +230,11 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     super.dispose();
   }
 
-  Future _showPeriodDialog(){
-    final _dateFrom = TextEditingController();
-    final _dateTo = TextEditingController();
-    _dateFrom.text = formatDate(DateTime.now(), [dd, '.', mm, '.', yyyy]);
-    _dateTo.text = formatDate(DateTime.now(), [dd, '.', mm, '.', yyyy]);
-    return showDialog(
-        context: context,
-        builder: (context) => GestureDetector(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Center(
-                  child: Container(
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                        color: Colors.white
-                    ),
-                    width: MediaQuery.of(context).size.width/1.3,
-                    child: ListView(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.all(20.0),
-                      children: <Widget>[
-                        Text("Встановити період", style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),),
-                        Padding(
-                          padding: EdgeInsets.only(top: 30),
-                          child: Text("Дата вiд (включно)"),
-                        ),
-                        InkWell(
-                          onTap: () async {
-                            DateTime picked = await showDatePicker(
-                                context: context,
-                                firstDate: DateTime(DateTime.now().year - 1),
-                                initialDate: DateTime.now(),
-                                lastDate: DateTime(DateTime.now().year + 1));
-
-                            if (picked != null) {
-                              setState(() {
-                                _dateFrom.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
-                              });
-                            }
-                          },
-                          child: TextFormField(
-                            controller: _dateFrom,
-                            enabled: false,
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(top: 10),
-                          child: Text("Дата по (включно)"),
-                        ),
-                        InkWell(
-                          onTap: () async {
-                            DateTime picked = await showDatePicker(
-                                context: context,
-                                firstDate: DateTime(DateTime.now().year - 1),
-                                initialDate: DateTime.now(),
-                                lastDate: DateTime(DateTime.now().year + 1));
-
-                            if (picked != null) {
-                              setState(() {
-                                _dateTo.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
-                              });
-                            }
-                          },
-                          child: TextFormField(
-                            controller: _dateTo,
-                            enabled: false,
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(top: 0),
-                          child: Container(
-                            margin: EdgeInsets.all(0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: <Widget>[
-                                FlatButton(
-                                  child: Text("Застосувати період"),
-                                  onPressed: (){},
-                                ),
-                                FlatButton(
-                                  child: Text("Сьогодні"),
-                                  onPressed: (){},
-                                ),
-                                FlatButton(
-                                  child: Text("Вчора"),
-                                  onPressed: (){},
-                                ),
-                                FlatButton(
-                                  child: Text("Поточний місяць"),
-                                  onPressed: (){},
-                                ),
-                                FlatButton(
-                                  child: Text("Попередній місяць"),
-                                  onPressed: (){},
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  )
-              )
-          ),
-        )
-    );
+  Map<dynamic, PayDesk> _sort(Map<dynamic, PayDesk> input){
+    var _sortedKeys = input.keys.toList(growable:false)
+      ..sort((k1, k2) => input[k2].percentage.compareTo(input[k1].percentage));
+    return LinkedHashMap
+        .fromIterable(_sortedKeys, key: (k) => k, value: (k) => input[k]);
   }
 
   @override
@@ -296,6 +245,12 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
           appBar: AppBar(
             title: Text("Аналiтика"),
             actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.sort),
+                onPressed: () {
+                  _sortDialog(_payOfficeList);
+                },
+              ),
               IconButton(
                   icon: Icon(Icons.calendar_today),
                   onPressed: (){
@@ -337,30 +292,56 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                         : _myTabs.map((dynamicContent) {
                       List<PayDesk> _toShow = [];
                       CURRENCY_NAME.values.where((currency) => currency==dynamicContent.text);
-                      if(CURRENCY_NAME.values.contains(dynamicContent.text)){
-                        _toShow = snapshot.data[0];
-                        _currencyCode =
-                            CURRENCY_NAME.entries.where((element) => element.value==dynamicContent.text).toList().first.key;
-                        _toShow = _toShow.where((element) => element.currencyCode==_currencyCode).toList();
+                      _currencyCode =
+                          CURRENCY_NAME.entries.where((element) => element.value==dynamicContent.text).toList().first.key;
+                      _toShow = snapshot.data[0];
+                      _toShow = _toShow.where((element) => element.currencyCode==_currencyCode).toList();
+                      if(_isReload){
                         _seriesList = _createSampleData(_toShow, _currencyCode, snapshot.data[1], snapshot.data[2]);
-                        _amountFormatter.text = _sum.toStringAsFixed(2);
+                      } else {
+                        _seriesList = _createSampleData(
+                          _toShow,
+                          _currencyCode,
+                          snapshot.data[1],
+                          snapshot.data[2],
+                          first: DateFormat('dd.MM.yyyy').parse(_dateTo.text),
+                          second: DateFormat('dd.MM.yyyy').parse(_dateFrom.text),
+                        );
+                        _toShow = _sortedPayDeskList;
                       }
+                      _amountFormatter.text = _sum.toStringAsFixed(2);
                       return _seriesList.first.data.isEmpty ?
-                      Container(
-                        child: Center(
-                          child: Text("Немає iнформацiї по валютi ${dynamicContent.text}",
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                        ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Container(
+                            child: Center(
+                              child: Text("Немає iнформацiї по валютi ${dynamicContent.text} ",
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                          _isReload ? Container() : Container(
+                            alignment: Alignment.center,
+                            child: Text("за ${_isPeriod ? "перiод ${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"}",
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                          ),
+                        ],
                       ) :
                       ListView(
                         controller: _scrollController,
                         children: <Widget>[
                           Container(
-                            padding: EdgeInsets.only(top: 20, bottom: 15),
+                            padding: EdgeInsets.only(top: 20),
                             alignment: Alignment.center,
-                            child: Text("Iнформацiя по валютi ${dynamicContent.text}",
+                            child: Text("Iнформацiя по валютi ${dynamicContent.text} ",
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
                           ),
+                          _isReload ? Container() : Container(
+                            alignment: Alignment.center,
+                            child: Text("за ${_isPeriod ? "перiод ${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"}",
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                          ),
+                          SizedBox(height: 15,),
                           Container(
                             width: MediaQuery.of(context).size.width,
                             height: _setHeight()/1.5,
@@ -368,8 +349,8 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                                 padding: EdgeInsets.symmetric(vertical: 10),
                                 child: Stack(
                                   children: <Widget>[
-                                    _currentIndex == 2 ? _toShowChartsSimple() :
-                                    _toShowCharts(),
+                                    _currentIndex == 2 ? AnalyticChartsList().toShowChartsSimple(_seriesList) :
+                                    AnalyticChartsList().toShowCharts(_seriesList),
                                     _currentIndex == 2 ? Container() : Container(
                                       child: Center(
                                         child: Text("${_amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}"
@@ -382,7 +363,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                           ),
                           Container(
                             padding: EdgeInsets.only(top: 15),
-                            child: _showChartsLabels(_currencyCode)
+                            child: AnalyticChartsList().showChartsLabels(_currencyCode, _preparedMap, _amountFormatter, _currentColor, _currentIndex)
                           ),
                           Container(
                             height: 50,
@@ -397,7 +378,8 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                                   ),
                                   Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 5),
-                                    child: Text("${_currentIndex == 2 ? _preparedMap.values.first.amount >= _preparedMap.values.last.amount ? "" : "-" : ""} ${_amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}"
+                                    child: Text("${_currentIndex == 2 ? _preparedMap.values.first.amount >= _preparedMap.values.last.amount && _preparedMap.keys.first.name!="Видаток" ? "" : "-" : ""} "
+                                        "${_amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}"
                                       , style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
                                   ),
                                 ],
@@ -443,7 +425,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                               )
                             ],
                           ) :
-                          _showGeneralInformation(_currencyCode),
+                          AnalyticChartsList().showGeneralInformation(_currencyCode, _preparedMap, _amountFormatter, _currentColor, _currentIndex),
                         ],
                       );
                     }).toList(),
@@ -492,140 +474,167 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     );
   }
 
-  Widget _toShowCharts(){
-    return charts.PieChart(
-      _seriesList,
-      layoutConfig: charts.LayoutConfig(
-          leftMarginSpec: charts.MarginSpec.fromPercent(),
-          topMarginSpec: charts.MarginSpec.fromPercent(),
-          rightMarginSpec: charts.MarginSpec.fromPercent(),
-          bottomMarginSpec: charts.MarginSpec.fromPercent()
-      ),
-      animate: true,
-      defaultRenderer: charts.ArcRendererConfig(
-          arcWidth: 15,
-          arcRendererDecorators: [
-            charts.ArcLabelDecorator(
-              outsideLabelStyleSpec: charts.TextStyleSpec(
-                fontSize: 14,
-              ),
-              labelPosition: charts.ArcLabelPosition.outside,
-            )
-          ]
-      ),
-    );
-  }
-
-  Widget _toShowChartsSimple(){
-   return charts.BarChart(
-     _seriesList,
-     animate: true,
-   );
-  }
-
-  Widget _showGeneralInformation(int currency){
-    var _temp = _preparedMap;
-    var _sortedKeys = _temp.keys.toList(growable:false)
-      ..sort((k1, k2) => _temp[k2].percentage.compareTo(_temp[k1].percentage));
-    LinkedHashMap _sortedMap = new LinkedHashMap
-        .fromIterable(_sortedKeys, key: (k) => k, value: (k) => _temp[k]);
-    return Container(
-      child: ListView.builder(
-        physics: NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        itemCount: _sortedMap.length,
-        itemBuilder: (BuildContext context, int index) {
-          _amountFormatter.text = _sortedMap.values.elementAt(index).amount.toStringAsFixed(2);
-          return Card(
-            child: Container(
-              child: Column(
-                children: <Widget>[
-                  ListTile(
-                    title: Text(_sortedMap.keys.elementAt(index).name),
-                    trailing: Padding(
-                      padding: EdgeInsets.only(top: 10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          Text("${_amountFormatter.text} ${CURRENCY_SYMBOL[currency]}" ),
-                          SizedBox(height: 5,),
-                          Text("${_sortedMap.values.elementAt(index).percentage.toStringAsFixed(2).replaceAll(".", ",")} %",
-                          style: TextStyle(color: _currentIndex == 2 ? _setColor(_sortedMap.values.elementAt(index), type: _sortedMap.keys.elementAt(index)) : _currentIndex == 0 ? Colors.red : Colors.green[800]),),
-                        ],
-                      ),
+  Future _showPeriodDialog() {
+    return showDialog(
+        context: context,
+        builder: (context) => GestureDetector(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                        color: Colors.white
                     ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 5, right: 5, bottom: 15,),
-                    child: LinearPercentIndicator(
-                      animation: true,
-                      animationDuration: 1000,
-                      lineHeight: 10,
-                      linearStrokeCap: LinearStrokeCap.roundAll,
-                      percent: _sortedMap.values.elementAt(index).percentage/100,
-                      progressColor: _setColor(_sortedMap.values.elementAt(index), type: _sortedMap.keys.elementAt(index)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
+                    width: MediaQuery.of(context).size.width/1.3,
+                    child: ListView(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.all(20.0),
+                      children: <Widget>[
+                        Text("Встановити період", style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),),
+                        Padding(
+                          padding: EdgeInsets.only(top: 30),
+                          child: Text("Дата вiд (включно)"),
+                        ),
+                        InkWell(
+                          onTap: () async {
+                            DateTime picked = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(_now.year - 1),
+                                initialDate: _now,
+                                lastDate: DateTime(_now.year + 1));
 
-  Widget _showChartsLabels(int currency) {
-    var _temp = _preparedMap;
-    var _sortedKeys = _temp.keys.toList(growable:false)
-      ..sort((k1, k2) => _temp[k2].percentage.compareTo(_temp[k1].percentage));
-    LinkedHashMap _sortedMap = new LinkedHashMap
-        .fromIterable(_sortedKeys, key: (k) => k, value: (k) => _temp[k]);
-    return ListView.builder(
-      itemCount: _sortedMap.length,
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      itemBuilder: (BuildContext context, int index) {
-        _amountFormatter.text = _sortedMap.values.elementAt(index).amount.toStringAsFixed(2);
-        return Container(
-          child: ListTile(
-            title: Row(
-              children: <Widget>[
-                Container(
-                  margin: EdgeInsets.only(right: 15),
-                  height: 8,
-                  width: 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _setColor(_sortedMap.values.elementAt(index), type: _sortedMap.keys.elementAt(index)),
-                  ),
-                ),
-                Container(
-                  width: MediaQuery.of(context).size.width/1.2,
-                  child: Text(
-                    "${_sortedMap.keys.elementAt(index).name} ${_amountFormatter.text} ${CURRENCY_SYMBOL[currency]}",
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 3,
-                    softWrap: true,
-                  ),
-                ),
-              ],
-            ),
+                            if (picked != null) {
+                              setState(() {
+                                _dateFrom.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
+                              });
+                            }
+                          },
+                          child: TextFormField(
+                            controller: _dateFrom,
+                            enabled: false,
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 10),
+                          child: Text("Дата по (включно)"),
+                        ),
+                        InkWell(
+                          onTap: () async {
+                            DateTime picked = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(_now.year - 1),
+                                initialDate: _now,
+                                lastDate: DateTime(_now.year + 1));
+
+                            if (picked != null) {
+                              setState(() {
+                                _dateTo.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
+                              });
+                            }
+                          },
+                          child: TextFormField(
+                            controller: _dateTo,
+                            enabled: false,
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 0),
+                          child: Container(
+                            margin: EdgeInsets.all(0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: <Widget>[
+                                FlatButton(
+                                  child: Text("Застосувати період"),
+                                  onPressed: () {
+                                    setState(() {
+                                      _isReload = false;
+                                      _isPeriod = true;
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                FlatButton(
+                                  child: Text("Сьогодні"),
+                                  onPressed: () {
+                                    setState(() {
+                                      _dateTo.text = DateFormat('dd.MM.yyyy').format(_now);
+                                      _isReload = false;
+                                      _isPeriod = false;
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                FlatButton(
+                                  child: Text("Вчора"),
+                                  onPressed: () {
+                                    final _yesterday = DateTime(_now.year, _now.month, _now.day-1);
+                                    setState(() {
+                                      _dateTo.text = DateFormat('dd.MM.yyyy').format(_yesterday);
+                                      _isReload = false;
+                                      _isPeriod = false;
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                FlatButton(
+                                  child: Text("Поточний місяць"),
+                                  onPressed: (){
+                                    setState(() {
+                                      _dateFrom.text = DateFormat('dd.MM.yyyy').format(_firstDayOfMonth);
+                                      _dateTo.text = DateFormat('dd.MM.yyyy').format(_now);
+                                      _isReload = false;
+                                      _isPeriod = true;
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                FlatButton(
+                                  child: Text("Попередній місяць"),
+                                  onPressed: (){
+                                    final _firstDayOfPreviousMonth = DateTime(_now.year, _now.month-1, 1);
+                                    final _lastDayOfPreviousMonth = DateTime(_now.year, _now.month, 0);
+                                    setState(() {
+                                      _dateFrom.text = DateFormat('dd.MM.yyyy').format(_firstDayOfPreviousMonth);
+                                      _dateTo.text = DateFormat('dd.MM.yyyy').format(_lastDayOfPreviousMonth);
+                                      _isReload = false;
+                                      _isPeriod = true;
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                FlatButton(
+                                  child: Text("За весь час"),
+                                  onPressed: (){
+                                    if(!_isReload){
+                                      setState(() {
+                                        _isReload = true;
+                                        _dateFrom.text = formatDate(_firstDayOfMonth, [dd, '.', mm, '.', yyyy]);
+                                        _dateTo.text = formatDate(_now, [dd, '.', mm, '.', yyyy]);
+                                      });
+                                    }
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  )
+              )
           ),
-        );
-      },
+        )
     );
   }
 
-  Color _setColor(PayDesk value, {var type}){
+  Color _setColor(PayDesk value){
     ///Change chart labels color hue from percentage value of PayDesk
-    if(type!=null){
-      if(type.runtimeType==Types && type.name == "Видаток"){
-        return Colors.red;
-      } else if (type.name == "Надходження"){
-        return Colors.green;
-      }
-    }
     switch(_currentColor){
       case 255: //set for color 'red' 2.5
         return Color.fromRGBO(_currentColor, 255-int.parse((value.percentage*2.5).toStringAsFixed(0)), 0, 1);
@@ -652,35 +661,147 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     }
   }
 
+  _sortDialog(List<PayOffice> inputCostItem){
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _dialogScrollController
+          .jumpTo(_dialogScrollController.position.maxScrollExtent+inputCostItem.length);
+    });
+    showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (BuildContext context, void Function(void Function()) setState) {
+              return AlertDialog(
+                contentPadding: EdgeInsets.all(0.0),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(20.0))
+                ),
+                content: Container(
+                  height: inputCostItem.length == 1 ? 115 : inputCostItem.length >3 ? 250 : 160,
+                  width: 500,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    reverse: true,
+                    controller: _dialogScrollController,
+                    itemCount: inputCostItem.length+1,
+                    itemBuilder: (BuildContext context, int index){
+                      if(inputCostItem.length==index){
+                        return Column(
+                          children: <Widget>[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: <Widget>[
+                                Container(
+                                  height: 60,
+                                  padding: EdgeInsets.only(left: 25),
+                                  alignment: Alignment.center,
+                                  child: Text("Обрати всi",textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.lightGreen),),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.only(right: 25),
+                                  child: Switch(
+                                    value: _isSwitched,
+                                    onChanged: (value) {
+                                      if(!_isSwitched){
+                                        setState(() {
+                                          _isSwitched = value;
+                                          inputCostItem.where((element) => element.isShow ?
+                                          element.isShow :
+                                          element.isShow = true).toList();
+                                          this.setState(() {});
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: Container(
+                                height: 1.5,
+                                color: Colors.lightGreen,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              Container(
+                                width: 180,
+                                alignment: Alignment.centerLeft,
+                                padding: EdgeInsets.only(left: 30),
+                                child: Column(
+                                  children: <Widget>[
+                                    Text(inputCostItem[index].name,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                width: 35,
+                                alignment: Alignment.centerLeft,
+                                child: Column(
+                                  children: <Widget>[
+                                    Text("${inputCostItem[index].currencyName}",
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                alignment: Alignment.center,
+                                padding: EdgeInsets.only(right: 25),
+                                child: Column(
+                                  children: <Widget>[
+                                    Switch(
+                                      value: inputCostItem[index].isShow,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          if(_isSwitched){
+                                            _isSwitched = false;
+                                          }
+                                          _isSortByPayOffice = true;
+                                          _payOfficeList[index].isShow = !_payOfficeList[index].isShow;
+                                          if(inputCostItem.where((element) => element.isShow).length==inputCostItem.length){
+                                            _isSwitched = true;
+                                          }
+                                          this.setState(() { });
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              );},
+          );
+        }
+    );
+  }
+
   _load() async {
+    if(_payOfficeList==null){
+      _payOfficeList = await ImplPayOfficeDAO().getUnDeleted();
+    }
     setState(() {
-      _currentIndex == 2 ? _payDeskList = PayDeskDAO().getAllExceptTransfer() : _payDeskList = PayDeskDAO().getByType(_sceneMap.values.elementAt(_currentIndex));
+      _currentIndex == 2 ? _payDeskList = PayDeskDAO().getAllExceptTransfer() : _payDeskList = ImplPayDeskDao().getByType(_sceneMap.values.elementAt(_currentIndex));
       _costItemsList = CostItemDAO().getUnDeleted();
       _incomeItemsList = IncomeItemDAO().getUnDeleted();
     });
   }
-}
-
-class AnalyticData{
-  final double percent;
-  final String name;
-  final double amount;
-  final double sum;
-  final Color color;
-
-  AnalyticData({
-    this.percent,
-    this.name,
-    this.amount,
-    this.sum,
-    this.color,
-  });
-}
-
-class Types{
-  final String name;
-
-  const Types({
-    this.name
-  });
 }

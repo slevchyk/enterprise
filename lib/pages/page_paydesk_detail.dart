@@ -90,7 +90,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 //    _currencyList = CurrencyDAO().getUnDeleted();
     _costItemsList = CostItemDAO().getUnDeleted();
     _incomeItemsList = IncomeItemDAO().getUnDeleted();
-    _payOfficeList = ImplPayOfficeDAO().getAll();
+    _payOfficeList = ImplPayOfficeDAO().getUnDeleted();
     _payDesk = widget.payDesk ?? PayDesk();
     _readOnly = _payDesk?.mobID != null;
     profile = widget.profile;

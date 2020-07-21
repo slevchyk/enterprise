@@ -15,6 +15,10 @@ class PayOffice {
   String name;
   String currencyName;
   bool isDeleted;
+  bool isVisible;
+  bool isAvailable;
+  bool isReceiver;
+  bool isShow;
 
   PayOffice({
     this.mobID,
@@ -24,6 +28,10 @@ class PayOffice {
     this.name,
     this.currencyName,
     this.isDeleted,
+    this.isVisible,
+    this.isAvailable,
+    this.isReceiver,
+    this.isShow = true,
   });
 
   factory PayOffice.fromMap(Map<String, dynamic> json) => PayOffice(
@@ -37,6 +45,21 @@ class PayOffice {
             : json["is_deleted"] is int
                 ? json["is_deleted"] == 1 ? true : false
                 : json["is_deleted"],
+        isVisible: json["is_visible"] == null
+            ? false
+            : json["is_visible"] is int
+                ? json["is_visible"] == 1 ? true : false
+                : json["is_visible"],
+        isAvailable: json["is_available"] == null
+            ? false
+            : json["is_available"] is int
+                ? json["is_available"] == 1 ? true : false
+                : json["is_available"],
+        isReceiver: json["is_receiver"] == null
+            ? false
+            : json["is_receiver"] is int
+                ? json["is_receiver"] == 1 ? true : false
+                : json["is_receiver"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -46,6 +69,9 @@ class PayOffice {
         'currency_acc_id': currencyAccID,
         'name': name,
         "is_deleted": isDeleted == null ? 0 : isDeleted ? 1 : 0,
+        "is_visible" : isVisible == null ? 0 : isVisible ? 1 : 0,
+        "is_available" : isAvailable == null ? 0 : isAvailable ? 1 : 0,
+        "is_receiver" : isReceiver == null ? 0 : isReceiver ? 1 : 0,
       };
 
   static sync() async {

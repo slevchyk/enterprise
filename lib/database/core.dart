@@ -162,7 +162,10 @@ class DBProvider {
           'acc_id TEXT,'
           'currency_acc_id TEXT,'
           'name TEXT,'
-          'is_deleted BIT'
+          'is_deleted BIT,'
+          'is_visible BIT,'
+          'is_available BIT,'
+          'is_receiver BIT'
           ')');
       await db.execute('CREATE TABLE currency ('
           'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
