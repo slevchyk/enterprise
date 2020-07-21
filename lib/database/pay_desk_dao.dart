@@ -1,7 +1,8 @@
 import 'package:enterprise/database/core.dart';
+import 'package:enterprise/interfaces/pay_desk_dao_interface.dart';
 import 'package:enterprise/models/paydesk.dart';
 
-class PayDeskDAO {
+class PayDeskDAO implements PayDeskInterface{
   final dbProvider = DBProvider.db;
 
   insert(PayDesk payDesk, {bool isModified = true, sync = true}) async {

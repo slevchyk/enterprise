@@ -13,6 +13,7 @@ class _PageTimingDBState extends State<PageTimingDB> {
 
   @override
   void initState() {
+    super.initState();
     listTiming = _getTiming();
   }
 

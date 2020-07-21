@@ -46,7 +46,7 @@ class _PagePayDeskSortState extends State<PagePayDeskSort>{
       body: PayDeskList(
         profile: _profile,
         payList: _payList,
-        dateSort: _dateSort,
+        dateFrom: _dateSort,
         showStatus: false,
         textIfEmpty: "Платежiв за датою ${formatDate(
           _dateSort,

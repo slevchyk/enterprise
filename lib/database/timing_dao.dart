@@ -60,10 +60,10 @@ class TimingDAO {
     return raw;
   }
 
-  getByMobId(int mob_id) async {
+  getByMobId(int mobID) async {
     final db = await dbProvider.database;
     var res =
-        await db.query("timing", where: "mob_id = ?", whereArgs: [mob_id]);
+        await db.query("timing", where: "mob_id = ?", whereArgs: [mobID]);
     return res.isNotEmpty ? Timing.fromMap(res.first) : null;
   }
 

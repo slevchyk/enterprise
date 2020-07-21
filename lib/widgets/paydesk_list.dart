@@ -4,12 +4,18 @@ import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_paydesk_detail.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:intl/intl.dart';
 
 class PayDeskList extends StatelessWidget {
   final Future<List<PayDesk>> payList;
-  final DateTime dateSort;
+  final DateTime dateFrom;
+  final DateTime dateTo;
+  final bool isReload;
+  final bool isPeriod;
+  final bool isSort;
   final Profile profile;
   final ScrollController scrollController;
   final String textIfEmpty;
@@ -24,7 +30,11 @@ class PayDeskList extends StatelessWidget {
   PayDeskList({
     @required this.payList,
     @required this.profile,
-    this.dateSort,
+    this.dateFrom,
+    this.dateTo,
+    this.isReload = false,
+    this.isPeriod = false,
+    this.isSort = false,
     this.scrollController,
     this.textIfEmpty,
     this.showStatus = true,
@@ -54,12 +64,27 @@ class PayDeskList extends StatelessWidget {
             );
           case ConnectionState.done:
             List<PayDesk> _payList = snapshot.data;
+            if(isSort){
+              if(dateTo!=null && !isPeriod){
+                _payList = _payList.where((element) => DateFormat('yyyy-MM-dd').parse(element.documentDate.toString()).isAtSameMomentAs(dateTo)).toList();
+              }
+              if(dateFrom!=null && isPeriod){
+                _payList = _payList.where((element) {
+                  var parse = DateFormat('yyyy-MM-dd').parse(element.documentDate.toString());
+                  return parse.isBefore(dateTo) && parse.isAfter(dateFrom) || parse.isAtSameMomentAs(dateTo) || parse.isAtSameMomentAs(dateFrom);
+                }).toList();
+              }
+            }
             _payList.sort((first, second) =>
                 second.documentDate.compareTo(first.documentDate));
             return _setEmptyText(_payList) ?
             Container(
               child: Center(
-                child: Text(textIfEmpty),),) :
+                child: Text(textIfEmpty,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),),) :
             ListView.separated(
               controller: scrollController,
               physics: physics,
@@ -69,6 +94,12 @@ class PayDeskList extends StatelessWidget {
                 if(index==0){
                   return Column(
                     children: <Widget>[
+                      isSort ? isReload ? Container() : Container(
+                        alignment: Alignment.center,
+                        padding: EdgeInsets.only(top: 10),
+                        child: Text("За ${isPeriod ? "перiод ${formatDate(dateFrom, [dd, '.', mm, '.', yyyy])} - ${formatDate(dateTo, [dd, '.', mm, '.', yyyy])}" : "${formatDate(dateTo, [dd, '.', mm, '.', yyyy])}"}",
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                      ) : Container(),
                       _setSeparatorWithDate(_payList[index].documentDate),
                       _listBuilder(_payList, index, context)
                     ],
@@ -121,12 +152,7 @@ class PayDeskList extends StatelessWidget {
               Row(
                 children: <Widget>[
                   _setIcon(_payList[index].payDeskType),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      _getPayDeskDetailsLine1(_payList[index]),
-                    ],
-                  ),
+                  _getPayDeskDetailsLine1(_payList[index], context),
                 ],
               ),
               Text('${formatDate(
@@ -199,7 +225,7 @@ class PayDeskList extends StatelessWidget {
     return Container();
   }
 
-  Widget _getPayDeskDetailsLine1(PayDesk _payDesk) {
+  Widget _getPayDeskDetailsLine1(PayDesk _payDesk, BuildContext context) {
     String _details = "";
     PayDeskTypes _payDeskType;
 
@@ -221,6 +247,7 @@ class PayDeskList extends StatelessWidget {
 //    }
 
     return Container(
+      width: MediaQuery.of(context).orientation==Orientation.portrait ? 150 : 400,
       child: Text(
         _details,
         overflow: TextOverflow.ellipsis,
