@@ -702,15 +702,20 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                                   child: Switch(
                                     value: _isSwitched,
                                     onChanged: (value) {
-                                      if(!_isSwitched){
-                                        setState(() {
-                                          _isSwitched = value;
-                                          inputCostItem.where((element) => element.isShow ?
-                                          element.isShow :
-                                          element.isShow = true).toList();
-                                          this.setState(() {});
-                                        });
-                                      }
+//                                      if(!_isSwitched){
+//                                        setState(() {
+//                                          _isSwitched = value;
+//                                          inputCostItem.where((element) => element.isShow ?
+//                                          element.isShow :
+//                                          element.isShow = true).toList();
+//                                          this.setState(() {});
+//                                        });
+//                                      }
+                                      setState(() {
+                                        _isSwitched = value;
+                                        inputCostItem.where((element) => element.isShow = value).toList();
+                                        this.setState(() {});
+                                      });
                                     },
                                   ),
                                 ),
