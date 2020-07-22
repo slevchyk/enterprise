@@ -75,8 +75,10 @@ class PayDeskList extends StatelessWidget {
                 }).toList();
               }
             }
-            _payList.sort((first, second) =>
-                second.documentDate.compareTo(first.documentDate));
+            if(_payList!=null){
+              _payList.sort((first, second) =>
+                  second.documentDate.compareTo(first.documentDate));
+            }
             return _setEmptyText(_payList) ?
             Container(
               child: Center(
@@ -287,7 +289,7 @@ class PayDeskList extends StatelessWidget {
   }
 
   bool _setEmptyText(List<PayDesk> input) {
-    if(textIfEmpty != null && input.isEmpty){
+    if(textIfEmpty != null && input == null || input.isEmpty){
       return true;
     }
     return false;

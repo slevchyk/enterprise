@@ -3,6 +3,7 @@ import 'package:enterprise/pages/auth/page_auth.dart';
 import 'package:enterprise/pages/auth/page_root.dart';
 import 'package:enterprise/pages/auth/page_set_pin.dart';
 import 'package:enterprise/pages/page_balance.dart';
+import 'package:enterprise/pages/page_balance_details.dart';
 import 'package:enterprise/pages/page_channel_detail.dart';
 import 'package:enterprise/pages/page_helpdesk_detail.dart';
 import 'package:enterprise/pages/page_helpdesk.dart';
@@ -87,7 +88,23 @@ class RouteGenerator {
         }
         return _errorRoute(settings.name);
       case '/balance':
-        return MaterialPageRoute(builder: (_) => PageBalance());
+        if (args is RouteArgs) {
+          return MaterialPageRoute(builder: (_) => PageBalance(
+            profile: args.profile,
+          ));
+        }
+        return _errorRoute(settings.name);
+      case '/balance/details':
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PageBalanceDetails(
+                profile: args.profile,
+                currencyCode: args.currencyCode,
+                inputListPayDesk: args.listDynamic,
+                name: args.name,
+              ));
+        }
+        return _errorRoute(settings.name);
       case '/results':
         if (args is RouteArgs) {
           return MaterialPageRoute(

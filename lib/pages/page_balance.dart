@@ -1,22 +1,35 @@
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:enterprise/database/impl/pay_office_dao.dart';
+import 'package:enterprise/database/pay_desk_dao.dart';
 import 'package:enterprise/models/constants.dart';
+import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/pay_office.dart';
+import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/widgets/custom_expansion_title.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 
 class PageBalance extends StatefulWidget{
+  final Profile profile;
+
+  PageBalance({
+    this.profile,
+  });
+
   @override
   _PageBalanceState createState() => _PageBalanceState();
 }
 
 class _PageBalanceState extends State<PageBalance>{
+  Profile _profile;
+
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final amountFormatter =
   MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: ' ');
@@ -29,11 +42,13 @@ class _PageBalanceState extends State<PageBalance>{
   ScrollController _scrollController;
   ScrollController _dialogScrollController;
 
+  int _currencyCode;
   bool _isSwitched;
 
   @override
   void initState() {
     super.initState();
+    _profile = widget.profile;
     _scrollController = ScrollController();
     _dialogScrollController = ScrollController();
     _isSwitched = true;
@@ -78,7 +93,7 @@ class _PageBalanceState extends State<PageBalance>{
                 if(_emptyLength.length==0){
                   return Container(
                     child: Center(
-                      child: Text("Немає iнформацiї по гаманцям",
+                      child: Text("Нема інформації по гаманцях",
                           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     ),
                   );
@@ -106,13 +121,13 @@ class _PageBalanceState extends State<PageBalance>{
         toReturn.update(pay.currencyName, (value) =>  value + pay.amount);
       }
     });
-    return toReturn;
+    return LinkedHashMap.fromEntries(toReturn.entries.toList().reversed);
   }
 
-  _sortDialog(List<PayOffice> inputCostItem){
+  void _sortDialog(List<PayOffice> inputCostItem){
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _dialogScrollController
-          .jumpTo(_dialogScrollController.position.maxScrollExtent+inputCostItem.length);
+          .jumpTo(_dialogScrollController.position.maxScrollExtent);
     });
     showDialog(
         context: context,
@@ -125,7 +140,7 @@ class _PageBalanceState extends State<PageBalance>{
                     borderRadius: BorderRadius.all(Radius.circular(20.0))
                 ),
                 content: Container(
-                  height: inputCostItem.length == 1 ? 115 : inputCostItem.length >3 ? 250 : 160,
+                  height: inputCostItem.length == 0 ? 50 : inputCostItem.length == 1 ? 115 : inputCostItem.length >3 ? 250 : 160,
                   width: 500,
                   child: ListView.builder(
                     shrinkWrap: true,
@@ -133,6 +148,14 @@ class _PageBalanceState extends State<PageBalance>{
                     controller: _dialogScrollController,
                     itemCount: inputCostItem.length+1,
                     itemBuilder: (BuildContext context, int index){
+                      if(inputCostItem.length==0){
+                        return Container(
+                          padding: EdgeInsets.only(bottom: 15),
+                          child: Center(
+                            child: Text("Нема активних гаманців",textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.lightGreen),),
+                          ),
+                        );
+                      }
                       if(inputCostItem.length==index){
                         return Column(
                           children: <Widget>[
@@ -246,11 +269,13 @@ class _PageBalanceState extends State<PageBalance>{
             return Container();
           }
           amountFormatter.text = listToShow.values.elementAt(index).toStringAsFixed(2);
-          var _currencyCode = CURRENCY_NAME.keys
+          _currencyCode = CURRENCY_NAME.keys
               .firstWhere((element) => CURRENCY_NAME[element] == listToShow.keys.elementAt(index),
               orElse: () => null);
           return Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
+            shape: RoundedRectangleBorder(
+              side: BorderSide(color: Colors.lightGreen, width: 1.5),
+                borderRadius: BorderRadius.all(Radius.circular(20.0))),
             child: Padding(
               padding: EdgeInsets.all(10),
               child: Column(
@@ -302,11 +327,18 @@ class _PageBalanceState extends State<PageBalance>{
                             }
                             if(_listPayOfficeToShow[listIndex].currencyName==listToShow.keys.elementAt(index)){
                               amountFormatter.text = _listPayOfficeToShow[listIndex].amount.toStringAsFixed(2);
-                              var _currencyCode = CURRENCY_NAME.keys
+                              _currencyCode = CURRENCY_NAME.keys
                                   .firstWhere((element) => CURRENCY_NAME[element] == listToShow.keys.elementAt(index),
                                   orElse: () => null);
-                              return Padding(
-                                padding: EdgeInsets.only(left: 17, top: 5, right: 25),
+                              return FlatButton(
+                                onPressed: () async {
+                                  RouteArgs args = RouteArgs(
+                                      profile: _profile,
+                                      currencyCode: _currencyCode,
+                                      name: _listPayOfficeToShow[listIndex].name,
+                                      listDynamic: await PayDeskDAO().getByPayOfficeID(_listPayOfficeToShow[listIndex].accID));
+                                  Navigator.pushNamed(context, "/balance/details", arguments: args);
+                                },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: <Widget>[
@@ -328,5 +360,4 @@ class _PageBalanceState extends State<PageBalance>{
         }
         );
   }
-
 }

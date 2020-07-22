@@ -581,7 +581,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                             DateTime picked = await showDatePicker(
                                 context: context,
                                 firstDate: DateTime(DateTime.now().year - 1),
-                                initialDate: _payDesk?.documentDate != null ? _payDesk.documentDate : DateTime.now(),
+                                initialDate: _payDesk?.documentDate != null ? _payDesk.documentDate : DateFormat('dd.MM.yyyy').parse(_documentDateController.text),
                                 lastDate: DateTime(DateTime.now().year + 1));
 
                             if (picked != null) {
@@ -830,17 +830,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                   '${formatDate(
                     _payDesk.createdAt,
                     [
-                      dd,
-                      '.',
-                      mm,
-                      '.',
-                      yyyy,
-                      ' ',
-                      HH,
-                      ':',
-                      nn,
-                      ':',
-                      ss,
+                      dd, '.', mm, '.', yyyy,
+                      ' ', HH, ':', nn, ':', ss,
                     ],
                   )}\n',
                   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
@@ -1050,15 +1041,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                           ),
                           Text(
                             formatDate(_payDesk.documentDate, [
-                              dd,
-                              '-',
-                              mm,
-                              '-',
-                              yyyy,
-                              ' ',
-                              HH,
-                              ':',
-                              nn,
+                              dd, '-', mm, '-', yyyy,
+                              ' ', HH, ':', nn,
                             ]),
                           ),
                           SizedBox(
@@ -1073,17 +1057,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                           ),
                           Text(
                             formatDate(_payDesk.createdAt, [
-                              dd,
-                              '-',
-                              mm,
-                              '-',
-                              yyyy,
-                              ' ',
-                              HH,
-                              ':',
-                              nn,
-                              ':',
-                              ss,
+                              dd, '-', mm, '-', yyyy,
+                              ' ', HH, ':', nn, ':', ss,
                             ]),
                           ),
                           _payDesk.updatedAt.difference(_payDesk.createdAt).inSeconds > 0
