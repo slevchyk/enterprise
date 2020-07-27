@@ -57,7 +57,7 @@ class AnalyticChartsList{
                   width: 8,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: currentIndex == 2 ? _toShow.keys.elementAt(index).color : _setColor(_toShow.values.elementAt(index), currentColor),
+                    color: currentIndex == 2 ? _toShow.keys.elementAt(index).color : _setColor(_toShow.values.elementAt(index), currentColor == null ? _toShow.keys.elementAt(index).color == Colors.red ? 255 : 0 : currentColor),
                   ),
                 ),
                 Container(
@@ -99,7 +99,7 @@ class AnalyticChartsList{
                           Text("${amountFormatter.text} ${CURRENCY_SYMBOL[currency]}" ),
                           SizedBox(height: 5,),
                           Text("${toShow.values.elementAt(index).percentage.toStringAsFixed(2).replaceAll(".", ",")} %",
-                            style: TextStyle(color: currentIndex == 2 ? toShow.keys.elementAt(index).color : currentIndex == 0 ? Colors.red : Colors.green[800]),),
+                            style: TextStyle(color: currentIndex == 2 ? toShow.keys.elementAt(index).color : currentColor == null ? toShow.keys.elementAt(index).color : currentIndex == 0 ? Colors.red : Colors.green[800]),),
                         ],
                       ),
                     ),
@@ -112,7 +112,7 @@ class AnalyticChartsList{
                       lineHeight: 10,
                       linearStrokeCap: LinearStrokeCap.roundAll,
                       percent: toShow.values.elementAt(index).percentage/100,
-                      progressColor: currentIndex == 2 ? toShow.keys.elementAt(index).color : _setColor(toShow.values.elementAt(index), currentColor),
+                      progressColor: currentIndex == 2 ? toShow.keys.elementAt(index).color : _setColor(toShow.values.elementAt(index), currentColor == null ? toShow.keys.elementAt(index).color == Colors.red ? 255 : 0 : currentColor),
                     ),
                   ),
                 ],

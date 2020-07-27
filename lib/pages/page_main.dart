@@ -265,9 +265,12 @@ class _AppDrawerState extends State<AppDrawer> {
               leading: Icon(Icons.receipt),
               title: Text('Баланс'),
               onTap: () {
+                RouteArgs args = RouteArgs(
+                  profile: widget.profile,
+                );
                 Navigator.of(context).pushNamed(
                   '/balance',
-                  arguments: "",
+                  arguments: args,
                 );
               },
             ),

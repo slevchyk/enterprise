@@ -34,8 +34,8 @@ class _PagePayDeskState extends State<PagePayDesk> {
   Future<List<PayDesk>> payList;
   ScrollController _scrollController;
 
-  static final _now = DateTime.now();
-  final _firstDayOfMonth = DateTime(_now.year, _now.month, 1);
+  DateTime _now;
+  DateTime _firstDayOfMonth;
 
   bool _isVisible, _isReload, _isPeriod, _isSort;
   int _statusCount;
@@ -43,6 +43,8 @@ class _PagePayDeskState extends State<PagePayDesk> {
   @override
   void initState() {
     super.initState();
+    _now = DateTime.now();
+    _firstDayOfMonth = DateTime(_now.year, _now.month, 1);
     _dateFrom.text = formatDate(_firstDayOfMonth, [dd, '.', mm, '.', yyyy]);
     _dateTo.text = formatDate(_now, [dd, '.', mm, '.', yyyy]);
     _profile = widget.profile;
@@ -176,7 +178,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
                             DateTime picked = await showDatePicker(
                                 context: context,
                                 firstDate: DateTime(_now.year - 1),
-                                initialDate: _now,
+                                initialDate: DateFormat('dd.MM.yyyy').parse(_dateFrom.text),
                                 lastDate: DateTime(_now.year + 1));
 
                             if (picked != null) {
@@ -199,7 +201,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
                             DateTime picked = await showDatePicker(
                                 context: context,
                                 firstDate: DateTime(_now.year - 1),
-                                initialDate: _now,
+                                initialDate: DateFormat('dd.MM.yyyy').parse(_dateTo.text),
                                 lastDate: DateTime(_now.year + 1));
 
                             if (picked != null) {

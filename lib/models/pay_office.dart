@@ -10,6 +10,7 @@ import 'constants.dart';
 class PayOffice {
   int mobID;
   int id;
+  double amount;
   String accID;
   String currencyAccID;
   String name;
@@ -23,6 +24,7 @@ class PayOffice {
   PayOffice({
     this.mobID,
     this.id,
+    this.amount,
     this.accID,
     this.currencyAccID,
     this.name,

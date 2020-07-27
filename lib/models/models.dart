@@ -31,6 +31,9 @@ class RouteArgs {
   DateTime dateSort;
   bool showTransfer;
   ImageProvider image;
+  List<dynamic> listDynamic;
+  int currencyCode;
+  String name;
 
   RouteArgs({
     this.profile,
@@ -38,5 +41,8 @@ class RouteArgs {
     this.dateSort,
     this.showTransfer,
     this.image,
+    this.listDynamic,
+    this.currencyCode,
+    this.name,
   });
 }
