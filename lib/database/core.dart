@@ -175,6 +175,14 @@ class DBProvider {
           'name TEXT,'
           'is_deleted BIT'
           ')');
+      await db.execute('CREATE TABLE user_grants ('
+          'user_id TEXT,'
+          'odject_type INT,'
+          'odject_acc_id TEXT,'
+          'is_visible BIT,'
+          'is_available BIT,'
+          'is_receiver BIT'
+          ')');
 //      await db.execute('CREATE TRIGGER log_timing_after_update'
 //          'AFTER UPDATE ON timing'
 //          'WHEN old.ext_id <> new.ext_id'

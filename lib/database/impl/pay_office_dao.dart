@@ -59,6 +59,20 @@ class ImplPayOfficeDAO implements PayOfficeInterface{
     return _setDataToList(_currencyList, _payOfficeList);
   }
 
+  @override
+  Future<List<PayOffice>> getUnDeletedAndAvailable() async {
+    List<Currency> _currencyList = await CurrencyDAO().getUnDeleted();
+    List<PayOffice> _payOfficeList = await _payOfficeDAO.getUnDeletedAndAvailable();
+    return _setDataToList(_currencyList, _payOfficeList);
+  }
+
+  @override
+  Future<List<PayOffice>> getAllToTransfer() async {
+    List<Currency> _currencyList = await CurrencyDAO().getUnDeleted();
+    List<PayOffice> _payOfficeList = await _payOfficeDAO.getAllToTransfer();
+    return _setDataToList(_currencyList, _payOfficeList);
+  }
+
   List<PayOffice> _setDataToList(List<Currency> _currencyList, List<PayOffice> _payOfficeList){
     List<PayOffice> toReturn = [];
     _currencyList.forEach((currency) {

@@ -90,7 +90,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 //    _currencyList = CurrencyDAO().getUnDeleted();
     _costItemsList = CostItemDAO().getUnDeleted();
     _incomeItemsList = IncomeItemDAO().getUnDeleted();
-    _payOfficeList = ImplPayOfficeDAO().getUnDeleted();
+    _payOfficeList = ImplPayOfficeDAO().getUnDeletedAndAvailable();
     _payDesk = widget.payDesk ?? PayDesk();
     _readOnly = _payDesk?.mobID != null;
     profile = widget.profile;
@@ -273,7 +273,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                                 pageBuilder: (context, anim1, anim2) {
                                   return _selectionDialog(
                                     _fromPayOfficeController,
-                                    _payOfficeList,
+                                    _currentType==PayDeskTypes.transfer ? ImplPayOfficeDAO()
+                                        .getAllToTransfer() : _payOfficeList,
                                     payDeskVariablesTypes.fromPayOffice,
                                     _scaffoldKey,
                                   );
@@ -945,18 +946,39 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 
             switch (_type) {
               case PayDeskTypes.costs:
+                _payOfficeList.then((payOfficeList) {
+                  try {
+                    _setPayOfficeAndCurrency(payOfficeList.first);
+                  } catch (e) {
+                    print("no items $e");
+                  }
+                });
                 _incomeItemController.text = '';
                 _incomeItem = IncomeItem();
                 _toPayOfficeController.text = '';
                 _toPayOfficeController.text = '';
                 break;
               case PayDeskTypes.income:
+                _payOfficeList.then((payOfficeList) {
+                  try {
+                    _setPayOfficeAndCurrency(payOfficeList.first);
+                  } catch (e) {
+                    print("no items $e");
+                  }
+                });
                 _costItemController.text = '';
                 _costItem = CostItem();
                 _toPayOfficeController.text = '';
                 _toPayOffice = PayOffice();
                 break;
               case PayDeskTypes.transfer:
+                ImplPayOfficeDAO().getAllToTransfer().then((payOfficeList) {
+                  try {
+                    _setPayOfficeAndCurrency(payOfficeList.first);
+                  } catch (e) {
+                    print("no items $e");
+                  }
+                });
                 _incomeItemController.text = "";
                 _incomeItem = IncomeItem();
                 _toPayOfficeController.text = "";
@@ -1163,7 +1185,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                   }
 
                   return Container(
-                    margin: EdgeInsets.only(top: 0, bottom: 7),
+                    margin: EdgeInsets.only(top: 7, bottom: 7),
                     child: ListView.builder(
                       shrinkWrap: true,
                       itemCount: snapshot == null ? 0 : snapshot.data.length,

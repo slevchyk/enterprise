@@ -2,6 +2,7 @@ import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models/channel.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/pages/auth/page_login.dart';
 import 'package:enterprise/widgets/user_photo.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -32,6 +33,7 @@ class PageMainState extends State<PageMain> {
 
   void initState() {
     super.initState();
+    UserGrants.sync();
     WidgetsBinding.instance.addPostFrameCallback((_) => _getSettings());
 
     _fcm.configure(onMessage: (Map<String, dynamic> message) async {

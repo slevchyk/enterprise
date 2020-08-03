@@ -5,6 +5,7 @@ import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/pay_desk_dao.dart';
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/database/timing_dao.dart';
+import 'package:enterprise/database/user_grants_dao.dart';
 import 'package:enterprise/database/warehouse/core.dart';
 import 'package:enterprise/database/warehouse/goods_dao.dart';
 import 'package:enterprise/database/warehouse/partners_dao.dart';
@@ -13,6 +14,7 @@ import 'package:enterprise/models/cost_item.dart';
 import 'package:enterprise/models/income_item.dart';
 import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/models/warehouse/goods.dart';
 import 'package:enterprise/models/warehouse/partners.dart';
 import 'package:enterprise/pages/page_timing_db.dart';
@@ -290,6 +292,12 @@ class PageDebugState extends State<PageDebug> {
                           PayOffice.sync();
                         },
                         child: Text('Sync Pay offices'),
+                      ),
+                      FlatButton(
+                        onPressed: () {
+                          UserGrants.sync();
+                        },
+                        child: Text('Sync User Grants'),
                       ),
                       FlatButton(
                         onPressed: () {

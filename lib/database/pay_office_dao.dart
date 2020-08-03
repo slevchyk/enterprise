@@ -60,7 +60,7 @@ class PayOfficeDAO implements PayOfficeInterface{
     final db = await dbProvider.database;
     var res = await db.rawQuery("SELECT * FROM pay_offices"
         " WHERE name!=? "
-        "AND currency_acc_id=?",
+        "AND currency_acc_id=? AND is_receiver=1",
       [name, accID]
     );
 
@@ -68,9 +68,27 @@ class PayOfficeDAO implements PayOfficeInterface{
     return toReturn;
   }
 
+  Future<List<PayOffice>> getAllToTransfer() async {
+    final db = await dbProvider.database;
+    var res = await db.rawQuery("SELECT * FROM pay_offices"
+        " WHERE is_receiver=1",
+    );
+
+    List<PayOffice> toReturn = res.isNotEmpty ? res.map((ci) => PayOffice.fromMap(ci)).toList() : [];
+    return toReturn.reversed.toList();
+  }
+
   Future<List<PayOffice>> getUnDeleted() async {
     final db = await dbProvider.database;
     var res = await db.query("pay_offices", where: "is_deleted = 0", orderBy: "name");
+
+    List<PayOffice> toReturn = res.isNotEmpty ? res.map((ci) => PayOffice.fromMap(ci)).toList() : [];
+    return toReturn;
+  }
+
+  Future<List<PayOffice>> getUnDeletedAndAvailable() async {
+    final db = await dbProvider.database;
+    var res = await db.query("pay_offices", where: "is_deleted = 0 AND is_available = 1", orderBy: "name");
 
     List<PayOffice> toReturn = res.isNotEmpty ? res.map((ci) => PayOffice.fromMap(ci)).toList() : [];
     return toReturn;
@@ -83,6 +101,13 @@ class PayOfficeDAO implements PayOfficeInterface{
 
     List<PayOffice> toReturn = res.isNotEmpty ? res.map((ci) => PayOffice.fromMap(ci)).toList() : [];
     return toReturn;
+  }
+
+  Future<bool> delete(PayOffice payOffice) async {
+    final db = await dbProvider.database;
+    var res = await db.delete("pay_offices", where: "mob_id = ?", whereArgs: [payOffice.mobID]);
+
+    return res.isFinite;
   }
 
   Future<bool> update(PayOffice payOffice) async {
