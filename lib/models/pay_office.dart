@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:enterprise/database/pay_office_dao.dart';
+import 'package:enterprise/database/user_grants_dao.dart';
+import 'package:enterprise/models/user_grants.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,6 +12,7 @@ import 'constants.dart';
 class PayOffice {
   int mobID;
   int id;
+  double amount;
   String accID;
   String currencyAccID;
   String name;
@@ -23,6 +26,7 @@ class PayOffice {
   PayOffice({
     this.mobID,
     this.id,
+    this.amount,
     this.accID,
     this.currencyAccID,
     this.name,
@@ -105,10 +109,27 @@ class PayOffice {
         return;
       }
 
+      List<UserGrants> _listUserGrants = await UserGrantsDAO().getAll();
+
       for (var jsonPayOffice in jsonData) {
         payOffice = PayOffice.fromMap(jsonPayOffice);
 
+        List<UserGrants> _currentUserGrants = _listUserGrants
+            .where((userGrant) => userGrant.objectAccID == payOffice.accID)
+            .toList();
+
         PayOffice existPayOffice = await PayOfficeDAO().getByID(payOffice.id);
+
+        if (_currentUserGrants.length==0){
+          if (existPayOffice != null) {
+            PayOfficeDAO().delete(existPayOffice);
+          }
+          return;
+        }
+
+        payOffice.isVisible = _currentUserGrants.first.isVisible;
+        payOffice.isAvailable = _currentUserGrants.first.isAvailable;
+        payOffice.isReceiver = _currentUserGrants.first.isReceiver;
 
         if (existPayOffice != null) {
           payOffice.mobID = existPayOffice.mobID;
