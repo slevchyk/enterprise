@@ -19,7 +19,6 @@ class AttachmentsCarousel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 330.0,
-//      color: Colors.blue,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: files.length,
@@ -29,14 +28,18 @@ class AttachmentsCarousel extends StatelessWidget {
               : FileImage(File(files[index].path));
           return GestureDetector(
             onTap: (){
+              List<ImageProvider> toReturn = [];
+              files.forEach((element) {
+                toReturn.add(FileImage(File(element.path)));
+              });
               RouteArgs routeArgs = RouteArgs(
-                image: _image,
+                listImage: toReturn,
+                initialPage: index,
               );
               Navigator.pushNamed(context, "/image/detail", arguments: routeArgs);
             },
             child: Container(
               margin: EdgeInsets.all(10.0),
-//            color: Colors.red,
               width: 210.0,
               child: Stack(
                 alignment: Alignment.topCenter,

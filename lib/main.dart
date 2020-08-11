@@ -1,8 +1,6 @@
 import 'package:enterprise/models/cost_item.dart';
 import 'package:enterprise/models/currency.dart';
 import 'package:enterprise/models/income_item.dart';
-import 'package:enterprise/models/pay_office.dart';
-import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/route_generator.dart';
 import 'package:flutter/material.dart';
 
@@ -42,8 +40,6 @@ class EnterpriseAppState extends State<EnterpriseApp> {
   void _sync() {
     CostItem.sync();
     IncomeItem.sync();
-//    UserGrants.sync();
     Currency.sync();
-//    PayOffice.sync();
   }
 }

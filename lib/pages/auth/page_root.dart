@@ -32,24 +32,24 @@ class _PageRootState extends State<PageRoot> {
         RouteArgs args = RouteArgs(profile: profile);
 
         if (_isProtectionEnabled) {
-          Navigator.of(context).pushNamed(
+          Navigator.of(context).pushReplacementNamed(
             "/auth",
             arguments: args,
           );
         } else {
-          Navigator.of(context).pushNamed(
-            "/main",
+          Navigator.of(context).pushReplacementNamed(
+            "/home",
             arguments: args,
           );
         }
       } else {
-        Navigator.of(context).pushNamed(
+        Navigator.of(context).pushReplacementNamed(
           "/sign_in_out",
           arguments: "",
         );
       }
     } else {
-      Navigator.of(context).pushNamed(
+      Navigator.of(context).pushReplacementNamed(
         "/sign_in_out",
         arguments: "",
       );

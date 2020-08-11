@@ -90,7 +90,7 @@ class PageProfileState extends State<PageProfile> {
         padding: EdgeInsets.all(8.0),
         children: <Widget>[
           Container(
-            height: _isLoadingProfile ? 50 : 0,
+            height: _isLoadingProfile ? 50 : 1,
             child: Center(
               child: _isLoadingProfile ? CircularProgressIndicator() : SizedBox(),
             ),
@@ -193,7 +193,7 @@ class PageProfileState extends State<PageProfile> {
                             hintText: 'номер вашого мобільного телефону',
                             labelText: 'Телефон *',
                           ),
-                          inputFormatters: [WhitelistingTextInputFormatter(RegExp("[+0-9]"))],
+                          inputFormatters: [FilteringTextInputFormatter.allow(RegExp("[+0-9]"))],
                           validator: (value) {
                             if (value.isEmpty) return 'ви не вказали номер телефону';
                             return null;
@@ -724,7 +724,8 @@ class PageProfileState extends State<PageProfile> {
           Text(
             genderAlias[_gender],
             style: TextStyle(
-              color: _genderController.text == _gender ? Colors.white : Theme.of(context).textTheme.title.color,
+              color: _genderController.text == _gender ? Colors.white : Theme.of(context).iconTheme.color,
+//              color: _genderController.text == _gender ? Colors.white : Theme.of(context).textTheme.title.color,
             ),
           ),
         ],
@@ -759,7 +760,8 @@ class PageProfileState extends State<PageProfile> {
           Text(
             passportTypesAlias[_type],
             style: TextStyle(
-              color: _passportTypeController.text == _type ? Colors.white : Theme.of(context).textTheme.title.color,
+              color: _passportTypeController.text == _type ? Colors.white : Theme.of(context).iconTheme.color,
+//              color: _passportTypeController.text == _type ? Colors.white : Theme.of(context).textTheme.title.color,
             ),
           ),
         ],
@@ -1055,21 +1057,17 @@ class ProfileTitle extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    // TODO: implement build
     return child;
   }
 
   @override
-  // TODO: implement maxExtent
   double get maxExtent => maxSize;
 
   @override
-  // TODO: implement minExtent
   double get minExtent => minSize;
 
   @override
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
-    // TODO: implement shouldRebuild
     return false;
   }
 }

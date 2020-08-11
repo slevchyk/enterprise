@@ -101,10 +101,6 @@ class _PageBalanceState extends State<PageBalance>{
                       );
                     }
                     return _sceneToShow(_mapToShow, orientation);
-//                    return OrientationBuilder(
-//                        builder: (context, orientation) {
-//                          return _sceneToShow(_mapToShow, orientation);
-//                        });
                     break;
                   default:
                     return Center(

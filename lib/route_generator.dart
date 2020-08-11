@@ -8,6 +8,7 @@ import 'package:enterprise/pages/page_channel_detail.dart';
 import 'package:enterprise/pages/page_helpdesk_detail.dart';
 import 'package:enterprise/pages/page_helpdesk.dart';
 import 'package:enterprise/pages/auth/page_login.dart';
+import 'package:enterprise/pages/page_home.dart';
 import 'package:enterprise/pages/page_paydesk.dart';
 import 'package:enterprise/pages/page_paydesk_confirm.dart';
 import 'package:enterprise/pages/page_paydesk_detail.dart';
@@ -31,7 +32,15 @@ class RouteGenerator {
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(builder: (_) => PageRoot());
-      case '/main':
+      case '/home':
+        if(args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => HomePage(profile: args.profile,
+              ),
+          );
+        }
+        return _errorRoute(settings.name);
+      case '/timing':
         if (args is RouteArgs) {
           return MaterialPageRoute(
             builder: (_) => PageMain(
@@ -59,7 +68,8 @@ class RouteGenerator {
         if (args is RouteArgs) {
           return MaterialPageRoute(
               builder: (_) => ImageDetail(
-                fileImage: args.image,
+                listImages: args.listImage,
+                initialPage: args.initialPage,
               ));
         }
         return _errorRoute(settings.name);

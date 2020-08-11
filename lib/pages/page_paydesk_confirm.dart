@@ -76,31 +76,26 @@ class _PagePayDeskConfirmState extends State<PagePayDeskConfirm>{
                     child: Card(
                       child: ListTile(
                         isThreeLine: true,
-                        title: _getPayDeskDetailsTransfer(_payList[index], context),
-                        subtitle: Container(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Row(
-                                children: <Widget>[
-                                  _setIcon(_payList[index].payDeskType),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      _getPayDeskDetailsLine1(_payList[index]),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              Text('${formatDate(
-                                _payList[index].createdAt,
-                                [dd, '.', mm, '.', yy, ' ', HH, ':', nn],
-                              )}'),
-                            ],
-                          ),
+                        title: _payList[index].payDeskType == 2
+                            ? _getPayDeskDetailsTransfer(_payList[index], context)
+                            : _getPayDeskDetailsLine2(_payList[index], context),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                _setIcon(_payList[index].payDeskType),
+                                _getPayDeskDetailsLine1(_payList[index], context),
+                              ],
+                            ),
+                            Text('${formatDate(
+                              _payList[index].documentDate,
+                              [dd, '.', mm, '.', yy, ' ', HH, ':', nn],
+                            )}'),
+                          ],
                         ),
                         trailing: Container(
-                          width: MediaQuery.of(context).size.width/2.8,
+                          width: MediaQuery.of(context).size.width/2.9,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: <Widget>[
@@ -113,19 +108,7 @@ class _PagePayDeskConfirmState extends State<PagePayDeskConfirm>{
                                   Icon(Icons.attach_file, size: 23,),
                                 ],) :
                               SizedBox(height: 23,),
-//                              Visibility(
-//                                visible: _payList[index].filesQuantity != null && _payList[index].filesQuantity != 0,
-//                                child: Row(
-//                                  mainAxisAlignment: MainAxisAlignment.end,
-//                                  children: <Widget>[
-//                                    Text(_payList[index].filesQuantity.toString()),
-//                                    Icon(Icons.attach_file, size: 23,),
-//                                  ],
-//                                ),
-//                              ),
-                              Container(
-                                child: _getStatus(_payList[index].isChecked),
-                              ),
+                              _getStatus(_payList[index].isChecked),
                             ],
                           ),
                         ),
@@ -144,7 +127,7 @@ class _PagePayDeskConfirmState extends State<PagePayDeskConfirm>{
     );
   }
 
-  Widget _getPayDeskDetailsLine1(PayDesk _payDesk) {
+  Widget _getPayDeskDetailsLine1(PayDesk _payDesk, BuildContext context) {
     String _details = "";
     PayDeskTypes _payDeskType;
 
@@ -162,6 +145,37 @@ class _PagePayDeskConfirmState extends State<PagePayDeskConfirm>{
     }
 
 //    if (_details.length > 25) {
+//      _details = _details.substring(0, 24) + '...';
+//    }
+
+    return Container(
+      width: MediaQuery.of(context).orientation==Orientation.portrait ? 150 : 400,
+      child: Text(
+        _details,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 3,
+      ),
+    );
+  }
+
+  Widget _getPayDeskDetailsLine2(PayDesk _payDesk, BuildContext context) {
+    String _details;
+    PayDeskTypes _payDeskType;
+
+    _payDeskType = PayDeskTypes.values[_payDesk.payDeskType];
+    switch (_payDeskType) {
+      case PayDeskTypes.costs:
+        _details = _payDesk.costItemName;
+        break;
+      case PayDeskTypes.income:
+        _details = _payDesk.incomeItemName;
+        break;
+      case PayDeskTypes.transfer:
+        _details = _payDesk.toPayOfficeName;
+        break;
+    }
+
+//    if (_details.length > 25 && MediaQuery.of(context).orientation==Orientation.portrait) {
 //      _details = _details.substring(0, 24) + '...';
 //    }
 

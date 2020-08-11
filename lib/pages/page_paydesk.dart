@@ -5,6 +5,7 @@ import 'package:enterprise/database/pay_desk_dao.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/widgets/notification_icon.dart';
 import 'package:enterprise/widgets/paydesk_list.dart';
 import 'package:flutter/cupertino.dart';
@@ -43,6 +44,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
   @override
   void initState() {
     super.initState();
+    UserGrants.sync();
     _now = DateTime.now();
     _firstDayOfMonth = DateTime(_now.year, _now.month, 1);
     _dateFrom.text = formatDate(_firstDayOfMonth, [dd, '.', mm, '.', yyyy]);

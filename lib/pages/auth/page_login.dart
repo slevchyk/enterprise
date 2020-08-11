@@ -204,7 +204,7 @@ class _PageSignInOutState extends State<PageSignInOut> {
           RouteArgs args = RouteArgs(profile: _profile);
 
           prefs.setString(KEY_USER_ID, _profile.userID);
-          Navigator.of(context).pushNamed(
+          Navigator.of(context).pushReplacementNamed(
             '/',
             arguments: args,
           );
