@@ -475,10 +475,10 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
   }
 
   Future _getImageCamera() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.camera);
+    var image = await ImagePicker().getImage(source: ImageSource.camera);
     setState(() {
       if (_isNotLimitElement(_files.length + 1)) {
-        if (image != null) _files.add(image);
+        if (image != null) _files.add(File(image.path));
       }
     });
   }

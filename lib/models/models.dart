@@ -30,7 +30,8 @@ class RouteArgs {
   ScrollController scrollController;
   DateTime dateSort;
   bool showTransfer;
-  ImageProvider image;
+  int initialPage;
+  List<ImageProvider> listImage;
   List<dynamic> listDynamic;
   int currencyCode;
   String name;
@@ -40,7 +41,8 @@ class RouteArgs {
     this.scrollController,
     this.dateSort,
     this.showTransfer,
-    this.image,
+    this.initialPage,
+    this.listImage,
     this.listDynamic,
     this.currencyCode,
     this.name,

@@ -201,7 +201,7 @@ class _PageAuthState extends State<PageAuth> {
 
     if (_didAuthenticate) {
       RouteArgs _args = RouteArgs(profile: widget.profile);
-      Navigator.of(context).pushNamed("/main", arguments: _args);
+      Navigator.of(context).pushNamed("/home", arguments: _args);
     } else {
       setState(() {
         _isPinAuth = true;
@@ -239,7 +239,7 @@ class _PageAuthState extends State<PageAuth> {
 
     if (_pin == _authPin) {
       RouteArgs _args = RouteArgs(profile: widget.profile);
-      Navigator.of(context).pushNamed("/main", arguments: _args);
+      Navigator.of(context).pushNamed("/home", arguments: _args);
     } else {
       if (await Vibration.hasVibrator()) {
         Vibration.vibrate();

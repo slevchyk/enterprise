@@ -606,7 +606,7 @@ class DonutAutoLabelChart extends StatelessWidget {
 
 class PlusMinusEntry extends PopupMenuEntry<String> {
   @override
-  double height = 100;
+  final double height = 100;
 //  // height doesn't matter, as long as we are not giving
 //  // initialValue to showMenu().
 //

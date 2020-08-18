@@ -36,7 +36,6 @@ pubspec.lock
 .pub/
 /build/
 .lock
-.flutter-plugins-dependencies
 
 # Android related
 **/android/**/gradle-wrapper.jar
