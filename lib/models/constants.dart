@@ -11,6 +11,9 @@ const String SERVER_IP = "95.217.41.66:8811";
 const String SERVER_USER = "mobile";
 const String SERVER_PASSWORD = "Dq4fS^J&^nqQ(fg4";
 
+const String API_USER = "test@test";
+const String API_PASSWORD = "test";
+
 const String KEY_SERVER_IP = "keyServerIP";
 const String KEY_SERVER_DATABASE = "keyServerDatabase";
 const String KEY_SERVER_USER = "keyServerUser";
@@ -84,71 +87,77 @@ const String GENDER_FEMALE = "female";
 Map<MenuItem, String> menuList = {
   MenuItem(
       name: "Головна",
-      icon: Icon(Icons.home),
+      icon: Icons.home,
       path: "/home",
       isDivider: true
   ) : "default",
   MenuItem(
     name: "Каса",
-    icon: Icon(FontAwesomeIcons.cashRegister),
+    icon: FontAwesomeIcons.cashRegister,
     path: "/paydesk",
     category: "Каса",
   ) : "Каса",
   MenuItem(
     name: "Баланс",
-    icon: Icon(Icons.receipt),
+    icon: Icons.receipt,
     path: "/balance",
     category: "Каса",
   ) : "Каса",
   MenuItem(
     name: "Аналiтика",
-    icon: Icon(Icons.home),
+    icon: FontAwesomeIcons.chartPie,
     path: "/results",
     category: "Каса",
     isDivider: true,
   ) : "Каса",
   MenuItem(
+    name: "Хронометраж",
+    icon: Icons.timer,
+    category: "Облік робочого часу",
+    path: "/timing",
+  ) : "Облік робочого часу",
+  MenuItem(
+    name: "Турнікет",
+    icon: Icons.play_circle_outline,
+    category: "Облік робочого часу",
+    path: "/turnstile",
+    isDivider: true,
+  ) : "Облік робочого часу",
+  MenuItem(
     name: "Склад",
-    icon: Icon(FontAwesomeIcons.boxes),
+    icon: FontAwesomeIcons.boxes,
     path: "/warehouse/orders",
     isDivider: true,
     category: "Склад",
   ) : "Склад",
   MenuItem(
-    name: "Хронометраж",
-    icon: Icon(Icons.timer),
-    category: "Облiк часу",
-    path: "/timing",
-  ) : "Облiк часу",
-  MenuItem(
-    name: "Турнікет",
-    icon: Icon(Icons.play_circle_outline),
-    category: "Облiк часу",
-    path: "/warehouse/orders",
-    isDivider: true,
-  ) : "Облiк часу",
-  MenuItem(
     name: "HelpDesk",
-    icon: Icon(Icons.help),
+    icon: Icons.help,
     path: "/helpdesk",
     category: "Help Desk",
   ) : "Help Desk",
+//  MenuItem(
+//      name: "Погодження",
+//      icon: Icons.done_outline,
+//      path: "/coordination",
+//      category: "Help Desk"
+//  ) : "Help Desk",
   MenuItem(
     name: "Debug",
-    icon: Icon(Icons.bug_report),
+    icon: Icons.bug_report,
     path: "/debug",
     isDivider: true,
     category: "Help Desk",
   ) : "Help Desk",
   MenuItem(
       name: "Профіль",
-      icon: Icon(Icons.person),
+      icon: Icons.person,
       path: "/profile",
       category: "Профіль"
   ) : "Профіль",
   MenuItem(
       name: "Налаштування",
-      icon: Icon(Icons.settings),
+      icon: Icons.settings,
       path: "/settings",
       category: "Профіль"
   ) : "Профіль",
@@ -159,9 +168,14 @@ Map<MenuItem, String> menuList = {
   ) : "Профіль",
   MenuItem(
     name: "Про додаток",
-    icon: Icon(Icons.info),
+    icon: Icons.info,
     path: "/about",
   ) : "default",
+//  MenuItem(
+//    name: "Test",
+//    icon: Icons.edit_attributes,
+//    path: "/test",
+//  ) : "default",
 };
 
 Map<String, String> genderAlias = {

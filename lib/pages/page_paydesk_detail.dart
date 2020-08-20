@@ -31,10 +31,12 @@ import 'package:path_provider/path_provider.dart';
 class PagePayDeskDetail extends StatefulWidget {
   final PayDesk payDesk;
   final Profile profile;
+  final PayDeskTypes type;
 
   PagePayDeskDetail({
     this.payDesk,
     this.profile,
+    this.type,
   });
 
   @override
@@ -276,8 +278,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                   pageBuilder: (context, anim1, anim2) {
                                     return _selectionDialog(
                                       _fromPayOfficeController,
-                                      _currentType==PayDeskTypes.transfer ? ImplPayOfficeDAO()
-                                          .getAllToTransfer() : _payOfficeList,
+                                      _payOfficeList,
                                       payDeskVariablesTypes.fromPayOffice,
                                       _scaffoldKey,
                                     );
@@ -943,7 +944,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
         if (!_readOnly) {
           setState(() {
             _currentType = _type;
-
             switch (_type) {
               case PayDeskTypes.costs:
                 _payOfficeList.then((payOfficeList) {
@@ -972,7 +972,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                 _toPayOffice = PayOffice();
                 break;
               case PayDeskTypes.transfer:
-                ImplPayOfficeDAO().getAllToTransfer().then((payOfficeList) {
+                _payOfficeList.then((payOfficeList) {
                   try {
                     _setPayOfficeAndCurrency(payOfficeList.first);
                   } catch (e) {
@@ -1422,7 +1422,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
 //      _documentDateController.text =
 //          _payDesk?.documentDate == null ? "" : formatDate(_payDesk.documentDate, [dd, '.', mm, '.', yyyy]);
 //      _documentDate = _payDesk?.documentDate ?? null;
-      _currentType = _payDesk?.payDeskType == null ? PayDeskTypes.costs : PayDeskTypes.values[_payDesk.payDeskType];
+      _currentType = _payDesk?.payDeskType == null ? widget.type : PayDeskTypes.values[_payDesk.payDeskType];
 
       _documentDateController.text = formatDate(
         _payDesk?.documentDate ?? DateTime.now(),

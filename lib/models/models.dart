@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -35,6 +36,7 @@ class RouteArgs {
   List<dynamic> listDynamic;
   int currencyCode;
   String name;
+  PayDeskTypes type;
 
   RouteArgs({
     this.profile,
@@ -46,5 +48,6 @@ class RouteArgs {
     this.listDynamic,
     this.currencyCode,
     this.name,
+    this.type,
   });
 }

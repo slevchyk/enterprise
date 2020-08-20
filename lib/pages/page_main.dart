@@ -242,7 +242,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   ListTile(
                     leading: menuElement.path == "/exit" ? widget.profile?.userID == ""
                         ? Icon(FontAwesomeIcons.signInAlt)
-                        : Icon(FontAwesomeIcons.signOutAlt) : menuElement.icon,
+                        : Icon(FontAwesomeIcons.signOutAlt) : Icon(menuElement.icon),
                     title: Text( menuElement.path == "/exit" ? widget.profile?.userID == "" ? 'Увійти' : 'Вийти' : menuElement.name),
                     onTap: () {
                       if(menuElement.path == "/exit"){
