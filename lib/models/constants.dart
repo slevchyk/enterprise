@@ -1,11 +1,18 @@
 library constants;
 
+import 'package:enterprise/models/menu.dart';
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 const String APP_MODE_USER = "user";
 const String APP_MODE_TURNSTILE = "turnstile";
 
 const String SERVER_IP = "95.217.41.66:8811";
 const String SERVER_USER = "mobile";
 const String SERVER_PASSWORD = "Dq4fS^J&^nqQ(fg4";
+
+const String API_USER = "test@test";
+const String API_PASSWORD = "test";
 
 const String KEY_SERVER_IP = "keyServerIP";
 const String KEY_SERVER_DATABASE = "keyServerDatabase";
@@ -75,6 +82,101 @@ const String CHANNEL_TYPE_MESSAGE = "message";
 //Genders
 const String GENDER_MALE = "male";
 const String GENDER_FEMALE = "female";
+
+//Menu Items
+Map<MenuItem, String> menuList = {
+  MenuItem(
+      name: "Головна",
+      icon: Icons.home,
+      path: "/home",
+      isDivider: true
+  ) : "default",
+  MenuItem(
+    name: "Каса",
+    icon: FontAwesomeIcons.cashRegister,
+    path: "/paydesk",
+    category: "Каса",
+  ) : "Каса",
+  MenuItem(
+    name: "Баланс",
+    icon: Icons.receipt,
+    path: "/balance",
+    category: "Каса",
+  ) : "Каса",
+  MenuItem(
+    name: "Аналiтика",
+    icon: FontAwesomeIcons.chartPie,
+    path: "/results",
+    category: "Каса",
+    isDivider: true,
+  ) : "Каса",
+  MenuItem(
+    name: "Хронометраж",
+    icon: Icons.timer,
+    category: "Облік робочого часу",
+    path: "/timing",
+  ) : "Облік робочого часу",
+  MenuItem(
+    name: "Турнікет",
+    icon: Icons.play_circle_outline,
+    category: "Облік робочого часу",
+    path: "/turnstile",
+    isDivider: true,
+  ) : "Облік робочого часу",
+  MenuItem(
+    name: "Склад",
+    icon: FontAwesomeIcons.boxes,
+    path: "/warehouse/orders",
+    isDivider: true,
+    category: "Склад",
+  ) : "Склад",
+  MenuItem(
+    name: "HelpDesk",
+    icon: Icons.help,
+    path: "/helpdesk",
+    category: "Help Desk",
+  ) : "Help Desk",
+//  MenuItem(
+//      name: "Погодження",
+//      icon: Icons.done_outline,
+//      path: "/coordination",
+//      category: "Help Desk"
+//  ) : "Help Desk",
+  MenuItem(
+    name: "Debug",
+    icon: Icons.bug_report,
+    path: "/debug",
+    isDivider: true,
+    category: "Help Desk",
+  ) : "Help Desk",
+  MenuItem(
+      name: "Профіль",
+      icon: Icons.person,
+      path: "/profile",
+      category: "Профіль"
+  ) : "Профіль",
+  MenuItem(
+      name: "Налаштування",
+      icon: Icons.settings,
+      path: "/settings",
+      category: "Профіль"
+  ) : "Профіль",
+  MenuItem(
+      path: "/exit",
+      category: "Профіль",
+      isDivider: true
+  ) : "Профіль",
+  MenuItem(
+    name: "Про додаток",
+    icon: Icons.info,
+    path: "/about",
+  ) : "default",
+//  MenuItem(
+//    name: "Test",
+//    icon: Icons.edit_attributes,
+//    path: "/test",
+//  ) : "default",
+};
 
 Map<String, String> genderAlias = {
   GENDER_FEMALE: "жіноча",

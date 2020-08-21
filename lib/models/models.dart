@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -30,19 +31,23 @@ class RouteArgs {
   ScrollController scrollController;
   DateTime dateSort;
   bool showTransfer;
-  ImageProvider image;
+  int initialPage;
+  List<ImageProvider> listImage;
   List<dynamic> listDynamic;
   int currencyCode;
   String name;
+  PayDeskTypes type;
 
   RouteArgs({
     this.profile,
     this.scrollController,
     this.dateSort,
     this.showTransfer,
-    this.image,
+    this.initialPage,
+    this.listImage,
     this.listDynamic,
     this.currencyCode,
     this.name,
+    this.type,
   });
 }

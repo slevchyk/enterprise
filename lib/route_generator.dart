@@ -5,9 +5,11 @@ import 'package:enterprise/pages/auth/page_set_pin.dart';
 import 'package:enterprise/pages/page_balance.dart';
 import 'package:enterprise/pages/page_balance_details.dart';
 import 'package:enterprise/pages/page_channel_detail.dart';
+import 'package:enterprise/pages/page_coordination.dart';
 import 'package:enterprise/pages/page_helpdesk_detail.dart';
 import 'package:enterprise/pages/page_helpdesk.dart';
 import 'package:enterprise/pages/auth/page_login.dart';
+import 'package:enterprise/pages/page_home.dart';
 import 'package:enterprise/pages/page_paydesk.dart';
 import 'package:enterprise/pages/page_paydesk_confirm.dart';
 import 'package:enterprise/pages/page_paydesk_detail.dart';
@@ -17,6 +19,7 @@ import 'package:enterprise/pages/page_timing_hitory.dart';
 import 'package:enterprise/pages/page_turnstile.dart';
 import 'package:enterprise/pages/warehouse/page_orders.dart';
 import 'package:enterprise/widgets/image_detail.dart';
+import 'package:enterprise/widgets/open_file.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:enterprise/pages/page_profile.dart';
@@ -31,7 +34,15 @@ class RouteGenerator {
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(builder: (_) => PageRoot());
-      case '/main':
+      case '/home':
+        if(args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => HomePage(profile: args.profile,
+              ),
+          );
+        }
+        return _errorRoute(settings.name);
+      case '/timing':
         if (args is RouteArgs) {
           return MaterialPageRoute(
             builder: (_) => PageMain(
@@ -59,7 +70,8 @@ class RouteGenerator {
         if (args is RouteArgs) {
           return MaterialPageRoute(
               builder: (_) => ImageDetail(
-                fileImage: args.image,
+                listImages: args.listImage,
+                initialPage: args.initialPage,
               ));
         }
         return _errorRoute(settings.name);
@@ -71,11 +83,19 @@ class RouteGenerator {
                   ));
         }
         return _errorRoute(settings.name);
+      case '/test':
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => OpenFileTest(
+              ));
+        }
+        return _errorRoute(settings.name);
       case '/paydesk/detail':
         if (args is RouteArgs) {
           return MaterialPageRoute(
               builder: (_) => PagePayDeskDetail(
-                    profile: args.profile,
+                profile: args.profile,
+                type: args.type,
                   ));
         }
         return _errorRoute(settings.name);
@@ -120,6 +140,14 @@ class RouteGenerator {
           return MaterialPageRoute(
               builder: (_) => PageProfile(
                     profile: args.profile,
+                  ));
+        }
+        return _errorRoute(settings.name);
+      case '/coordination':
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PageCoordination(
+//                    profile: args.profile,
                   ));
         }
         return _errorRoute(settings.name);

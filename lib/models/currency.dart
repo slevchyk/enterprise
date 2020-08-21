@@ -46,7 +46,7 @@ class Currency {
         "is_deleted": isDeleted == null ? 0 : isDeleted ? 1 : 0,
       };
 
-  static sync() async {
+  static Future<bool> sync() async {
     Currency currency;
 
     final prefs = await SharedPreferences.getInstance();
@@ -65,32 +65,39 @@ class Currency {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    Response response = await get(
-      url,
-      headers: headers,
-    );
+    try {
+      Response response = await get(
+        url,
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      var jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        var jsonData = json.decode(response.body);
 
-      if (jsonData == null) {
-        return;
-      }
+        if (jsonData == null) {
+          return true;
+        }
 
-      for (var jsonCurrency in jsonData) {
-        currency = Currency.fromMap(jsonCurrency);
+        for (var jsonCurrency in jsonData) {
+          currency = Currency.fromMap(jsonCurrency);
 
-        Currency existCurrency = await CurrencyDAO().getByID(currency.id);
+          Currency existCurrency = await CurrencyDAO().getByID(currency.id);
 
-        if (existCurrency != null) {
-          currency.mobID = existCurrency.mobID;
-          CurrencyDAO().update(currency);
-        } else {
-          if (!currency.isDeleted) {
-            CurrencyDAO().insert(currency);
+          if (existCurrency != null) {
+            currency.mobID = existCurrency.mobID;
+            CurrencyDAO().update(currency);
+          } else {
+            if (!currency.isDeleted) {
+              CurrencyDAO().insert(currency);
+            }
           }
         }
+        return true;
       }
+      return false;
+    } catch (e) {
+      print(e);
+      return false;
     }
   }
 }

@@ -17,6 +17,7 @@ import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/widgets/attachments_carousel.dart';
+import 'package:fab_circular_menu/fab_circular_menu.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -30,17 +31,19 @@ import 'package:path_provider/path_provider.dart';
 class PagePayDeskDetail extends StatefulWidget {
   final PayDesk payDesk;
   final Profile profile;
+  final PayDeskTypes type;
 
   PagePayDeskDetail({
     this.payDesk,
     this.profile,
+    this.type,
   });
 
   @override
   createState() => _PagePayDeskDetailState();
 }
 
-class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
+class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -76,8 +79,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
   PayDeskTypes _currentType;
 
   bool _readOnly = false;
-
-  final List<IconData> _icons = const [Icons.image, FontAwesomeIcons.filePdf, Icons.photo_camera];
 
   List<File> _files = [];
 
@@ -184,46 +185,50 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _appBar(context),
-      key: _scaffoldKey,
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  'Операція',
-                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    _paymentType(PayDeskTypes.costs),
-                    SizedBox(
-                      width: 10.0,
-                    ),
-                    _paymentType(PayDeskTypes.income),
-                    SizedBox(
-                      width: 10.0,
-                    ),
-                    _paymentType(PayDeskTypes.transfer),
-                  ],
-                ),
-                SizedBox(
-                  height: 24.0,
-                ),
-                Text(
-                  'Основне',
-                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-                ),
-                Container(
-                  margin: EdgeInsets.only(left: 20.0),
-                  child: Column(
+    return GestureDetector(
+      onTap: (){
+        FocusScope.of(this.context).unfocus();
+      },
+      child: Scaffold(
+        appBar: _appBar(context),
+        key: _scaffoldKey,
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'Операція',
+                    style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
+                      _paymentType(PayDeskTypes.costs),
+                      SizedBox(
+                        width: 10.0,
+                      ),
+                      _paymentType(PayDeskTypes.income),
+                      SizedBox(
+                        width: 10.0,
+                      ),
+                      _paymentType(PayDeskTypes.transfer),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 24.0,
+                  ),
+                  Text(
+                    'Основне',
+                    style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(left: 20.0),
+                    child: Column(
+                      children: <Widget>[
 //                      InkWell(
 //                        onTap: () {
 //                          if (!_readOnly)
@@ -260,402 +265,401 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 //                          ),
 //                        ),
 //                      ),
-                      Container(
-                        child: InkWell(
-                          onTap: () {
-                            if (!_readOnly)
-                              showGeneralDialog(
-                                barrierLabel: "fromPayOffices",
-                                barrierDismissible: true,
-                                barrierColor: Colors.black.withOpacity(0.5),
-                                transitionDuration: Duration(milliseconds: 250),
-                                context: context,
-                                pageBuilder: (context, anim1, anim2) {
-                                  return _selectionDialog(
-                                    _fromPayOfficeController,
-                                    _currentType==PayDeskTypes.transfer ? ImplPayOfficeDAO()
-                                        .getAllToTransfer() : _payOfficeList,
-                                    payDeskVariablesTypes.fromPayOffice,
-                                    _scaffoldKey,
-                                  );
+                        Container(
+                          child: InkWell(
+                            onTap: () {
+                              if (!_readOnly)
+                                showGeneralDialog(
+                                  barrierLabel: "fromPayOffices",
+                                  barrierDismissible: true,
+                                  barrierColor: Colors.black.withOpacity(0.5),
+                                  transitionDuration: Duration(milliseconds: 250),
+                                  context: context,
+                                  pageBuilder: (context, anim1, anim2) {
+                                    return _selectionDialog(
+                                      _fromPayOfficeController,
+                                      _payOfficeList,
+                                      payDeskVariablesTypes.fromPayOffice,
+                                      _scaffoldKey,
+                                    );
+                                  },
+                                  transitionBuilder: (context, anim1, anim2, child) {
+                                    return SlideTransition(
+                                      position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
+                                      child: child,
+                                    );
+                                  },
+                                );
+                            },
+                            child: IgnorePointer(
+                              child: TextFormField(
+                                enabled: !_readOnly,
+                                controller: _fromPayOfficeController,
+                                decoration: InputDecoration(
+                                    icon: Icon(Icons.account_balance_wallet),
+                                    labelText: 'Гаманець *',
+                                    hintText: 'Оберiть гаманець'),
+                                validator: (value) {
+                                  if (value.trim().isEmpty) return 'Ви не обрали гаманець';
+                                  return null;
                                 },
-                                transitionBuilder: (context, anim1, anim2, child) {
-                                  return SlideTransition(
-                                    position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
-                                    child: child,
-                                  );
+                                onChanged: (_) {
+                                  setState(() {});
                                 },
-                              );
-                          },
-                          child: IgnorePointer(
-                            child: TextFormField(
-                              enabled: !_readOnly,
-                              controller: _fromPayOfficeController,
-                              decoration: InputDecoration(
-                                  icon: Icon(Icons.account_balance_wallet),
-                                  labelText: 'Гаманець *',
-                                  hintText: 'Оберiть гаманець'),
-                              validator: (value) {
-                                if (value.trim().isEmpty) return 'Ви не обрали гаманець';
-                                return null;
-                              },
-                              onChanged: (_) {
-                                setState(() {});
-                              },
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      Visibility(
-                        visible: _currentType == PayDeskTypes.transfer,
-                        child: InkWell(
-                          onTap: () {
-                            if (!_readOnly)
-                              showGeneralDialog(
-                                barrierLabel: "toPayOffices",
-                                barrierDismissible: true,
-                                barrierColor: Colors.black.withOpacity(0.5),
-                                transitionDuration: Duration(milliseconds: 250),
-                                context: this.context,
-                                pageBuilder: (context, anim1, anim2) {
-                                  return _selectionDialog(
-                                    _toPayOfficeController,
-                                    ImplPayOfficeDAO()
-                                        .getAllExceptId(_fromPayOffice.name, _fromPayOffice.currencyAccID),
-                                    payDeskVariablesTypes.toPayOffice,
-                                    _scaffoldKey,
-                                  );
+                        Visibility(
+                          visible: _currentType == PayDeskTypes.transfer,
+                          child: InkWell(
+                            onTap: () {
+                              if (!_readOnly)
+                                showGeneralDialog(
+                                  barrierLabel: "toPayOffices",
+                                  barrierDismissible: true,
+                                  barrierColor: Colors.black.withOpacity(0.5),
+                                  transitionDuration: Duration(milliseconds: 250),
+                                  context: this.context,
+                                  pageBuilder: (context, anim1, anim2) {
+                                    return _selectionDialog(
+                                      _toPayOfficeController,
+                                      ImplPayOfficeDAO()
+                                          .getAllExceptId(_fromPayOffice.name, _fromPayOffice.currencyAccID),
+                                      payDeskVariablesTypes.toPayOffice,
+                                      _scaffoldKey,
+                                    );
+                                  },
+                                  transitionBuilder: (context, anim1, anim2, child) {
+                                    return SlideTransition(
+                                      position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
+                                      child: child,
+                                    );
+                                  },
+                                );
+                            },
+                            child: IgnorePointer(
+                              child: TextFormField(
+                                enabled: !_readOnly,
+                                controller: _toPayOfficeController,
+                                decoration: InputDecoration(
+                                    icon: Icon(Icons.account_balance_wallet),
+                                    labelText: 'Гаманець отримувач*',
+                                    hintText: 'Оберiть гаманець отримувача'),
+                                validator: (value) {
+                                  if (value.trim().isEmpty) return 'Ви не гаманець отримувач';
+                                  return null;
                                 },
-                                transitionBuilder: (context, anim1, anim2, child) {
-                                  return SlideTransition(
-                                    position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
-                                    child: child,
-                                  );
+                                onChanged: (_) {
+                                  setState(() {});
                                 },
-                              );
-                          },
-                          child: IgnorePointer(
-                            child: TextFormField(
-                              enabled: !_readOnly,
-                              controller: _toPayOfficeController,
-                              decoration: InputDecoration(
-                                  icon: Icon(Icons.account_balance_wallet),
-                                  labelText: 'Гаманець отримувач*',
-                                  hintText: 'Оберiть гаманець отримувача'),
-                              validator: (value) {
-                                if (value.trim().isEmpty) return 'Ви не гаманець отримувач';
-                                return null;
-                              },
-                              onChanged: (_) {
-                                setState(() {});
-                              },
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      TextFormField(
-                        enabled: !_readOnly,
-                        autofocus: true,
-                        keyboardType: TextInputType.number,
-                        controller: _amountController,
-                        decoration: InputDecoration(
-                          icon: SizedBox(
-                            width: 24.0,
-                            height: 24.0,
-                            child: Text(
-                              CURRENCY_SYMBOL[_currency?.code] == null ? '' : CURRENCY_SYMBOL[_currency.code],
-                              style: TextStyle(
-                                  fontSize: 24.0, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
+                        TextFormField(
+                          enabled: !_readOnly,
+                          autofocus: true,
+                          keyboardType: TextInputType.number,
+                          controller: _amountController,
+                          decoration: InputDecoration(
+                            icon: SizedBox(
+                              width: 24.0,
+                              height: 24.0,
+                              child: Text(
+                                CURRENCY_SYMBOL[_currency?.code] == null ? '' : CURRENCY_SYMBOL[_currency.code],
+                                style: TextStyle(
+                                    fontSize: 24.0, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
+                              ),
                             ),
-                          ),
-                          suffixIcon: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              IconButton(
-                                  icon: Icon(
-                                    FontAwesomeIcons.calculator,
-                                    size: 22,
-                                  ),
-                                  onPressed: () {
-                                    showModalBottomSheet(
-                                        isScrollControlled: true,
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return Wrap(
-                                            children: <Widget>[
-                                              SizedBox(
-                                                height: MediaQuery.of(context).size.height * 0.5,
-                                                child: _calc(context),
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: <Widget>[
-                                                  Container(
-                                                    width: MediaQuery.of(context).size.width / 2,
-                                                    child: RaisedButton(
-                                                      onPressed: () {
-                                                        Navigator.of(context).pop();
-                                                        _currentValue = 0;
-                                                      },
-                                                      child: Text("Вiдмiнити"),
-                                                    ),
-                                                  ),
-                                                  Container(
-                                                    width: MediaQuery.of(context).size.width / 2,
-                                                    child: RaisedButton(
-                                                      color: Colors.green,
-                                                      onPressed: () {
-                                                        Navigator.of(context).pop();
-                                                        if (_currentValue != 0) {
-                                                          _amount = _currentValue;
-                                                          _amountController.text = _currentValue.toStringAsFixed(2);
+                            suffixIcon: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                IconButton(
+                                    icon: Icon(
+                                      FontAwesomeIcons.calculator,
+                                      size: 22,
+                                    ),
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                          isScrollControlled: true,
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return Wrap(
+                                              children: <Widget>[
+                                                SizedBox(
+                                                  height: MediaQuery.of(context).size.height * 0.5,
+                                                  child: _calc(context),
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: <Widget>[
+                                                    Container(
+                                                      width: MediaQuery.of(context).size.width / 2,
+                                                      child: RaisedButton(
+                                                        onPressed: () {
+                                                          Navigator.of(context).pop();
                                                           _currentValue = 0;
-                                                        }
-                                                      },
-                                                      child: Text(
-                                                        "Додати",
-                                                        style: TextStyle(color: Colors.white),
+                                                        },
+                                                        child: Text("Вiдмiнити"),
                                                       ),
                                                     ),
-                                                  ),
-                                                ],
-                                              )
-                                            ],
-                                          );
-                                        });
-                                  }),
-                              _clearIconButton(_amountController) != null
-                                  ? _clearIconButton(_amountController)
-                                  : Container(),
-                            ],
+                                                    Container(
+                                                      width: MediaQuery.of(context).size.width / 2,
+                                                      child: RaisedButton(
+                                                        color: Colors.lightGreen,
+                                                        onPressed: () {
+                                                          Navigator.of(context).pop();
+                                                          if (_currentValue != 0) {
+                                                            _amount = _currentValue;
+                                                            _amountController.text = _currentValue.toStringAsFixed(2);
+                                                            _currentValue = 0;
+                                                          }
+                                                        },
+                                                        child: Text(
+                                                          "Додати",
+                                                          style: TextStyle(color: Colors.white),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                )
+                                              ],
+                                            );
+                                          });
+                                    }),
+                                _clearIconButton(_amountController) != null
+                                    ? _clearIconButton(_amountController)
+                                    : Container(),
+                              ],
+                            ),
+                            hintText: 'Вкажiть суму',
+                            labelText: 'Сума*',
                           ),
-                          hintText: 'Вкажiть суму',
-                          labelText: 'Сума*',
-                        ),
-                        onChanged: (_) {
-                          setState(() {});
-                        },
-                        validator: (value) {
-                          String _input = value.trim().replaceAll(',', '.');
-                          if (_input.isEmpty) return 'Ви не вказали суму';
-                          if (_isNotNumber(_input)) return 'Ви ввели не число';
-                          if (_isNotCorrectAmount(_input)) return 'Некоректно введена сума';
-                          _amount = double.parse(_input);
-                          return null;
-                        },
-                      ),
-                      Visibility(
-                        visible: _currentType == PayDeskTypes.costs,
-                        child: InkWell(
-                          onTap: () {
-                            if (!_readOnly)
-                              showGeneralDialog(
-                                barrierLabel: "costItems",
-                                barrierDismissible: true,
-                                barrierColor: Colors.black.withOpacity(0.5),
-                                transitionDuration: Duration(milliseconds: 250),
-                                context: this.context,
-                                pageBuilder: (context, anim1, anim2) {
-                                  return _selectionDialog(
-                                    _costItemController,
-                                    _costItemsList,
-                                    payDeskVariablesTypes.costItem,
-                                    _scaffoldKey,
-                                  );
-                                },
-                                transitionBuilder: (context, anim1, anim2, child) {
-                                  return SlideTransition(
-                                    position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
-                                    child: child,
-                                  );
-                                },
-                              );
+                          onChanged: (_) {
+                            setState(() {});
                           },
-                          child: IgnorePointer(
-                            child: TextFormField(
-                              enabled: !_readOnly,
-                              controller: _costItemController,
-                              decoration: InputDecoration(
-                                  icon: Icon(Icons.account_balance_wallet),
-                                  labelText: 'Стаття витрат*',
-                                  hintText: 'Оберiть статтю витрат'),
-                              validator: (value) {
-                                if (value.trim().isEmpty) return 'Ви не обрали статтю витрат';
-                                return null;
-                              },
-                              onChanged: (_) {
-                                setState(() {});
-                              },
+                          validator: (value) {
+                            String _input = value.trim().replaceAll(',', '.');
+                            if (_input.isEmpty) return 'Ви не вказали суму';
+                            if (_isNotNumber(_input)) return 'Ви ввели не число';
+                            if (_isNotCorrectAmount(_input)) return 'Некоректно введена сума';
+                            _amount = double.parse(_input);
+                            return null;
+                          },
+                        ),
+                        Visibility(
+                          visible: _currentType == PayDeskTypes.costs,
+                          child: InkWell(
+                            onTap: () {
+                              if (!_readOnly)
+                                showGeneralDialog(
+                                  barrierLabel: "costItems",
+                                  barrierDismissible: true,
+                                  barrierColor: Colors.black.withOpacity(0.5),
+                                  transitionDuration: Duration(milliseconds: 250),
+                                  context: this.context,
+                                  pageBuilder: (context, anim1, anim2) {
+                                    return _selectionDialog(
+                                      _costItemController,
+                                      _costItemsList,
+                                      payDeskVariablesTypes.costItem,
+                                      _scaffoldKey,
+                                    );
+                                  },
+                                  transitionBuilder: (context, anim1, anim2, child) {
+                                    return SlideTransition(
+                                      position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
+                                      child: child,
+                                    );
+                                  },
+                                );
+                            },
+                            child: IgnorePointer(
+                              child: TextFormField(
+                                enabled: !_readOnly,
+                                controller: _costItemController,
+                                decoration: InputDecoration(
+                                    icon: Icon(Icons.account_balance_wallet),
+                                    labelText: 'Стаття витрат*',
+                                    hintText: 'Оберiть статтю витрат'),
+                                validator: (value) {
+                                  if (value.trim().isEmpty) return 'Ви не обрали статтю витрат';
+                                  return null;
+                                },
+                                onChanged: (_) {
+                                  setState(() {});
+                                },
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      Visibility(
-                        visible: _currentType == PayDeskTypes.income,
-                        child: InkWell(
-                          onTap: () {
-                            if (!_readOnly)
-                              showGeneralDialog(
-                                barrierLabel: "incomeItems",
-                                barrierDismissible: true,
-                                barrierColor: Colors.black.withOpacity(0.5),
-                                transitionDuration: Duration(milliseconds: 250),
-                                context: this.context,
-                                pageBuilder: (context, anim1, anim2) {
-                                  return _selectionDialog(
-                                    _incomeItemController,
-                                    _incomeItemsList,
-                                    payDeskVariablesTypes.incomeItem,
-                                    _scaffoldKey,
-                                  );
+                        Visibility(
+                          visible: _currentType == PayDeskTypes.income,
+                          child: InkWell(
+                            onTap: () {
+                              if (!_readOnly)
+                                showGeneralDialog(
+                                  barrierLabel: "incomeItems",
+                                  barrierDismissible: true,
+                                  barrierColor: Colors.black.withOpacity(0.5),
+                                  transitionDuration: Duration(milliseconds: 250),
+                                  context: this.context,
+                                  pageBuilder: (context, anim1, anim2) {
+                                    return _selectionDialog(
+                                      _incomeItemController,
+                                      _incomeItemsList,
+                                      payDeskVariablesTypes.incomeItem,
+                                      _scaffoldKey,
+                                    );
+                                  },
+                                  transitionBuilder: (context, anim1, anim2, child) {
+                                    return SlideTransition(
+                                      position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
+                                      child: child,
+                                    );
+                                  },
+                                );
+                            },
+                            child: IgnorePointer(
+                              child: TextFormField(
+                                enabled: !_readOnly,
+                                controller: _incomeItemController,
+                                decoration: InputDecoration(
+                                    icon: Icon(Icons.account_balance_wallet),
+                                    labelText: 'Стаття доходів*',
+                                    hintText: 'Оберiть статтю доходів'),
+                                validator: (value) {
+                                  if (value.trim().isEmpty) return 'Ви не обрали статтю доходів';
+                                  return null;
                                 },
-                                transitionBuilder: (context, anim1, anim2, child) {
-                                  return SlideTransition(
-                                    position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
-                                    child: child,
-                                  );
+                                onChanged: (_) {
+                                  setState(() {});
                                 },
-                              );
-                          },
-                          child: IgnorePointer(
-                            child: TextFormField(
-                              enabled: !_readOnly,
-                              controller: _incomeItemController,
-                              decoration: InputDecoration(
-                                  icon: Icon(Icons.account_balance_wallet),
-                                  labelText: 'Стаття доходів*',
-                                  hintText: 'Оберiть статтю доходів'),
-                              validator: (value) {
-                                if (value.trim().isEmpty) return 'Ви не обрали статтю доходів';
-                                return null;
-                              },
-                              onChanged: (_) {
-                                setState(() {});
-                              },
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      TextFormField(
-                        enabled: !_readOnly,
-                        controller: _paymentController,
-                        keyboardType: TextInputType.multiline,
-                        maxLines: null,
-                        decoration: InputDecoration(
-                          icon: Icon(FontAwesomeIcons.pen),
-                          suffixIcon: _clearIconButton(_paymentController),
-                          hintText: 'Вкажiть призначення платежу',
-                          labelText: 'Призначення платежу*',
-                        ),
-                        onChanged: (_) {
-                          setState(() {});
-                        },
-                        validator: (value) {
+                        TextFormField(
+                          enabled: !_readOnly,
+                          controller: _paymentController,
+                          keyboardType: TextInputType.multiline,
+                          maxLines: null,
+                          decoration: InputDecoration(
+                            icon: Icon(FontAwesomeIcons.pen),
+                            suffixIcon: _clearIconButton(_paymentController),
+                            hintText: 'Вкажiть призначення платежу',
+                            labelText: 'Призначення платежу*',
+                          ),
+                          onChanged: (_) {
+                            setState(() {});
+                          },
+                          validator: (value) {
 //                          if (value.isEmpty) return 'Ви не вказали призначення платежу';
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(top: 24),
-                  child: Text(
-                    "Дата операції",
-                    style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.only(
-                      left: 25, right: MediaQuery.of(context).orientation == Orientation.portrait ? 50 : 100),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Container(
-                        width: 130,
-                        child: InkWell(
-                          onTap: () async {
-                            if (_readOnly) {
-                              return;
-                            }
-                            FocusScope.of(this.context).unfocus();
-                            DateTime picked = await showDatePicker(
-                                context: context,
-                                firstDate: DateTime(DateTime.now().year - 1),
-                                initialDate: _payDesk?.documentDate != null ? _payDesk.documentDate : DateFormat('dd.MM.yyyy').parse(_documentDateController.text),
-                                lastDate: DateTime(DateTime.now().year + 1));
-
-                            if (picked != null) {
-                              if (picked.isAfter(DateTime.now())) {
-                                _displaySnackBar(
-                                    "Дата операції не повинна перевищувати поточну дату", Colors.amber.shade700);
-                                return;
-                              }
-                              setState(() {
-                                MaterialLocalizations localizations = MaterialLocalizations.of(context);
-                                String formattedTime =
-                                    localizations.formatTimeOfDay(TimeOfDay.now(), alwaysUse24HourFormat: true);
-                                _documentDateController.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
-                                _documentTimeController.text = formattedTime;
-                              });
-                            }
+                            return null;
                           },
-                          child: IgnorePointer(
-                            child: TextFormField(
-                              controller: _documentDateController,
-                              enabled: !_readOnly,
-                              decoration: InputDecoration(icon: Icon(FontAwesomeIcons.calendar), labelText: "Дата"),
-                            ),
-                          ),
                         ),
-                      ),
-                      Container(
-                          width: 90,
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 24),
+                    child: Text(
+                      "Дата операції",
+                      style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(
+                        left: 25, right: MediaQuery.of(context).orientation == Orientation.portrait ? 50 : 100),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Container(
+                          width: 130,
                           child: InkWell(
                             onTap: () async {
                               if (_readOnly) {
                                 return;
                               }
                               FocusScope.of(this.context).unfocus();
-                              TimeOfDay selectedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-                              if (selectedTime == null) {
-                                return;
-                              }
+                              DateTime picked = await showDatePicker(
+                                  context: context,
+                                  firstDate: DateTime(DateTime.now().year - 1),
+                                  initialDate: _payDesk?.documentDate != null ? _payDesk.documentDate : DateFormat('dd.MM.yyyy').parse(_documentDateController.text),
+                                  lastDate: DateTime(DateTime.now().year + 1));
 
-                              MaterialLocalizations localizations = MaterialLocalizations.of(context);
-                              String formattedTime =
-                                  localizations.formatTimeOfDay(selectedTime, alwaysUse24HourFormat: true);
-
-                              if (DateFormat("dd.MM.yyyy")
-                                      .parse("${_documentDateController.text}")
-                                      .isAtSameMomentAs(DateFormat("yyyy-MM-dd").parse(DateTime.now().toString())) &&
-                                  (selectedTime.hour * 60 + selectedTime.minute) >
-                                      (TimeOfDay.now().hour * 60 + TimeOfDay.now().minute)) {
-                                _displaySnackBar(
-                                    "Час операції не повинен перевищувати поточний час", Colors.amber.shade700);
-                                return;
-                              }
-
-                              if (formattedTime != null) {
+                              if (picked != null) {
+                                if (picked.isAfter(DateTime.now())) {
+                                  _displaySnackBar(
+                                      "Дата операції не повинна перевищувати поточну дату", Colors.amber.shade700);
+                                  return;
+                                }
                                 setState(() {
+                                  MaterialLocalizations localizations = MaterialLocalizations.of(context);
+                                  String formattedTime =
+                                  localizations.formatTimeOfDay(TimeOfDay.now(), alwaysUse24HourFormat: true);
+                                  _documentDateController.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
                                   _documentTimeController.text = formattedTime;
                                 });
                               }
                             },
                             child: IgnorePointer(
                               child: TextFormField(
-                                controller: _documentTimeController,
+                                controller: _documentDateController,
                                 enabled: !_readOnly,
-                                decoration: InputDecoration(icon: Icon(Icons.timer), labelText: "Час"),
+                                decoration: InputDecoration(icon: Icon(FontAwesomeIcons.calendar), labelText: "Дата"),
                               ),
                             ),
-                          )),
-                    ],
+                          ),
+                        ),
+                        Container(
+                            width: 90,
+                            child: InkWell(
+                              onTap: () async {
+                                if (_readOnly) {
+                                  return;
+                                }
+                                FocusScope.of(this.context).unfocus();
+                                TimeOfDay selectedTime = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.now(),
+                                );
+                                if (selectedTime == null) {
+                                  return;
+                                }
+
+                                MaterialLocalizations localizations = MaterialLocalizations.of(context);
+                                String formattedTime =
+                                localizations.formatTimeOfDay(selectedTime, alwaysUse24HourFormat: true);
+
+                                if (DateFormat("dd.MM.yyyy")
+                                    .parse("${_documentDateController.text}")
+                                    .isAtSameMomentAs(DateFormat("yyyy-MM-dd").parse(DateTime.now().toString())) &&
+                                    (selectedTime.hour * 60 + selectedTime.minute) >
+                                        (TimeOfDay.now().hour * 60 + TimeOfDay.now().minute)) {
+                                  _displaySnackBar(
+                                      "Час операції не повинен перевищувати поточний час", Colors.amber.shade700);
+                                  return;
+                                }
+
+                                if (formattedTime != null) {
+                                  setState(() {
+                                    _documentTimeController.text = formattedTime;
+                                  });
+                                }
+                              },
+                              child: IgnorePointer(
+                                child: TextFormField(
+                                  controller: _documentTimeController,
+                                  enabled: !_readOnly,
+                                  decoration: InputDecoration(icon: Icon(Icons.timer), labelText: "Час"),
+                                ),
+                              ),
+                            )),
+                      ],
+                    ),
                   ),
-                ),
 //                SizedBox(
 //                  height: 24.0,
 //                ),
@@ -728,42 +732,37 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 //                    ],
 //                  ),
 //                ),
-                Visibility(
-                  visible: _files.length > 0,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      SizedBox(
-                        height: 24.0,
-                      ),
-                      Text(
-                        'Прикріплені файли',
-                        style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-                      ),
-                      AttachmentsCarousel(
-                        files: _files,
-                        readOnly: _readOnly,
-                        onDelete: (deletedFile) {
-                          _files.remove(deletedFile);
-                          setState(() {});
-                        },
-                      ),
-                    ],
+                  Visibility(
+                    visible: _files.length > 0,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        SizedBox(
+                          height: 24.0,
+                        ),
+                        Text(
+                          'Прикріплені файли',
+                          style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                        ),
+                        AttachmentsCarousel(
+                          files: _files,
+                          readOnly: _readOnly,
+                          onDelete: (deletedFile) {
+                            _files.remove(deletedFile);
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
+        floatingActionButton: _floatingButton(context),
+        bottomSheet: _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly  ? _confirmButton() : SizedBox(),
       ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.menu),
-        onPressed: () {
-          _showModalBottomSheet();
-        },
-      ),
-      bottomNavigationBar:
-          _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly ? _confirmButton() : _setNavigationBar(),
     );
   }
 
@@ -782,7 +781,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
           ],
         ),
         selected: true,
-        selectedColor: Colors.green,
+        selectedColor: Colors.lightGreen,
         onSelected: (bool value) {
           _confirmingDialog();
         },
@@ -863,6 +862,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                 ),
                 Text(
                   "${_fromPayOfficeController.text}\n",
+                  textAlign: TextAlign.center,
                   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
                 ),
                 Text(
@@ -874,6 +874,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                 ),
                 Text(
                   "${_toPayOfficeController.text}",
+                  textAlign: TextAlign.center,
                   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
                 ),
                 SizedBox(
@@ -895,7 +896,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                     ),
                     RaisedButton(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12.0))),
-                      color: Colors.green,
+                      color: Colors.lightGreen,
                       child: Text(
                         'Так',
                         style: TextStyle(color: Colors.white),
@@ -936,14 +937,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
           ),
         ],
       ),
-      backgroundColor: _currentType == _type ? Colors.green : Colors.grey.shade100,
-      selectedColor: Colors.green,
+      backgroundColor: _currentType == _type ? Colors.lightGreen : Colors.grey.shade100,
+      selectedColor: Colors.lightGreen,
       selected: _currentType == _type,
       onSelected: (bool value) {
         if (!_readOnly) {
           setState(() {
             _currentType = _type;
-
             switch (_type) {
               case PayDeskTypes.costs:
                 _payOfficeList.then((payOfficeList) {
@@ -972,7 +972,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
                 _toPayOffice = PayOffice();
                 break;
               case PayDeskTypes.transfer:
-                ImplPayOfficeDAO().getAllToTransfer().then((payOfficeList) {
+                _payOfficeList.then((payOfficeList) {
                   try {
                     _setPayOfficeAndCurrency(payOfficeList.first);
                   } catch (e) {
@@ -1120,43 +1120,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     );
   }
 
-  Widget _setNavigationBar() {
-    if (!_readOnly) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(_icons.length, (int index) {
-          Widget child = Container(
-            child: FlatButton(
-              child: Icon(_icons[index]),
-              onPressed: () {
-                if (_files.length >= 4) {
-                  _displaySnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
-                  return;
-                }
-
-                switch (index) {
-                  case 0:
-                    _getFile(FileType.image);
-                    break;
-                  case 1:
-                    _getFile(FileType.custom);
-                    break;
-                  case 2:
-                    _getImageCamera();
-                    break;
-                  default:
-                    _getFile(FileType.image);
-                }
-              },
-            ),
-          );
-          return child;
-        }),
-      );
-    }
-    return null;
-  }
-
   Widget _selectionDialog(TextEditingController _inputController, Future<List> _input, payDeskVariablesTypes _varType,
       GlobalKey<ScaffoldState> _scaffoldKey) {
     FocusScope.of(this.context).unfocus();
@@ -1295,114 +1258,75 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
     );
   }
 
-  _showModalBottomSheet() {
-    ListTile _editLT(BuildContext context) {
-      return ListTile(
-        leading: Icon(
-          Icons.edit,
-          color: Theme.of(_scaffoldKey.currentContext).accentColor,
-        ),
-        title: Text("Редагувати"),
-        onTap: () {
-          Navigator.of(context).pop();
-          _handleBottomSheet("edit");
-        },
-      );
-    }
-
-    ListTile _saveLT(BuildContext context) {
-      return ListTile(
-        leading: Icon(
-          Icons.save,
-          color: Theme.of(_scaffoldKey.currentContext).accentColor,
-        ),
-        title: Text("Зберегти"),
-        onTap: () {
-          Navigator.of(context).pop();
-          _handleBottomSheet("save");
-        },
-      );
-    }
-
-    ListTile _saveExitLT(BuildContext context) {
-      return ListTile(
-        leading: Icon(
-          Icons.check,
-          color: Theme.of(_scaffoldKey.currentContext).accentColor,
-        ),
-        title: Text("Зберегти і закрити"),
-        onTap: () {
-          Navigator.of(context).pop();
-          _handleBottomSheet("saveExit");
-        },
-      );
-    }
-
-    ListTile _undoLT(BuildContext context) {
-      return ListTile(
-        leading: Icon(
-          Icons.undo,
-          color: Theme.of(_scaffoldKey.currentContext).accentColor,
-        ),
-        title: Text("Відмінити"),
-        onTap: () {
-          Navigator.of(context).pop();
-          _handleBottomSheet("undo");
-        },
-      );
-    }
-
-    ListTile _exitLT(BuildContext context) {
-      return ListTile(
-        leading: Icon(
-          Icons.arrow_back,
-          color: Theme.of(_scaffoldKey.currentContext).accentColor,
-        ),
-        title: Text("Закрити"),
-        onTap: () {
-          Navigator.of(context).pop();
-          _handleBottomSheet("exit");
-        },
-      );
-    }
-
-    showModalBottomSheet(
-      context: _scaffoldKey.currentContext,
-      builder: (BuildContext context) {
-        List<ListTile> _menu = [];
-
-        if (_readOnly) {
-          _menu.add(_exitLT(context));
-          _menu.add(_editLT(context));
-        } else {
-          _menu.add(_undoLT(context));
-          _menu.add(_saveExitLT(context));
-          _menu.add(_saveLT(context));
-        }
-
-        return Theme(
-          data: Theme.of(_scaffoldKey.currentContext).copyWith(canvasColor: Colors.transparent),
-          child: Container(
-            color: Colors.grey.shade600,
-            child: Container(
-              padding: EdgeInsets.all(5.0),
-              height: _menu.length * 60.0,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(8.0),
-                  topRight: Radius.circular(8.0),
-                ),
-              ),
-              child: ListView.builder(
-                  itemCount: _menu.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return _menu[index];
-                  }),
-            ),
+  Widget _floatingButton(BuildContext context){
+    return FabCircularMenu(
+      fabColor: Colors.lightGreen,
+      animationDuration: Duration(milliseconds: 400),
+      ringDiameter: 280,
+      fabMargin: _readOnly ? EdgeInsets.only(bottom: 50, right: 10) : EdgeInsets.all(16.0),
+      ringWidth: 70,
+      ringColor: Colors.transparent,
+      fabOpenIcon: Icon(Icons.menu, color: Colors.white,),
+      fabCloseIcon: Icon(Icons.close, color: Colors.white,),
+      children: [
+        CircularButton(
+          color: Colors.lightGreen,
+          width: 55,
+          height: 55,
+          icon: Icon(
+            Icons.undo,
+            color: Colors.white,
           ),
-        );
-      },
+          onClick: (){
+            Navigator.of(context).pop();
+          },
+        ),
+        _readOnly ? SizedBox() : CircularButton(
+          color: Colors.lightGreen,
+          width: 40,
+          height: 40,
+          icon: Icon(
+            Icons.photo_camera,
+            color: Colors.white,
+          ),
+          onClick: () {
+            if (_files.length >= 4) {
+              _displaySnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
+              return;
+            }
+            _getImageCamera();
+          },
+        ),
+        _readOnly ? SizedBox() : CircularButton(
+          color: Colors.lightGreen,
+          width: 40,
+          height: 40,
+          icon: Icon(
+            Icons.image,
+            color: Colors.white,
+          ),
+          onClick: (){
+            if (_files.length >= 4) {
+              _displaySnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
+              return;
+            }
+            _getFile(FileType.image);
+          },
+        ),
+        CircularButton(
+          color: Colors.lightGreen,
+          width: 55,
+          height: 55,
+          icon: Icon(
+            _readOnly ? Icons.edit : Icons.save,
+            color: Colors.white,
+          ),
+          onClick: (){
+            _readOnly ? _handleBottomSheet("edit") :
+            _handleBottomSheet("saveExit");
+          },
+        ),
+      ],
     );
   }
 
@@ -1498,7 +1422,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> {
 //      _documentDateController.text =
 //          _payDesk?.documentDate == null ? "" : formatDate(_payDesk.documentDate, [dd, '.', mm, '.', yyyy]);
 //      _documentDate = _payDesk?.documentDate ?? null;
-      _currentType = _payDesk?.payDeskType == null ? PayDeskTypes.costs : PayDeskTypes.values[_payDesk.payDeskType];
+      _currentType = _payDesk?.payDeskType == null ? widget.type : PayDeskTypes.values[_payDesk.payDeskType];
 
       _documentDateController.text = formatDate(
         _payDesk?.documentDate ?? DateTime.now(),
@@ -1680,4 +1604,26 @@ enum payDeskVariablesTypes {
   incomeItem,
   fromPayOffice,
   toPayOffice,
+}
+
+class CircularButton extends StatelessWidget {
+
+  final double width;
+  final double height;
+  final Color color;
+  final Icon icon;
+  final Function onClick;
+
+  CircularButton({this.color, this.width, this.height, this.icon, this.onClick});
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(color: color,shape: BoxShape.circle),
+      width: width,
+      height: height,
+      child: IconButton(icon: icon,enableFeedback: true, onPressed: onClick),
+    );
+  }
 }

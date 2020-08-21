@@ -5,7 +5,6 @@ import 'package:enterprise/database/core.dart';
 import 'package:enterprise/database/pay_desk_dao.dart';
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/database/timing_dao.dart';
-import 'package:enterprise/database/user_grants_dao.dart';
 import 'package:enterprise/database/warehouse/core.dart';
 import 'package:enterprise/database/warehouse/goods_dao.dart';
 import 'package:enterprise/database/warehouse/partners_dao.dart';
@@ -310,7 +309,7 @@ class PageDebugState extends State<PageDebug> {
                       ),
                       FlatButton(
                         onPressed: () {
-                          _delteDBWarehouse();
+                          _deleteDBWarehouse();
                         },
                         child: Text('delete warehouse DB'),
                       ),
@@ -473,7 +472,7 @@ class PageDebugState extends State<PageDebug> {
     Response response = await post(url, headers: headers, body: requestJSON);
   }
 
-  void _delteDBWarehouse() {
+  void _deleteDBWarehouse() {
     DBWarehouseProvider.db.deleteDB();
   }
 }
