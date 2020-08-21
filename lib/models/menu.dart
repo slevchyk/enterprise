@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 
-class MenuItem{
+class MenuItem {
   String name;
-<<<<<<< HEAD
   IconData icon;
-=======
-  Icon icon;
->>>>>>> beta
   String category;
   String path;
   bool isDivider;
@@ -18,5 +14,4 @@ class MenuItem{
     this.path,
     this.isDivider = false,
   });
-
 }

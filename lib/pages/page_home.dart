@@ -149,7 +149,7 @@ class _HomePageState extends State<HomePage> {
                                                 },
                                                 title: Column(
                                                   children: [
-                                                    _menuItemsList[indexItems].icon,
+                                                    Icon(_menuItemsList[indexItems].icon, size: orientation == Orientation.portrait ? 55 : 100, color: Colors.black54,),
                                                     SizedBox(
                                                       height: 10,
                                                     ),
