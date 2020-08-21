@@ -87,30 +87,47 @@ const String GENDER_FEMALE = "female";
 Map<MenuItem, String> menuList = {
   MenuItem(
       name: "Головна",
+<<<<<<< HEAD
       icon: Icons.home,
+=======
+      icon: Icon(Icons.home),
+>>>>>>> beta
       path: "/home",
       isDivider: true
   ) : "default",
   MenuItem(
     name: "Каса",
+<<<<<<< HEAD
     icon: FontAwesomeIcons.cashRegister,
+=======
+    icon: Icon(FontAwesomeIcons.cashRegister),
+>>>>>>> beta
     path: "/paydesk",
     category: "Каса",
   ) : "Каса",
   MenuItem(
     name: "Баланс",
+<<<<<<< HEAD
     icon: Icons.receipt,
+=======
+    icon: Icon(Icons.receipt),
+>>>>>>> beta
     path: "/balance",
     category: "Каса",
   ) : "Каса",
   MenuItem(
     name: "Аналiтика",
+<<<<<<< HEAD
     icon: FontAwesomeIcons.chartPie,
+=======
+    icon: Icon(Icons.home),
+>>>>>>> beta
     path: "/results",
     category: "Каса",
     isDivider: true,
   ) : "Каса",
   MenuItem(
+<<<<<<< HEAD
     name: "Хронометраж",
     icon: Icons.timer,
     category: "Облік робочого часу",
@@ -145,19 +162,57 @@ Map<MenuItem, String> menuList = {
   MenuItem(
     name: "Debug",
     icon: Icons.bug_report,
+=======
+    name: "Склад",
+    icon: Icon(FontAwesomeIcons.boxes),
+    path: "/warehouse/orders",
+    isDivider: true,
+    category: "Склад",
+  ) : "Склад",
+  MenuItem(
+    name: "Хронометраж",
+    icon: Icon(Icons.timer),
+    category: "Облiк часу",
+    path: "/timing",
+  ) : "Облiк часу",
+  MenuItem(
+    name: "Турнікет",
+    icon: Icon(Icons.play_circle_outline),
+    category: "Облiк часу",
+    path: "/warehouse/orders",
+    isDivider: true,
+  ) : "Облiк часу",
+  MenuItem(
+    name: "HelpDesk",
+    icon: Icon(Icons.help),
+    path: "/helpdesk",
+    category: "Help Desk",
+  ) : "Help Desk",
+  MenuItem(
+    name: "Debug",
+    icon: Icon(Icons.bug_report),
+>>>>>>> beta
     path: "/debug",
     isDivider: true,
     category: "Help Desk",
   ) : "Help Desk",
   MenuItem(
       name: "Профіль",
+<<<<<<< HEAD
       icon: Icons.person,
+=======
+      icon: Icon(Icons.person),
+>>>>>>> beta
       path: "/profile",
       category: "Профіль"
   ) : "Профіль",
   MenuItem(
       name: "Налаштування",
+<<<<<<< HEAD
       icon: Icons.settings,
+=======
+      icon: Icon(Icons.settings),
+>>>>>>> beta
       path: "/settings",
       category: "Профіль"
   ) : "Профіль",
@@ -168,6 +223,7 @@ Map<MenuItem, String> menuList = {
   ) : "Профіль",
   MenuItem(
     name: "Про додаток",
+<<<<<<< HEAD
     icon: Icons.info,
     path: "/about",
   ) : "default",
@@ -176,6 +232,11 @@ Map<MenuItem, String> menuList = {
 //    icon: Icons.edit_attributes,
 //    path: "/test",
 //  ) : "default",
+=======
+    icon: Icon(Icons.info),
+    path: "/about",
+  ) : "default",
+>>>>>>> beta
 };
 
 Map<String, String> genderAlias = {
