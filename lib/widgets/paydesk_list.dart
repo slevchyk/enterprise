@@ -278,6 +278,9 @@ class PayDeskList extends StatelessWidget {
 //    if (_details.length > 25 && MediaQuery.of(context).orientation==Orientation.portrait) {
 //      _details = _details.substring(0, 24) + '...';
 //    }
+    if(_details==null){
+      return Container();
+    }
 
     return Container(
       child: Text(

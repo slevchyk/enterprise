@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/pay_desk_dao.dart';
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
@@ -140,8 +141,9 @@ class _PagePayDeskState extends State<PagePayDesk> {
       floatingActionButton: Visibility(
         visible: _isVisible,
         child: FloatingActionButton(
+          backgroundColor: Colors.lightGreen,
           onPressed: () {
-            RouteArgs _args = RouteArgs(profile: _profile);
+            RouteArgs _args = RouteArgs(profile: _profile, type: PayDeskTypes.costs);
             Navigator.pushNamed(context, "/paydesk/detail", arguments: _args).whenComplete(() => _load());
           },
           child: Icon(Icons.add),

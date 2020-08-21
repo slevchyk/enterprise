@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 
 class MenuItem{
   String name;
+<<<<<<< HEAD
+  IconData icon;
+=======
   Icon icon;
+>>>>>>> beta
   String category;
   String path;
   bool isDivider;

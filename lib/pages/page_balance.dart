@@ -1,6 +1,5 @@
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:enterprise/database/impl/pay_office_dao.dart';
 import 'package:enterprise/database/pay_desk_dao.dart';
@@ -90,6 +89,7 @@ class _PageBalanceState extends State<PageBalance>{
                     );
                   case ConnectionState.done:
                     _listPayOfficeToShow = snapshot.data;
+                    _listPayOfficeToShow = _listPayOfficeToShow.reversed.toList();
                     _mapToShow = _setMapMap(_listPayOfficeToShow);
                     var _emptyLength = _mapToShow.values.where((element) => element!=0).toList();
                     if(_emptyLength.length==0){
@@ -121,12 +121,16 @@ class _PageBalanceState extends State<PageBalance>{
       toReturn.addAll({element : 0});
     });
     list.forEach((pay) {
+      if(!pay.isVisible){
+        return;
+      }
       if(pay.isShow){
         pay.amount = 2000; /// Add amount to payOffice, just for testing, delete in release!
         toReturn.update(pay.currencyName, (value) =>  value + pay.amount);
       }
     });
-    return LinkedHashMap.fromEntries(toReturn.entries.toList().reversed);
+//    return LinkedHashMap.fromEntries(toReturn.entries.toList().reversed);
+    return toReturn;
   }
 
   void _sortDialog(List<PayOffice> inputCostItem){
@@ -147,7 +151,7 @@ class _PageBalanceState extends State<PageBalance>{
                           borderRadius: BorderRadius.all(Radius.circular(20.0))
                       ),
                       content: Container(
-                        height: inputCostItem.length == 0 ? 50 : inputCostItem.length == 1 ? 115 : inputCostItem.length >3 ? 250 : 160,
+                        height: inputCostItem.length == 0 ? 50 : inputCostItem.length == 1 ? 115 : inputCostItem.length >3 ? 210 : 160,
                         width: 500,
                         child: ListView.builder(
                           shrinkWrap: true,
@@ -199,6 +203,9 @@ class _PageBalanceState extends State<PageBalance>{
                                   ),
                                 ],
                               );
+                            }
+                            if(!inputCostItem[index].isVisible){
+                              return Container();
                             }
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -332,6 +339,9 @@ class _PageBalanceState extends State<PageBalance>{
                               );
                             }
                             if(!_listPayOfficeToShow[listIndex].isShow){
+                              return Container();
+                            }
+                            if(!_listPayOfficeToShow[listIndex].isVisible){
                               return Container();
                             }
                             if(_listPayOfficeToShow[listIndex].currencyName==listToShow.keys.elementAt(index)){

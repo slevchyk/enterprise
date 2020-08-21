@@ -65,7 +65,7 @@ class PayOfficeDAO implements PayOfficeInterface{
     );
 
     List<PayOffice> toReturn = res.isNotEmpty ? res.map((ci) => PayOffice.fromMap(ci)).toList() : [];
-    return toReturn;
+    return toReturn.reversed.toList();
   }
 
   Future<List<PayOffice>> getAllToTransfer() async {

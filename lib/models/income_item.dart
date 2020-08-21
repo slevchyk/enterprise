@@ -42,7 +42,7 @@ class IncomeItem {
     "is_deleted": isDeleted == null ? 0 : isDeleted ? 1 : 0,
   };
 
-  static sync() async {
+  static Future<bool> sync() async {
     IncomeItem incomeItem;
 
     final prefs = await SharedPreferences.getInstance();
@@ -61,32 +61,39 @@ class IncomeItem {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    Response response = await get(
-      url,
-      headers: headers,
-    );
+    try {
+      Response response = await get(
+        url,
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      var jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        var jsonData = json.decode(response.body);
 
-      if (jsonData == null) {
-        return;
-      }
+        if (jsonData == null) {
+          return true;
+        }
 
-      for (var jsonIncomeItem in jsonData) {
-        incomeItem = IncomeItem.fromMap(jsonIncomeItem);
+        for (var jsonIncomeItem in jsonData) {
+          incomeItem = IncomeItem.fromMap(jsonIncomeItem);
 
-        IncomeItem existIncomeItem = await IncomeItemDAO().getByID(incomeItem.id);
+          IncomeItem existIncomeItem = await IncomeItemDAO().getByID(incomeItem.id);
 
-        if (existIncomeItem != null) {
-          incomeItem.mobID = existIncomeItem.mobID;
-          IncomeItemDAO().update(incomeItem);
-        } else {
-          if (!incomeItem.isDeleted) {
-            IncomeItemDAO().insert(incomeItem);
+          if (existIncomeItem != null) {
+            incomeItem.mobID = existIncomeItem.mobID;
+            IncomeItemDAO().update(incomeItem);
+          } else {
+            if (!incomeItem.isDeleted) {
+              IncomeItemDAO().insert(incomeItem);
+            }
           }
         }
+        return true;
       }
+      return false;
+    } catch (e) {
+      print(e);
+      return false;
     }
   }
 }

@@ -681,7 +681,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                           borderRadius: BorderRadius.all(Radius.circular(20.0))
                       ),
                       content: Container(
-                        height: inputCostItem.length == 0 ? 50 : inputCostItem.length == 1 ? 115 : inputCostItem.length >3 ? 250 : 160,
+                        height: inputCostItem.length == 0 ? 50 : inputCostItem.length == 1 ? 115 : inputCostItem.length >3 ? 210 : 160,
                         width: 500,
                         child: ListView.builder(
                           shrinkWrap: true,
@@ -734,6 +734,9 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                                   ),
                                 ],
                               );
+                            }
+                            if(!inputCostItem[index].isVisible){
+                              return Container();
                             }
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -807,7 +810,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
 
   Future<void> _load() async {
     if(_payOfficeList==null){
-      _payOfficeList = await ImplPayOfficeDAO().getUnDeleted();
+      _payOfficeList = (await ImplPayOfficeDAO().getUnDeleted()).reversed.toList();
     }
     setState(() {
       _currentIndex == 2 ? _payDeskList = PayDeskDAO().getAllExceptTransfer() : _payDeskList = ImplPayDeskDao().getByType(_sceneMap.values.elementAt(_currentIndex));

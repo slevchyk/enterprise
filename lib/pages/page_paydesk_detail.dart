@@ -31,10 +31,12 @@ import 'package:path_provider/path_provider.dart';
 class PagePayDeskDetail extends StatefulWidget {
   final PayDesk payDesk;
   final Profile profile;
+  final PayDeskTypes type;
 
   PagePayDeskDetail({
     this.payDesk,
     this.profile,
+    this.type,
   });
 
   @override
@@ -184,7 +186,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: (){
+      onTap: () {
         FocusScope.of(this.context).unfocus();
       },
       child: Scaffold(
@@ -276,8 +278,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                   pageBuilder: (context, anim1, anim2) {
                                     return _selectionDialog(
                                       _fromPayOfficeController,
-                                      _currentType==PayDeskTypes.transfer ? ImplPayOfficeDAO()
-                                          .getAllToTransfer() : _payOfficeList,
+                                      _payOfficeList,
                                       payDeskVariablesTypes.fromPayOffice,
                                       _scaffoldKey,
                                     );
@@ -585,7 +586,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                               DateTime picked = await showDatePicker(
                                   context: context,
                                   firstDate: DateTime(DateTime.now().year - 1),
-                                  initialDate: _payDesk?.documentDate != null ? _payDesk.documentDate : DateFormat('dd.MM.yyyy').parse(_documentDateController.text),
+                                  initialDate: _payDesk?.documentDate != null
+                                      ? _payDesk.documentDate
+                                      : DateFormat('dd.MM.yyyy').parse(_documentDateController.text),
                                   lastDate: DateTime(DateTime.now().year + 1));
 
                               if (picked != null) {
@@ -597,7 +600,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                 setState(() {
                                   MaterialLocalizations localizations = MaterialLocalizations.of(context);
                                   String formattedTime =
-                                  localizations.formatTimeOfDay(TimeOfDay.now(), alwaysUse24HourFormat: true);
+                                      localizations.formatTimeOfDay(TimeOfDay.now(), alwaysUse24HourFormat: true);
                                   _documentDateController.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
                                   _documentTimeController.text = formattedTime;
                                 });
@@ -630,11 +633,11 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
 
                                 MaterialLocalizations localizations = MaterialLocalizations.of(context);
                                 String formattedTime =
-                                localizations.formatTimeOfDay(selectedTime, alwaysUse24HourFormat: true);
+                                    localizations.formatTimeOfDay(selectedTime, alwaysUse24HourFormat: true);
 
                                 if (DateFormat("dd.MM.yyyy")
-                                    .parse("${_documentDateController.text}")
-                                    .isAtSameMomentAs(DateFormat("yyyy-MM-dd").parse(DateTime.now().toString())) &&
+                                        .parse("${_documentDateController.text}")
+                                        .isAtSameMomentAs(DateFormat("yyyy-MM-dd").parse(DateTime.now().toString())) &&
                                     (selectedTime.hour * 60 + selectedTime.minute) >
                                         (TimeOfDay.now().hour * 60 + TimeOfDay.now().minute)) {
                                   _displaySnackBar(
@@ -760,7 +763,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
           ),
         ),
         floatingActionButton: _floatingButton(context),
-        bottomSheet: _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly  ? _confirmButton() : SizedBox(),
+        bottomSheet: _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly ? _confirmButton() : SizedBox(),
       ),
     );
   }
@@ -829,8 +832,17 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                   '${formatDate(
                     _payDesk.createdAt,
                     [
-                      dd, '.', mm, '.', yyyy,
-                      ' ', HH, ':', nn, ':', ss,
+                      dd,
+                      '.',
+                      mm,
+                      '.',
+                      yyyy,
+                      ' ',
+                      HH,
+                      ':',
+                      nn,
+                      ':',
+                      ss,
                     ],
                   )}\n',
                   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
@@ -943,7 +955,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
         if (!_readOnly) {
           setState(() {
             _currentType = _type;
-
             switch (_type) {
               case PayDeskTypes.costs:
                 _payOfficeList.then((payOfficeList) {
@@ -972,7 +983,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                 _toPayOffice = PayOffice();
                 break;
               case PayDeskTypes.transfer:
-                ImplPayOfficeDAO().getAllToTransfer().then((payOfficeList) {
+                _payOfficeList.then((payOfficeList) {
                   try {
                     _setPayOfficeAndCurrency(payOfficeList.first);
                   } catch (e) {
@@ -1063,8 +1074,15 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                           ),
                           Text(
                             formatDate(_payDesk.documentDate, [
-                              dd, '-', mm, '-', yyyy,
-                              ' ', HH, ':', nn,
+                              dd,
+                              '-',
+                              mm,
+                              '-',
+                              yyyy,
+                              ' ',
+                              HH,
+                              ':',
+                              nn,
                             ]),
                           ),
                           SizedBox(
@@ -1079,8 +1097,17 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                           ),
                           Text(
                             formatDate(_payDesk.createdAt, [
-                              dd, '-', mm, '-', yyyy,
-                              ' ', HH, ':', nn, ':', ss,
+                              dd,
+                              '-',
+                              mm,
+                              '-',
+                              yyyy,
+                              ' ',
+                              HH,
+                              ':',
+                              nn,
+                              ':',
+                              ss,
                             ]),
                           ),
                           _payDesk.updatedAt.difference(_payDesk.createdAt).inSeconds > 0
@@ -1258,7 +1285,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     );
   }
 
-  Widget _floatingButton(BuildContext context){
+  Widget _floatingButton(BuildContext context) {
     return FabCircularMenu(
       fabColor: Colors.lightGreen,
       animationDuration: Duration(milliseconds: 400),
@@ -1266,8 +1293,14 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
       fabMargin: _readOnly ? EdgeInsets.only(bottom: 50, right: 10) : EdgeInsets.all(16.0),
       ringWidth: 70,
       ringColor: Colors.transparent,
-      fabOpenIcon: Icon(Icons.menu, color: Colors.white,),
-      fabCloseIcon: Icon(Icons.close, color: Colors.white,),
+      fabOpenIcon: Icon(
+        Icons.menu,
+        color: Colors.white,
+      ),
+      fabCloseIcon: Icon(
+        Icons.close,
+        color: Colors.white,
+      ),
       children: [
         CircularButton(
           color: Colors.lightGreen,
@@ -1277,42 +1310,46 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
             Icons.undo,
             color: Colors.white,
           ),
-          onClick: (){
+          onClick: () {
             Navigator.of(context).pop();
           },
         ),
-        _readOnly ? SizedBox() : CircularButton(
-          color: Colors.lightGreen,
-          width: 40,
-          height: 40,
-          icon: Icon(
-            Icons.photo_camera,
-            color: Colors.white,
-          ),
-          onClick: () {
-            if (_files.length >= 4) {
-              _displaySnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
-              return;
-            }
-            _getImageCamera();
-          },
-        ),
-        _readOnly ? SizedBox() : CircularButton(
-          color: Colors.lightGreen,
-          width: 40,
-          height: 40,
-          icon: Icon(
-            Icons.image,
-            color: Colors.white,
-          ),
-          onClick: (){
-            if (_files.length >= 4) {
-              _displaySnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
-              return;
-            }
-            _getFile(FileType.image);
-          },
-        ),
+        _readOnly
+            ? SizedBox()
+            : CircularButton(
+                color: Colors.lightGreen,
+                width: 40,
+                height: 40,
+                icon: Icon(
+                  Icons.photo_camera,
+                  color: Colors.white,
+                ),
+                onClick: () {
+                  if (_files.length >= 4) {
+                    _displaySnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
+                    return;
+                  }
+                  _getImageCamera();
+                },
+              ),
+        _readOnly
+            ? SizedBox()
+            : CircularButton(
+                color: Colors.lightGreen,
+                width: 40,
+                height: 40,
+                icon: Icon(
+                  Icons.image,
+                  color: Colors.white,
+                ),
+                onClick: () {
+                  if (_files.length >= 4) {
+                    _displaySnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
+                    return;
+                  }
+                  _getFile(FileType.image);
+                },
+              ),
         CircularButton(
           color: Colors.lightGreen,
           width: 55,
@@ -1321,9 +1358,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
             _readOnly ? Icons.edit : Icons.save,
             color: Colors.white,
           ),
-          onClick: (){
-            _readOnly ? _handleBottomSheet("edit") :
-            _handleBottomSheet("saveExit");
+          onClick: () {
+            _readOnly ? _handleBottomSheet("edit") : _handleBottomSheet("saveExit");
           },
         ),
       ],
@@ -1422,7 +1458,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
 //      _documentDateController.text =
 //          _payDesk?.documentDate == null ? "" : formatDate(_payDesk.documentDate, [dd, '.', mm, '.', yyyy]);
 //      _documentDate = _payDesk?.documentDate ?? null;
-      _currentType = _payDesk?.payDeskType == null ? PayDeskTypes.costs : PayDeskTypes.values[_payDesk.payDeskType];
+      _currentType = _payDesk?.payDeskType == null ? widget.type : PayDeskTypes.values[_payDesk.payDeskType];
 
       _documentDateController.text = formatDate(
         _payDesk?.documentDate ?? DateTime.now(),
@@ -1607,7 +1643,6 @@ enum payDeskVariablesTypes {
 }
 
 class CircularButton extends StatelessWidget {
-
   final double width;
   final double height;
   final Color color;
@@ -1616,14 +1651,13 @@ class CircularButton extends StatelessWidget {
 
   CircularButton({this.color, this.width, this.height, this.icon, this.onClick});
 
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: color,shape: BoxShape.circle),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       width: width,
       height: height,
-      child: IconButton(icon: icon,enableFeedback: true, onPressed: onClick),
+      child: IconButton(icon: icon, enableFeedback: true, onPressed: onClick),
     );
   }
 }

@@ -3,11 +3,12 @@ import 'package:enterprise/models/channel.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/auth/page_login.dart';
-import 'package:enterprise/widgets/user_photo.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:enterprise/pages/body_main_chanel.dart';
 import 'package:enterprise/pages/body_main_timing.dart';
+import 'package:enterprise/widgets/user_photo.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -105,8 +106,7 @@ class PageMainState extends State<PageMain> {
     );
   }
 
-  _onMessage(
-      GlobalKey<ScaffoldState> _globalKey, Map<String, dynamic> message) async {
+  _onMessage(GlobalKey<ScaffoldState> _globalKey, Map<String, dynamic> message) async {
     final prefs = await SharedPreferences.getInstance();
     final String userID = prefs.get(KEY_USER_ID);
 
@@ -139,8 +139,7 @@ class PageMainState extends State<PageMain> {
               child: Text('Переглянути'),
               onPressed: () {
                 Navigator.of(context).pop();
-                Navigator.of(context)
-                    .pushNamed("/channel/detail", arguments: channel);
+                Navigator.of(context).pushNamed("/channel/detail", arguments: channel);
               },
             ),
           ],
@@ -226,11 +225,8 @@ class _AppDrawerState extends State<AppDrawer> {
             UserAccountsDrawerHeader(
               accountName: widget.profile == null
                   ? Text('Ім\'я')
-                  : Text(
-                      widget.profile.firstName + ' ' + widget.profile.lastName),
-              accountEmail: widget.profile == null
-                  ? Text('email')
-                  : Text(widget.profile.email),
+                  : Text(widget.profile.firstName + ' ' + widget.profile.lastName),
+              accountEmail: widget.profile == null ? Text('email') : Text(widget.profile.email),
               currentAccountPicture: UserPhoto(
                 profile: widget.profile,
               ),
@@ -239,12 +235,16 @@ class _AppDrawerState extends State<AppDrawer> {
               Column(
                 children: <Widget>[
                   ListTile(
-                    leading: menuElement.path == "/exit" ? widget.profile?.userID == ""
-                        ? Icon(FontAwesomeIcons.signInAlt)
-                        : Icon(FontAwesomeIcons.signOutAlt) : menuElement.icon,
-                    title: Text( menuElement.path == "/exit" ? widget.profile?.userID == "" ? 'Увійти' : 'Вийти' : menuElement.name),
+                    leading: menuElement.path == "/exit"
+                        ? widget.profile?.userID == ""
+                            ? Icon(FontAwesomeIcons.signInAlt)
+                            : Icon(FontAwesomeIcons.signOutAlt)
+                        : menuElement.icon,
+                    title: Text(menuElement.path == "/exit"
+                        ? widget.profile?.userID == "" ? 'Увійти' : 'Вийти'
+                        : menuElement.name),
                     onTap: () {
-                      if(menuElement.path == "/exit"){
+                      if (menuElement.path == "/exit") {
                         singInOutDialog(context);
                       } else {
                         RouteArgs args = RouteArgs(profile: widget.profile);

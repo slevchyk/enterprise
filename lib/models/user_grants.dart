@@ -55,7 +55,7 @@ class UserGrants{
     "is_receiver" : isReceiver == null ? 0 : isReceiver ? 1 : 0,
   };
 
-  static sync() async {
+  static Future<bool> sync() async {
     UserGrants userGrants;
 
     final prefs = await SharedPreferences.getInstance();
@@ -75,30 +75,37 @@ class UserGrants{
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    Response response = await get(
-      url,
-      headers: headers,
-    );
+    try {
+      Response response = await get(
+        url,
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      var jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        var jsonData = json.decode(response.body);
 
-      if (jsonData == null) {
-        return;
-      }
-
-      for (var jsonPayOffice in jsonData) {
-        userGrants = UserGrants.fromMap(jsonPayOffice);
-
-        UserGrants existUserGrants = await UserGrantsDAO().getByObjectAccID(userGrants.objectAccID);
-
-        if (existUserGrants != null) {
-          UserGrantsDAO().update(userGrants);
-        } else {
-          UserGrantsDAO().insert(userGrants);
+        if (jsonData == null) {
+          return true;
         }
+
+        for (var jsonPayOffice in jsonData) {
+          userGrants = UserGrants.fromMap(jsonPayOffice);
+
+          UserGrants existUserGrants = await UserGrantsDAO().getByObjectAccID(userGrants.objectAccID);
+
+          if (existUserGrants != null) {
+            UserGrantsDAO().update(userGrants);
+          } else {
+            UserGrantsDAO().insert(userGrants);
+          }
+        }
+        PayOffice.sync();
+        return true;
       }
+      return false;
+    } catch (e) {
+      print(e);
+      return false;
     }
-    PayOffice.sync();
   }
 }
