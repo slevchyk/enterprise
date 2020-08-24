@@ -1,7 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.intellectcase.enterprise">
 
-    <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
+<!--    <uses-permission android:name="android.permission.USE_FINGERPRINT"/>-->
+    <uses-permission android:name="androidx.biometric:biometric:1.0.1"/>
+    <uses-permission android:name="android.support.FILE_PROVIDER_PATHS"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.CAMERA" />
 

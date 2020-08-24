@@ -2,16 +2,19 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:enterprise/models/constants.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
 class Coordination{
   String iD;
   String name;
+  String url;
   DateTime date;
 
   Coordination({
     this.iD,
     this.name,
+    this.url,
     this.date,
   });
 
@@ -27,7 +30,7 @@ class Coordination{
     "date" : date != null ? date.toIso8601String() : null,
   };
 
-  static Future<List<Coordination>> getCoordinationList() async {
+  static Future<List<Coordination>> getCoordinationList(_scaffoldKey) async {
     Coordination coordination;
 
     List<Coordination> toReturn = [];
@@ -38,6 +41,13 @@ class Coordination{
 
     try{
       if(_token==null){
+        _scaffoldKey
+            .currentState
+            .showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.orange,
+              content: Text("Помилка отримання токену"),
+            ));
         print('no token');
         return null;
       }

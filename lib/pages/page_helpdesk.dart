@@ -38,8 +38,8 @@ class _PageHelpDeskState extends State<PageHelpDesk> {
 
   Future<void> _updateHelpDesk() async {
     setState(() {
-      helpDeskProcessed = getHelpDesk(HELPDESK_STATUS_PROCESSED);
-      helpDeskUnprocessed = getHelpDesk(HELPDESK_STATUS_UNPROCESSED);
+      helpDeskProcessed = getHelpDesk(HELP_DESK_STATUS_PROCESSED);
+      helpDeskUnprocessed = getHelpDesk(HELP_DESK_STATUS_UNPROCESSED);
     });
   }
 

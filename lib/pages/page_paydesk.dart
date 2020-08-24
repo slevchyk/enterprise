@@ -45,7 +45,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
   @override
   void initState() {
     super.initState();
-    UserGrants.sync();
+    UserGrants.sync(scaffoldKey: _scaffoldKey);
     _now = DateTime.now();
     _firstDayOfMonth = DateTime(_now.year, _now.month, 1);
     _dateFrom.text = formatDate(_firstDayOfMonth, [dd, '.', mm, '.', yyyy]);

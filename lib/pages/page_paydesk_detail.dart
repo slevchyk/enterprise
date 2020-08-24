@@ -591,7 +591,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
 
                               if (picked != null) {
                                 if (picked.isAfter(DateTime.now())) {
-                                  _displaySnackBar(
+                                  _showSnackBar(
                                       "Дата операції не повинна перевищувати поточну дату", Colors.amber.shade700);
                                   return;
                                 }
@@ -638,7 +638,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                     .isAtSameMomentAs(DateFormat("yyyy-MM-dd").parse(DateTime.now().toString())) &&
                                     (selectedTime.hour * 60 + selectedTime.minute) >
                                         (TimeOfDay.now().hour * 60 + TimeOfDay.now().minute)) {
-                                  _displaySnackBar(
+                                  _showSnackBar(
                                       "Час операції не повинен перевищувати поточний час", Colors.amber.shade700);
                                   return;
                                 }
@@ -1030,11 +1030,11 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                   builder: (context) => AlertDialog(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
                     insetPadding: MediaQuery.of(context).orientation == Orientation.landscape
-                        ? EdgeInsets.only()
-                        : EdgeInsets.only(top: 200, bottom: 200),
+                        ? EdgeInsets.only(top: 60, bottom: 60)
+                        : EdgeInsets.only(top: 270, bottom: 270),
                     content: ListTile(
                       title: Container(
-                        height: 40,
+                        height: 45,
                         child: Column(
                           children: <Widget>[
                             Text(
@@ -1291,7 +1291,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
           ),
           onClick: () {
             if (_files.length >= 4) {
-              _displaySnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
+              _showSnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
               return;
             }
             _getImageCamera();
@@ -1307,7 +1307,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
           ),
           onClick: (){
             if (_files.length >= 4) {
-              _displaySnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
+              _showSnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
               return;
             }
             _getFile(FileType.image);
@@ -1368,7 +1368,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     if (_ok) {
       _saveAttachments();
     } else {
-      _displaySnackBar("Помилка збереження в базі", Colors.red);
+      _showSnackBar("Помилка збереження в базі", Colors.red);
     }
 
     return _ok;
@@ -1398,7 +1398,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     if (files <= 4) {
       return true;
     }
-    _showDialog(title: 'Максимальна кількість', body: 'Досягнуто максимальну кількість файлів - 4');
+    _showSnackBar("Досягнуто максимальну кількість файлів - 4", Colors.red) ;
     return false;
   }
 
@@ -1466,12 +1466,15 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     }
   }
 
-  void _displaySnackBar(String title, Color color) {
-    final snackBar = SnackBar(
-      content: Text(title),
-      backgroundColor: color,
-    );
-    _scaffoldKey.currentState.showSnackBar(snackBar);
+  void _showSnackBar(String title, Color color) {
+    _scaffoldKey
+        .currentState
+        .showSnackBar(
+        SnackBar(
+          duration: Duration(milliseconds: 1200),
+          content: Text(title),
+          backgroundColor: color,
+    ));
   }
 
   void _getFile(FileType type) async {
@@ -1493,26 +1496,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
       }
       setState(() {});
     }
-  }
-
-  void _showDialog({String title, String body}) {
-    showDialog(
-      context: _scaffoldKey.currentContext,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: new Text(title),
-          content: new Text(body),
-          actions: <Widget>[
-            new FlatButton(
-              child: new Text("Закрити"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future<void> _saveAttachments() async {
@@ -1545,12 +1528,12 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
         String _fileHash = sha256.convert(_fileBytes).toString();
 
         if (_files.where((value) => value.path.contains(_fileHash)).length > 0) {
-          _displaySnackBar("Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+          _showSnackBar("Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
           continue;
         }
 
         if (_newFiles.where((value) => value.path.contains(_fileHash)).length > 0) {
-          _displaySnackBar("Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+          _showSnackBar("Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
           continue;
         }
 

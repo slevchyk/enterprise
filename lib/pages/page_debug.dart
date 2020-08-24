@@ -294,7 +294,7 @@ class PageDebugState extends State<PageDebug> {
                       ),
                       FlatButton(
                         onPressed: () {
-                          UserGrants.sync();
+                          UserGrants.sync(scaffoldKey: _scaffoldKey);
                         },
                         child: Text('Sync User Grants'),
                       ),

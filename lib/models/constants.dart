@@ -136,12 +136,12 @@ Map<MenuItem, String> menuList = {
     path: "/helpdesk",
     category: "Help Desk",
   ) : "Help Desk",
-//  MenuItem(
-//      name: "Погодження",
-//      icon: Icons.done_outline,
-//      path: "/coordination",
-//      category: "Help Desk"
-//  ) : "Help Desk",
+  MenuItem(
+      name: "Погодження",
+      icon: Icons.done_outline,
+      path: "/coordination",
+      category: "Help Desk"
+  ) : "Help Desk",
   MenuItem(
     name: "Debug",
     icon: Icons.bug_report,
@@ -171,11 +171,6 @@ Map<MenuItem, String> menuList = {
     icon: Icons.info,
     path: "/about",
   ) : "default",
-//  MenuItem(
-//    name: "Test",
-//    icon: Icons.edit_attributes,
-//    path: "/test",
-//  ) : "default",
 };
 
 Map<String, String> genderAlias = {
@@ -192,8 +187,8 @@ Map<String, String> passportTypesAlias = {
   PASSPORT_TYPE_ID: "ID картка",
 };
 
-const String HELPDESK_STATUS_UNPROCESSED = "unprocessed";
-const String HELPDESK_STATUS_PROCESSED = "processed";
+const String HELP_DESK_STATUS_UNPROCESSED = "unprocessed";
+const String HELP_DESK_STATUS_PROCESSED = "processed";
 
 //currency
 const int CURRENCY_UAH = 980;

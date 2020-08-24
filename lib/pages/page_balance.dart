@@ -7,6 +7,7 @@ import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/widgets/custom_expansion_title.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +48,7 @@ class _PageBalanceState extends State<PageBalance>{
   @override
   void initState() {
     super.initState();
+    UserGrants.sync(scaffoldKey: _scaffoldKey);
     _profile = widget.profile;
     _scrollController = ScrollController();
     _dialogScrollController = ScrollController();
@@ -129,7 +131,6 @@ class _PageBalanceState extends State<PageBalance>{
         toReturn.update(pay.currencyName, (value) =>  value + pay.amount);
       }
     });
-//    return LinkedHashMap.fromEntries(toReturn.entries.toList().reversed);
     return toReturn;
   }
 

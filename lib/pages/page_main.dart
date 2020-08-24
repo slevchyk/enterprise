@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models/channel.dart';
 import 'package:enterprise/models/models.dart';
@@ -10,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:enterprise/pages/body_main_chanel.dart';
 import 'package:enterprise/pages/body_main_timing.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/constants.dart';
@@ -252,7 +255,7 @@ class _AppDrawerState extends State<AppDrawer> {
                         Navigator.of(context).pushNamed(
                           '${menuElement.path}',
                           arguments: args,
-                        );
+                        ).whenComplete(() => menuElement.name == "Погодження" ? _clearTemp() : null );;
                       }
                     },
                   ),
@@ -422,5 +425,10 @@ class _AppDrawerState extends State<AppDrawer> {
         ),
       ),
     );
+  }
+
+  void _clearTemp() async {
+    var appDir = (await getTemporaryDirectory()).path;
+    new Directory(appDir).delete(recursive: true);
   }
 }

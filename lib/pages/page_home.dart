@@ -1,4 +1,6 @@
 
+import 'dart:io';
+
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/cost_item.dart';
 import 'package:enterprise/models/currency.dart';
@@ -10,6 +12,7 @@ import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 class HomePage extends StatefulWidget{
   final Profile profile;
@@ -31,19 +34,19 @@ class _HomePageState extends State<HomePage>{
   }
 
   Future<void> _load() async {
-    if(await CostItem.sync() && await IncomeItem.sync() && await Currency.sync() && await UserGrants.sync()){
-      _scaffoldKey.currentState.showSnackBar(
-          SnackBar(
-            content: Text("Даннi оновлено"),
-            backgroundColor: Colors.green,
-          ));
-    } else {
-      _scaffoldKey.currentState.showSnackBar(
-          SnackBar(
-            content: Text("Помилка оновлення даних"),
-            backgroundColor: Colors.orange,
-          ));
-    }
+    await CostItem.sync() && await IncomeItem.sync() && await Currency.sync() && await UserGrants.sync()
+        ? _showSnackBar(_scaffoldKey, "Даннi оновлено", Colors.green)
+        : _showSnackBar(_scaffoldKey, "Помилка оновлення даних", Colors.orange);
+  }
+
+  _showSnackBar(GlobalKey<ScaffoldState> scaffoldKey, String title, Color color){
+    scaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          duration: Duration(milliseconds: 700),
+          content: Text(title),
+          backgroundColor: color,
+        )
+    );
   }
 
   @override
@@ -129,7 +132,7 @@ class _HomePageState extends State<HomePage>{
                                                   Navigator.of(context).pushNamed(
                                                     '${_menuItemsList[indexItems].path}',
                                                     arguments: args,
-                                                  );
+                                                  ).whenComplete(() => _menuItemsList[indexItems].name == "Погодження" ? _clearTemp() : null );
                                                 },
                                                 title: Column(
                                                   children: [
@@ -183,14 +186,19 @@ class _HomePageState extends State<HomePage>{
   IconData _setIcon(int index){
     switch(index){
       case 0:
-        return Icons.add;
-      case 1:
         return Icons.remove;
+      case 1:
+        return Icons.add;
       case 2:
         return Icons.compare_arrows;
       default:
         return Icons.add;
     }
+  }
+
+  void _clearTemp() async {
+    var appDir = (await getTemporaryDirectory()).path;
+    new Directory(appDir).delete(recursive: true);
   }
 
   PayDeskTypes _setType(int index){
