@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class MenuItem{
+class MenuItem {
   String name;
   IconData icon;
   String category;
@@ -14,5 +14,4 @@ class MenuItem{
     this.path,
     this.isDivider = false,
   });
-
 }
