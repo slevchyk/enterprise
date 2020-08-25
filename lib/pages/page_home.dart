@@ -132,7 +132,7 @@ class _HomePageState extends State<HomePage>{
                                                   Navigator.of(context).pushNamed(
                                                     '${_menuItemsList[indexItems].path}',
                                                     arguments: args,
-                                                  ).whenComplete(() => _menuItemsList[indexItems].name == "Погодження" ? _clearTemp() : null );
+                                                  ).whenComplete(() => _menuItemsList[indexItems].isClearCache ? _clearTemp() : null );
                                                 },
                                                 title: Column(
                                                   children: [

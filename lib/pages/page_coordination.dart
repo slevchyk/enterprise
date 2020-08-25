@@ -31,6 +31,16 @@ class _PageCoordinationState extends State<PageCoordination>{
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text("Погодження"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.sync),
+            onPressed: (){
+              setState(() {
+
+              });
+            },
+          ),
+        ],
       ),
       body: FutureBuilder(
         future: Coordination.getCoordinationList(_scaffoldKey),

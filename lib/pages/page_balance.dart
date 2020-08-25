@@ -48,11 +48,15 @@ class _PageBalanceState extends State<PageBalance>{
   @override
   void initState() {
     super.initState();
-    UserGrants.sync(scaffoldKey: _scaffoldKey);
+    _load();
     _profile = widget.profile;
     _scrollController = ScrollController();
     _dialogScrollController = ScrollController();
     _isSwitched = true;
+  }
+
+  _load() async {
+    UserGrants.sync(scaffoldKey: _scaffoldKey);
     _futureListPayOffice = ImplPayOfficeDAO().getUnDeleted();
   }
 
@@ -69,6 +73,12 @@ class _PageBalanceState extends State<PageBalance>{
                 icon: Icon(Icons.sort),
                 onPressed: (){
                   _sortDialog(_listPayOfficeToShow);
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.sync),
+                onPressed: (){
+                  _load();
                 },
               ),
             ],

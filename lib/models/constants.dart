@@ -140,6 +140,7 @@ Map<MenuItem, String> menuList = {
       name: "Погодження",
       icon: Icons.done_outline,
       path: "/coordination",
+      isClearCache: true,
       category: "Help Desk"
   ) : "Help Desk",
   MenuItem(

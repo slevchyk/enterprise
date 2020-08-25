@@ -6,6 +6,7 @@ class MenuItem {
   String category;
   String path;
   bool isDivider;
+  bool isClearCache;
 
   MenuItem({
     this.name = "default",
@@ -13,5 +14,6 @@ class MenuItem {
     this.category = "default",
     this.path,
     this.isDivider = false,
+    this.isClearCache = false,
   });
 }
