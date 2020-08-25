@@ -45,7 +45,6 @@ class _PagePayDeskState extends State<PagePayDesk> {
   @override
   void initState() {
     super.initState();
-    UserGrants.sync();
     _now = DateTime.now();
     _firstDayOfMonth = DateTime(_now.year, _now.month, 1);
     _dateFrom.text = formatDate(_firstDayOfMonth, [dd, '.', mm, '.', yyyy]);
@@ -103,21 +102,21 @@ class _PagePayDeskState extends State<PagePayDesk> {
             },
           ),
           IconButton(
+              icon: Icon(Icons.calendar_today),
+              onPressed: (){
+                _showPeriodDialog();
+              }
+          ),
+          IconButton(
             onPressed: () async {
               await PayDesk.sync();
               _load();
             },
             icon: Icon(
-              Icons.update,
+              Icons.sync,
               size: 28,
               color: Colors.white,
             ),
-          ),
-          IconButton(
-              icon: Icon(Icons.calendar_today),
-              onPressed: (){
-                _showPeriodDialog();
-              }
           ),
         ],
       ),
@@ -326,6 +325,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
   }
 
   Future<void> _load() async {
+    await UserGrants.sync(scaffoldKey: _scaffoldKey);
     _statusCount = 0;
     setState(() {
       payList = PayDeskDAO().getUnDeleted();

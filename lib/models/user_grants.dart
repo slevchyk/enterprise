@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:enterprise/database/user_grants_dao.dart';
 import 'package:enterprise/models/pay_office.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -55,7 +56,7 @@ class UserGrants{
     "is_receiver" : isReceiver == null ? 0 : isReceiver ? 1 : 0,
   };
 
-  static Future<bool> sync() async {
+  static Future<bool> sync({GlobalKey<ScaffoldState> scaffoldKey}) async {
     UserGrants userGrants;
 
     final prefs = await SharedPreferences.getInstance();
@@ -100,12 +101,26 @@ class UserGrants{
           }
         }
         PayOffice.sync();
+        _showSnackBar(scaffoldKey, "Даннi оновлено", Colors.green);
         return true;
       }
+      _showSnackBar(scaffoldKey, "Помилка оновлення даних", Colors.orange);
       return false;
     } catch (e) {
+      _showSnackBar(scaffoldKey, "Помилка оновлення даних", Colors.orange);
       print(e);
       return false;
     }
+  }
+
+  static _showSnackBar(GlobalKey<ScaffoldState> scaffoldKey, String title, Color color){
+    scaffoldKey == null ? Container() :
+    scaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          duration: Duration(milliseconds: 700),
+          content: Text(title),
+          backgroundColor: color,
+        )
+    );
   }
 }

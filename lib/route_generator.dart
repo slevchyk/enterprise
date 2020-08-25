@@ -19,7 +19,6 @@ import 'package:enterprise/pages/page_timing_hitory.dart';
 import 'package:enterprise/pages/page_turnstile.dart';
 import 'package:enterprise/pages/warehouse/page_orders.dart';
 import 'package:enterprise/widgets/image_detail.dart';
-import 'package:enterprise/widgets/open_file.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:enterprise/pages/page_profile.dart';
@@ -81,13 +80,6 @@ class RouteGenerator {
               builder: (_) => PagePayDesk(
                     profile: args.profile,
                   ));
-        }
-        return _errorRoute(settings.name);
-      case '/test':
-        if (args is RouteArgs) {
-          return MaterialPageRoute(
-              builder: (_) => OpenFileTest(
-              ));
         }
         return _errorRoute(settings.name);
       case '/paydesk/detail':

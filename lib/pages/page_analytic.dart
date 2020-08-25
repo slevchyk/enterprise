@@ -16,6 +16,7 @@ import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/models/result_types.dart';
+import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/widgets/charts_list.dart';
 import 'package:enterprise/widgets/paydesk_list.dart';
 import 'package:flutter/cupertino.dart';
@@ -38,6 +39,7 @@ class PageResults extends StatefulWidget{
 }
 
 class _PageResultsState extends State<PageResults> with SingleTickerProviderStateMixin {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   Profile _profile;
 
   final List<Tab> _myTabs = _setTabs();
@@ -110,6 +112,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     return DefaultTabController(
         length: _tabController.length,
         child: Scaffold(
+          key: _scaffoldKey,
           appBar: AppBar(
             title: Text("Аналiтика"),
             actions: <Widget>[
@@ -124,6 +127,16 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                   onPressed: (){
                     _showPeriodDialog();
                   }
+              ),
+              IconButton(
+                onPressed: () async {
+                  _load();
+                },
+                icon: Icon(
+                  Icons.sync,
+                  size: 28,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
@@ -809,6 +822,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
   }
 
   Future<void> _load() async {
+    UserGrants.sync(scaffoldKey: _scaffoldKey);
     if(_payOfficeList==null){
       _payOfficeList = (await ImplPayOfficeDAO().getUnDeleted()).reversed.toList();
     }

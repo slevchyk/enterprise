@@ -186,7 +186,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
+      onTap: (){
         FocusScope.of(this.context).unfocus();
       },
       child: Scaffold(
@@ -586,21 +586,19 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                               DateTime picked = await showDatePicker(
                                   context: context,
                                   firstDate: DateTime(DateTime.now().year - 1),
-                                  initialDate: _payDesk?.documentDate != null
-                                      ? _payDesk.documentDate
-                                      : DateFormat('dd.MM.yyyy').parse(_documentDateController.text),
+                                  initialDate: _payDesk?.documentDate != null ? _payDesk.documentDate : DateFormat('dd.MM.yyyy').parse(_documentDateController.text),
                                   lastDate: DateTime(DateTime.now().year + 1));
 
                               if (picked != null) {
                                 if (picked.isAfter(DateTime.now())) {
-                                  _displaySnackBar(
+                                  _showSnackBar(
                                       "Дата операції не повинна перевищувати поточну дату", Colors.amber.shade700);
                                   return;
                                 }
                                 setState(() {
                                   MaterialLocalizations localizations = MaterialLocalizations.of(context);
                                   String formattedTime =
-                                      localizations.formatTimeOfDay(TimeOfDay.now(), alwaysUse24HourFormat: true);
+                                  localizations.formatTimeOfDay(TimeOfDay.now(), alwaysUse24HourFormat: true);
                                   _documentDateController.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
                                   _documentTimeController.text = formattedTime;
                                 });
@@ -633,14 +631,14 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
 
                                 MaterialLocalizations localizations = MaterialLocalizations.of(context);
                                 String formattedTime =
-                                    localizations.formatTimeOfDay(selectedTime, alwaysUse24HourFormat: true);
+                                localizations.formatTimeOfDay(selectedTime, alwaysUse24HourFormat: true);
 
                                 if (DateFormat("dd.MM.yyyy")
-                                        .parse("${_documentDateController.text}")
-                                        .isAtSameMomentAs(DateFormat("yyyy-MM-dd").parse(DateTime.now().toString())) &&
+                                    .parse("${_documentDateController.text}")
+                                    .isAtSameMomentAs(DateFormat("yyyy-MM-dd").parse(DateTime.now().toString())) &&
                                     (selectedTime.hour * 60 + selectedTime.minute) >
                                         (TimeOfDay.now().hour * 60 + TimeOfDay.now().minute)) {
-                                  _displaySnackBar(
+                                  _showSnackBar(
                                       "Час операції не повинен перевищувати поточний час", Colors.amber.shade700);
                                   return;
                                 }
@@ -763,7 +761,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
           ),
         ),
         floatingActionButton: _floatingButton(context),
-        bottomSheet: _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly ? _confirmButton() : SizedBox(),
+        bottomSheet: _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly  ? _confirmButton() : SizedBox(),
       ),
     );
   }
@@ -832,17 +830,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                   '${formatDate(
                     _payDesk.createdAt,
                     [
-                      dd,
-                      '.',
-                      mm,
-                      '.',
-                      yyyy,
-                      ' ',
-                      HH,
-                      ':',
-                      nn,
-                      ':',
-                      ss,
+                      dd, '.', mm, '.', yyyy,
+                      ' ', HH, ':', nn, ':', ss,
                     ],
                   )}\n',
                   style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
@@ -1041,11 +1030,11 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                   builder: (context) => AlertDialog(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
                     insetPadding: MediaQuery.of(context).orientation == Orientation.landscape
-                        ? EdgeInsets.only()
-                        : EdgeInsets.only(top: 200, bottom: 200),
+                        ? EdgeInsets.only(top: 60, bottom: 60)
+                        : EdgeInsets.only(top: 270, bottom: 270),
                     content: ListTile(
                       title: Container(
-                        height: 40,
+                        height: 45,
                         child: Column(
                           children: <Widget>[
                             Text(
@@ -1074,15 +1063,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                           ),
                           Text(
                             formatDate(_payDesk.documentDate, [
-                              dd,
-                              '-',
-                              mm,
-                              '-',
-                              yyyy,
-                              ' ',
-                              HH,
-                              ':',
-                              nn,
+                              dd, '-', mm, '-', yyyy,
+                              ' ', HH, ':', nn,
                             ]),
                           ),
                           SizedBox(
@@ -1097,17 +1079,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                           ),
                           Text(
                             formatDate(_payDesk.createdAt, [
-                              dd,
-                              '-',
-                              mm,
-                              '-',
-                              yyyy,
-                              ' ',
-                              HH,
-                              ':',
-                              nn,
-                              ':',
-                              ss,
+                              dd, '-', mm, '-', yyyy,
+                              ' ', HH, ':', nn, ':', ss,
                             ]),
                           ),
                           _payDesk.updatedAt.difference(_payDesk.createdAt).inSeconds > 0
@@ -1285,7 +1258,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     );
   }
 
-  Widget _floatingButton(BuildContext context) {
+  Widget _floatingButton(BuildContext context){
     return FabCircularMenu(
       fabColor: Colors.lightGreen,
       animationDuration: Duration(milliseconds: 400),
@@ -1293,14 +1266,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
       fabMargin: _readOnly ? EdgeInsets.only(bottom: 50, right: 10) : EdgeInsets.all(16.0),
       ringWidth: 70,
       ringColor: Colors.transparent,
-      fabOpenIcon: Icon(
-        Icons.menu,
-        color: Colors.white,
-      ),
-      fabCloseIcon: Icon(
-        Icons.close,
-        color: Colors.white,
-      ),
+      fabOpenIcon: Icon(Icons.menu, color: Colors.white,),
+      fabCloseIcon: Icon(Icons.close, color: Colors.white,),
       children: [
         CircularButton(
           color: Colors.lightGreen,
@@ -1310,46 +1277,42 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
             Icons.undo,
             color: Colors.white,
           ),
-          onClick: () {
+          onClick: (){
             Navigator.of(context).pop();
           },
         ),
-        _readOnly
-            ? SizedBox()
-            : CircularButton(
-                color: Colors.lightGreen,
-                width: 40,
-                height: 40,
-                icon: Icon(
-                  Icons.photo_camera,
-                  color: Colors.white,
-                ),
-                onClick: () {
-                  if (_files.length >= 4) {
-                    _displaySnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
-                    return;
-                  }
-                  _getImageCamera();
-                },
-              ),
-        _readOnly
-            ? SizedBox()
-            : CircularButton(
-                color: Colors.lightGreen,
-                width: 40,
-                height: 40,
-                icon: Icon(
-                  Icons.image,
-                  color: Colors.white,
-                ),
-                onClick: () {
-                  if (_files.length >= 4) {
-                    _displaySnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
-                    return;
-                  }
-                  _getFile(FileType.image);
-                },
-              ),
+        _readOnly ? SizedBox() : CircularButton(
+          color: Colors.lightGreen,
+          width: 40,
+          height: 40,
+          icon: Icon(
+            Icons.photo_camera,
+            color: Colors.white,
+          ),
+          onClick: () {
+            if (_files.length >= 4) {
+              _showSnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
+              return;
+            }
+            _getImageCamera();
+          },
+        ),
+        _readOnly ? SizedBox() : CircularButton(
+          color: Colors.lightGreen,
+          width: 40,
+          height: 40,
+          icon: Icon(
+            Icons.image,
+            color: Colors.white,
+          ),
+          onClick: (){
+            if (_files.length >= 4) {
+              _showSnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
+              return;
+            }
+            _getFile(FileType.image);
+          },
+        ),
         CircularButton(
           color: Colors.lightGreen,
           width: 55,
@@ -1358,8 +1321,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
             _readOnly ? Icons.edit : Icons.save,
             color: Colors.white,
           ),
-          onClick: () {
-            _readOnly ? _handleBottomSheet("edit") : _handleBottomSheet("saveExit");
+          onClick: (){
+            _readOnly ? _handleBottomSheet("edit") :
+            _handleBottomSheet("saveExit");
           },
         ),
       ],
@@ -1404,7 +1368,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     if (_ok) {
       _saveAttachments();
     } else {
-      _displaySnackBar("Помилка збереження в базі", Colors.red);
+      _showSnackBar("Помилка збереження в базі", Colors.red);
     }
 
     return _ok;
@@ -1434,7 +1398,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     if (files <= 4) {
       return true;
     }
-    _showDialog(title: 'Максимальна кількість', body: 'Досягнуто максимальну кількість файлів - 4');
+    _showSnackBar("Досягнуто максимальну кількість файлів - 4", Colors.red) ;
     return false;
   }
 
@@ -1502,12 +1466,15 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     }
   }
 
-  void _displaySnackBar(String title, Color color) {
-    final snackBar = SnackBar(
-      content: Text(title),
-      backgroundColor: color,
-    );
-    _scaffoldKey.currentState.showSnackBar(snackBar);
+  void _showSnackBar(String title, Color color) {
+    _scaffoldKey
+        .currentState
+        .showSnackBar(
+        SnackBar(
+          duration: Duration(milliseconds: 1200),
+          content: Text(title),
+          backgroundColor: color,
+    ));
   }
 
   void _getFile(FileType type) async {
@@ -1529,26 +1496,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
       }
       setState(() {});
     }
-  }
-
-  void _showDialog({String title, String body}) {
-    showDialog(
-      context: _scaffoldKey.currentContext,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: new Text(title),
-          content: new Text(body),
-          actions: <Widget>[
-            new FlatButton(
-              child: new Text("Закрити"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future<void> _saveAttachments() async {
@@ -1581,12 +1528,12 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
         String _fileHash = sha256.convert(_fileBytes).toString();
 
         if (_files.where((value) => value.path.contains(_fileHash)).length > 0) {
-          _displaySnackBar("Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+          _showSnackBar("Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
           continue;
         }
 
         if (_newFiles.where((value) => value.path.contains(_fileHash)).length > 0) {
-          _displaySnackBar("Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+          _showSnackBar("Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
           continue;
         }
 
@@ -1643,6 +1590,7 @@ enum payDeskVariablesTypes {
 }
 
 class CircularButton extends StatelessWidget {
+
   final double width;
   final double height;
   final Color color;
@@ -1651,13 +1599,14 @@ class CircularButton extends StatelessWidget {
 
   CircularButton({this.color, this.width, this.height, this.icon, this.onClick});
 
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      decoration: BoxDecoration(color: color,shape: BoxShape.circle),
       width: width,
       height: height,
-      child: IconButton(icon: icon, enableFeedback: true, onPressed: onClick),
+      child: IconButton(icon: icon,enableFeedback: true, onPressed: onClick),
     );
   }
 }
