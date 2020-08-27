@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/widgets/snack_bar_show.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
@@ -215,42 +216,26 @@ class _PageSignInOutState extends State<PageSignInOut> {
     }
 
     if (response.statusCode == 400) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Невірні параметри сервера ліцензування\n$body'),
-        backgroundColor: Colors.redAccent,
-      ));
+      ShowSnackBar.show(_scaffoldKey, 'Невірні параметри сервера ліцензування\n$body', Colors.redAccent);
       return;
     }
 
     if (response.statusCode == 401) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Помилка сервера сервера ліцензування:\n$body'),
-        backgroundColor: Colors.redAccent,
-      ));
+      ShowSnackBar.show(_scaffoldKey, 'Помилка сервера сервера ліцензування:\n$body', Colors.redAccent);
       return;
     }
 
     if (response.statusCode == 404) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text(
-            'Не знайдено обілковий запис сервера ліцензування з такими параметрами'),
-        backgroundColor: Colors.redAccent,
-      ));
+      ShowSnackBar.show(_scaffoldKey, 'Не знайдено обілковий запис сервера ліцензування з такими параметрами', Colors.redAccent);
       return;
     }
 
     if (response.statusCode == 500) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Помилка сервера ліцензування:\n$body'),
-        backgroundColor: Colors.redAccent,
-      ));
+      ShowSnackBar.show(_scaffoldKey, 'Помилка сервера ліцензування:\n$body', Colors.redAccent);
       return;
     }
 
-    _scaffoldKey.currentState.showSnackBar(SnackBar(
-      content: Text('Не вдалось отримати налаштування сервера ліцензування'),
-      backgroundColor: Colors.redAccent,
-    ));
+    ShowSnackBar.show(_scaffoldKey, 'Не вдалось отримати налаштування сервера ліцензування', Colors.redAccent);
   }
 }
 

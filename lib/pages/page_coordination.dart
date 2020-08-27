@@ -20,6 +20,9 @@ class _PageCoordinationState extends State<PageCoordination>{
 
   List<Coordination> _setUrls(List<Coordination> inputList){
     inputList.forEach((element) {
+      if(element.name=="Тест задачи 1"){
+        return;
+      }
       element.url = "https://api.quickshop.in.ua/test_bk/hs/mobileApi/getDoc?docType=price&docID=123123hk123";
     });
     return inputList;
@@ -35,9 +38,7 @@ class _PageCoordinationState extends State<PageCoordination>{
           IconButton(
             icon: Icon(Icons.sync),
             onPressed: (){
-              setState(() {
-
-              });
+              setState(() {});
             },
           ),
         ],
@@ -75,13 +76,15 @@ class _PageCoordinationState extends State<PageCoordination>{
                         Text(_coordinationList.elementAt(index).name),
                         Padding(
                           padding: EdgeInsets.only(left: 4, bottom: 7),
-                          child: Icon(FontAwesomeIcons.filePdf, color: Colors.black54, size: 17,),
+                          child: _coordinationList.elementAt(index).url == null ? Container() : Icon(FontAwesomeIcons.filePdf, color: Colors.black54, size: 17,),
                         ),
                       ],
                     ),
                     subtitle: Text(formatDate(_coordinationList.elementAt(index).date, [dd, '.', mm, '.', yyyy, ' ', HH, ':', mm])),
                     onTap: () {
-                      _openFile(_coordinationList.elementAt(index).url, _coordinationList.elementAt(index).name);
+                      if(_coordinationList.elementAt(index).url!=null){
+                        _openFile(_coordinationList.elementAt(index).url, _coordinationList.elementAt(index).name);
+                      }
                     },
                   );
                 },

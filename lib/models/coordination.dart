@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:enterprise/models/constants.dart';
+import 'package:enterprise/widgets/snack_bar_show.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
@@ -41,13 +42,7 @@ class Coordination{
 
     try{
       if(_token==null){
-        _scaffoldKey
-            .currentState
-            .showSnackBar(
-            SnackBar(
-              backgroundColor: Colors.orange,
-              content: Text("Помилка отримання токену"),
-            ));
+        ShowSnackBar.show(_scaffoldKey, "Помилка отримання токену", Colors.orange);
         print('no token');
         return null;
       }
@@ -72,12 +67,15 @@ class Coordination{
          coordination = Coordination.fromMap(jsonCostItem);
          toReturn.add(coordination);
        }
+       ShowSnackBar.show(_scaffoldKey, "Данi оновлено", Colors.green);
        return toReturn;
      } else {
+       ShowSnackBar.show(_scaffoldKey, "Помилка оновлення даних", Colors.orange);
        return null;
      }
    } catch (e) {
      print(e);
+     ShowSnackBar.show(_scaffoldKey, "Помилка оновлення даних", Colors.orange);
      return null;
     }
   }

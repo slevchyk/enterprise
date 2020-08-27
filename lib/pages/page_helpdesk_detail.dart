@@ -8,6 +8,7 @@ import 'package:enterprise/database/help_desk_dao.dart';
 import 'package:enterprise/models/helpdesk.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/widgets/attachments_carousel.dart';
+import 'package:enterprise/widgets/snack_bar_show.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -219,7 +220,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
         _readOnly = true;
       });
     } else {
-      _displaySnackBar("Помилка збереження в базі", Colors.red);
+      ShowSnackBar.show(_scaffoldKey, "Помилка збереження в базі", Colors.red);
     }
 
     return _ok;
@@ -330,7 +331,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
               child: Icon(_icons[index]),
               onPressed: () {
                 if (_files.length >= 4) {
-                  _displaySnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
+                  ShowSnackBar.show(_scaffoldKey, "Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
                   return;
                 }
 
@@ -361,16 +362,8 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
     if (files <= 4) {
       return true;
     }
-    _showDialog(title: 'Максимальна кількість', body: 'Досягнуто максимальну кількість файлів - 4');
+    ShowSnackBar.show(_scaffoldKey, "Досягнуто максимальну кількість файлів - 4", Colors.red) ;
     return false;
-  }
-
-  void _displaySnackBar(String title, Color color) {
-    final snackBar = SnackBar(
-      content: Text(title),
-      backgroundColor: color,
-    );
-    _scaffoldKey.currentState.showSnackBar(snackBar);
   }
 
   void _getFile(FileType type) async {
@@ -392,26 +385,6 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
       }
       setState(() {});
     }
-  }
-
-  void _showDialog({String title, String body}) {
-    showDialog(
-      context: _scaffoldKey.currentContext,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: new Text(title),
-          content: new Text(body),
-          actions: <Widget>[
-            new FlatButton(
-              child: new Text("Закрити"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future<void> _saveAttachments() async {
@@ -445,12 +418,12 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
         String _fileHash = sha256.convert(_fileBytes).toString();
 
         if (_files.where((value) => value.path.contains(_fileHash)).length > 0) {
-          _displaySnackBar("Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+          ShowSnackBar.show(_scaffoldKey, "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
           continue;
         }
 
         if (_newFiles.where((value) => value.path.contains(_fileHash)).length > 0) {
-          _displaySnackBar("Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+          ShowSnackBar.show(_scaffoldKey, "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
           continue;
         }
 
