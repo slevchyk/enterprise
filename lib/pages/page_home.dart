@@ -7,9 +7,11 @@ import 'package:enterprise/models/currency.dart';
 import 'package:enterprise/models/income_item.dart';
 import 'package:enterprise/models/menu.dart';
 import 'package:enterprise/models/models.dart';
+import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/pages/page_main.dart';
+import 'package:enterprise/widgets/snack_bar_show.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -34,19 +36,9 @@ class _HomePageState extends State<HomePage>{
   }
 
   Future<void> _load() async {
-    await CostItem.sync() && await IncomeItem.sync() && await Currency.sync() && await UserGrants.sync()
-        ? _showSnackBar(_scaffoldKey, "Даннi оновлено", Colors.green)
-        : _showSnackBar(_scaffoldKey, "Помилка оновлення даних", Colors.orange);
-  }
-
-  _showSnackBar(GlobalKey<ScaffoldState> scaffoldKey, String title, Color color){
-    scaffoldKey.currentState.showSnackBar(
-        SnackBar(
-          duration: Duration(milliseconds: 700),
-          content: Text(title),
-          backgroundColor: color,
-        )
-    );
+    await CostItem.sync() && await IncomeItem.sync() && await Currency.sync() && await UserGrants.sync() && await PayDesk.downloadAll()
+        ? ShowSnackBar.show(_scaffoldKey, "Дані оновлено", Colors.green)
+        : ShowSnackBar.show(_scaffoldKey, "Помилка оновлення даних", Colors.orange);
   }
 
   @override

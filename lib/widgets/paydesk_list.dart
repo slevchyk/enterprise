@@ -107,7 +107,7 @@ class PayDeskList extends StatelessWidget {
                     ],
                   );
                 } else if(_payList[index].payDeskType != 2
-                    || _payList[index].isChecked){
+                    || !_payList[index].isChecked || _payList[index].isChecked){
                   return _listBuilder(_payList, index, context);
                 } else {
                   return Container();

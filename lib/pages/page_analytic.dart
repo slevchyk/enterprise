@@ -95,6 +95,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
       "" : 1,
     };
     _load();
+    UserGrants.sync(scaffoldKey: _scaffoldKey);
     _profile = widget.profile;
     _scrollController = ScrollController();
     _dialogScrollController = ScrollController();
@@ -130,6 +131,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
               ),
               IconButton(
                 onPressed: () async {
+                  UserGrants.sync(scaffoldKey: _scaffoldKey);
                   _load();
                 },
                 icon: Icon(
@@ -178,6 +180,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                       _toShow = snapshot.data[0];
                       _toShow = _toShow.where((element) => element.currencyCode==_currencyCode).toList();
                       if(_isReload){
+                        _toShow = snapshot.data[0];
                         _seriesList = _createSampleData(_toShow, _currencyCode, snapshot.data[1], snapshot.data[2]);
                       } else {
                         _seriesList = _createSampleData(
@@ -189,7 +192,9 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                           second: DateFormat('dd.MM.yyyy').parse(_dateFrom.text),
                         );
                       }
-                      _toShow = _sortedPayDeskList;
+                      if(_sortedPayDeskList.length != 0){
+                        _toShow = _sortedPayDeskList;
+                      }
                       _amountFormatter.text = _sum.toStringAsFixed(2);
                       return _seriesList.first.data.isEmpty ?
                       Column(
@@ -822,7 +827,6 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
   }
 
   Future<void> _load() async {
-    UserGrants.sync(scaffoldKey: _scaffoldKey);
     if(_payOfficeList==null){
       _payOfficeList = (await ImplPayOfficeDAO().getUnDeleted()).reversed.toList();
     }

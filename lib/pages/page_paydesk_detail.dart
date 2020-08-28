@@ -17,6 +17,7 @@ import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/widgets/attachments_carousel.dart';
+import 'package:enterprise/widgets/snack_bar_show.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -591,7 +592,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
 
                               if (picked != null) {
                                 if (picked.isAfter(DateTime.now())) {
-                                  _showSnackBar(
+                                  ShowSnackBar.show(_scaffoldKey,
                                       "Дата операції не повинна перевищувати поточну дату", Colors.amber.shade700);
                                   return;
                                 }
@@ -638,7 +639,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                     .isAtSameMomentAs(DateFormat("yyyy-MM-dd").parse(DateTime.now().toString())) &&
                                     (selectedTime.hour * 60 + selectedTime.minute) >
                                         (TimeOfDay.now().hour * 60 + TimeOfDay.now().minute)) {
-                                  _showSnackBar(
+                                  ShowSnackBar.show(_scaffoldKey,
                                       "Час операції не повинен перевищувати поточний час", Colors.amber.shade700);
                                   return;
                                 }
@@ -1167,10 +1168,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                     _fromPayOfficeController.text = "";
                                     _fromPayOffice = PayOffice();
 
-                                    _scaffoldKey.currentState.showSnackBar(SnackBar(
-                                      content: Text('Валюта гаманця не відповідає валюті документа. Гаманець очищено'),
-                                      backgroundColor: Colors.amber.shade700,
-                                    ));
+                                    ShowSnackBar.show(_scaffoldKey,
+                                        'Валюта гаманця не відповідає валюті документа. Гаманець очищено', Colors.amber.shade700);
                                   }
 
                                   if (_toPayOffice?.currencyAccID != null &&
@@ -1178,11 +1177,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                     _toPayOfficeController.text = "";
                                     _toPayOffice = PayOffice();
 
-                                    _scaffoldKey.currentState.showSnackBar(SnackBar(
-                                      content: Text(
-                                          'Валюта гаманця отримувача не відповідає валюті документа. Гаманець отримувач очищено'),
-                                      backgroundColor: Colors.amber.shade700,
-                                    ));
+                                    ShowSnackBar.show(_scaffoldKey,
+                                        'Валюта гаманця отримувача не відповідає валюті документа. Гаманець отримувач очищено', Colors.amber.shade700);
                                   }
 
                                   break;
@@ -1291,7 +1287,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
           ),
           onClick: () {
             if (_files.length >= 4) {
-              _showSnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
+              ShowSnackBar.show(_scaffoldKey, "Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
               return;
             }
             _getImageCamera();
@@ -1307,7 +1303,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
           ),
           onClick: (){
             if (_files.length >= 4) {
-              _showSnackBar("Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
+              ShowSnackBar.show(_scaffoldKey, "Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
               return;
             }
             _getFile(FileType.image);
@@ -1368,7 +1364,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     if (_ok) {
       _saveAttachments();
     } else {
-      _showSnackBar("Помилка збереження в базі", Colors.red);
+      ShowSnackBar.show(_scaffoldKey, "Помилка збереження в базі", Colors.red);
     }
 
     return _ok;
@@ -1398,7 +1394,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     if (files <= 4) {
       return true;
     }
-    _showSnackBar("Досягнуто максимальну кількість файлів - 4", Colors.red) ;
+    ShowSnackBar.show(_scaffoldKey, "Досягнуто максимальну кількість файлів - 4", Colors.red) ;
     return false;
   }
 
@@ -1466,17 +1462,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     }
   }
 
-  void _showSnackBar(String title, Color color) {
-    _scaffoldKey
-        .currentState
-        .showSnackBar(
-        SnackBar(
-          duration: Duration(milliseconds: 1200),
-          content: Text(title),
-          backgroundColor: color,
-    ));
-  }
-
   void _getFile(FileType type) async {
     List<File> files;
     switch (type) {
@@ -1528,12 +1513,12 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
         String _fileHash = sha256.convert(_fileBytes).toString();
 
         if (_files.where((value) => value.path.contains(_fileHash)).length > 0) {
-          _showSnackBar("Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+          ShowSnackBar.show(_scaffoldKey, "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
           continue;
         }
 
         if (_newFiles.where((value) => value.path.contains(_fileHash)).length > 0) {
-          _showSnackBar("Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+          ShowSnackBar.show(_scaffoldKey, "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
           continue;
         }
 

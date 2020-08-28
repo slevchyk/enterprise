@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:enterprise/database/profile_dao.dart';
+import 'package:enterprise/widgets/snack_bar_show.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
@@ -199,10 +200,7 @@ class Profile {
     int statusCode = response.statusCode;
 
     if (statusCode != 200) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('не вдалось з\'єднатись із локальним сервером'),
-        backgroundColor: Colors.redAccent,
-      ));
+      ShowSnackBar.show(_scaffoldKey, 'не вдалось з\'єднатись із локальним сервером', Colors.redAccent);
       return profile;
     }
 
@@ -237,15 +235,9 @@ class Profile {
     if (profile != null) {
       prefs.setString(KEY_USER_ID, profile.userID);
 
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('отримано ваш обліковий запис'),
-        backgroundColor: Colors.green,
-      ));
+      ShowSnackBar.show(_scaffoldKey, 'отримано ваш обліковий запис', Colors.green);
     } else {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('не вдалось отримати ваш обліковий запис'),
-        backgroundColor: Colors.green,
-      ));
+      ShowSnackBar.show(_scaffoldKey, 'не вдалось отримати ваш обліковий запис', Colors.redAccent);
     }
 
     return profile;
@@ -277,18 +269,10 @@ class Profile {
     int statusCode = response.statusCode;
 
     if (statusCode == 200) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('ваш профіль оновлено'),
-        backgroundColor: Colors.green,
-      ));
-
+      ShowSnackBar.show(_scaffoldKey, 'ваш профіль оновлено', Colors.green);
       return true;
     } else {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('не вдалось поновити профіль'),
-        backgroundColor: Colors.redAccent,
-      ));
-
+      ShowSnackBar.show(_scaffoldKey, 'не вдалось поновити профіль', Colors.redAccent);
       return false;
     }
   }

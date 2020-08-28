@@ -9,6 +9,7 @@ import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/widgets/notification_icon.dart';
 import 'package:enterprise/widgets/paydesk_list.dart';
+import 'package:enterprise/widgets/snack_bar_show.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -109,7 +110,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
           ),
           IconButton(
             onPressed: () async {
-              await PayDesk.sync();
+              await PayDesk.downloadAll();
               _load();
             },
             icon: Icon(
@@ -121,7 +122,10 @@ class _PagePayDeskState extends State<PagePayDesk> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _load,
+        onRefresh: () async {
+          await PayDesk.downloadAll();
+          _load();
+        },
         child: OrientationBuilder(builder: (BuildContext context, Orientation orientation) {
           return PayDeskList(
             payList: payList,
@@ -325,11 +329,16 @@ class _PagePayDeskState extends State<PagePayDesk> {
   }
 
   Future<void> _load() async {
-    await UserGrants.sync(scaffoldKey: _scaffoldKey);
     _statusCount = 0;
-    setState(() {
-      payList = PayDeskDAO().getUnDeleted();
-    });
+    payList = PayDeskDAO().getUnDeleted();
+    if((await payList).length==0){
+      ShowSnackBar.show(_scaffoldKey, "Отримання даних", Colors.blueAccent);
+      if(await PayDesk.downloadAll()) {
+        payList = PayDeskDAO().getUnDeleted();
+      }
+    }
+    await UserGrants.sync(scaffoldKey: _scaffoldKey);
     _setCount(payList);
+    setState(() {});
   }
 }

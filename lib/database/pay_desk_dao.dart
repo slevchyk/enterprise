@@ -14,6 +14,7 @@ class PayDeskDAO implements PayDeskInterface{
 
     var raw = await db.rawInsert(
         'INSERT Into pay_desk ('
+        'id,'
         'pay_desk_type,'
         'currency_acc_id,'
         'cost_item_acc_id,'
@@ -33,8 +34,9 @@ class PayDeskDAO implements PayDeskInterface{
         'is_deleted,'
         'is_modified'
         ')'
-        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
+          payDesk.id,
           payDesk.payDeskType,
           payDesk.currencyAccID,
           payDesk.costItemAccID,
