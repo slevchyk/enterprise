@@ -113,7 +113,7 @@ class RouteGenerator {
                 profile: args.profile,
                 currencyCode: args.currencyCode,
                 inputListPayDesk: args.listDynamic,
-                name: args.name,
+                payOffice: args.payOffice,
               ));
         }
         return _errorRoute(settings.name);

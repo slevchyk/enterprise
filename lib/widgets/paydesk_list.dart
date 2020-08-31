@@ -178,12 +178,12 @@ class PayDeskList extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
                     Text(_payList[index].filesQuantity.toString()),
-                    Icon(Icons.attach_file, size: 23,),
+                    Icon(Icons.attach_file, size: 20,),
                   ],) :
-                showStatus || _payList[index].payDeskType==2 ?
-                SizedBox(height: 23,) :
+                showStatus || !showPercent && _payList[index].payDeskType==2 ?
+                SizedBox(height: 20,) :
                 Container(),
-                showStatus || _payList[index].payDeskType==2 ?
+                showStatus || !showPercent && _payList[index].payDeskType==2 ?
                 _getStatus(_payList[index].isChecked) :
                 Container(),
               ],
@@ -204,7 +204,7 @@ class PayDeskList extends StatelessWidget {
         return Colors.green;
         break;
       case PayDeskTypes.transfer:
-        return Colors.blue;
+        return Colors.red;
         break;
       default:
         return Colors.black;

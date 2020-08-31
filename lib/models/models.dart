@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:enterprise/models/constants.dart';
+import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -35,7 +36,7 @@ class RouteArgs {
   List<ImageProvider> listImage;
   List<dynamic> listDynamic;
   int currencyCode;
-  String name;
+  PayOffice payOffice;
   PayDeskTypes type;
 
   RouteArgs({
@@ -47,7 +48,7 @@ class RouteArgs {
     this.listImage,
     this.listDynamic,
     this.currencyCode,
-    this.name,
+    this.payOffice,
     this.type,
   });
 }

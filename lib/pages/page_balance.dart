@@ -1,6 +1,4 @@
 
-import 'dart:async';
-
 import 'package:enterprise/database/impl/pay_office_dao.dart';
 import 'package:enterprise/database/pay_desk_dao.dart';
 import 'package:enterprise/models/constants.dart';
@@ -34,7 +32,6 @@ class _PageBalanceState extends State<PageBalance>{
   final amountFormatter =
   MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: ' ');
 
-  Future<List<PayOffice>> _futureListPayOffice;
   List<PayOffice> _listPayOfficeToShow;
 
   Map<String, double> _mapToShow;
@@ -56,8 +53,9 @@ class _PageBalanceState extends State<PageBalance>{
   }
 
   _load() async {
-    UserGrants.sync(scaffoldKey: _scaffoldKey);
-    _futureListPayOffice = ImplPayOfficeDAO().getUnDeleted();
+    if((await UserGrants.sync(scaffoldKey: _scaffoldKey))){
+      setState(() {});
+    }
   }
 
   @override
@@ -84,7 +82,7 @@ class _PageBalanceState extends State<PageBalance>{
             ],
           ),
           body: FutureBuilder(
-              future: _futureListPayOffice,
+              future: ImplPayOfficeDAO().getUnDeleted(),
               builder: (BuildContext context, AsyncSnapshot snapshot){
                 switch(snapshot.connectionState) {
                   case ConnectionState.none:
@@ -137,7 +135,9 @@ class _PageBalanceState extends State<PageBalance>{
         return;
       }
       if(pay.isShow){
-        pay.amount = 2000; /// Add amount to payOffice, just for testing, delete in release!
+        if(pay.amount==null){
+          pay.amount = 0;
+        }
         toReturn.update(pay.currencyName, (value) =>  value + pay.amount);
       }
     });
@@ -365,7 +365,7 @@ class _PageBalanceState extends State<PageBalance>{
                                   RouteArgs args = RouteArgs(
                                       profile: _profile,
                                       currencyCode: _currencyCode,
-                                      name: _listPayOfficeToShow[listIndex].name,
+                                      payOffice: _listPayOfficeToShow[listIndex],
                                       listDynamic: await PayDeskDAO().getByPayOfficeID(_listPayOfficeToShow[listIndex].accID));
                                   Navigator.pushNamed(context, "/balance/details", arguments: args);
                                 },

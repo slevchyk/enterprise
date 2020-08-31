@@ -101,7 +101,7 @@ class UserGrants{
             UserGrantsDAO().insert(userGrants);
           }
         }
-        PayOffice.sync();
+        await PayOffice.sync();
         ShowSnackBar.show(scaffoldKey, "Дані оновлено", Colors.green);
         return true;
       }
