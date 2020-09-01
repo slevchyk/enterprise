@@ -228,3 +228,9 @@ const Map<PayDeskTypes, String> PAY_DESK_TYPES_ALIAS = {
   PayDeskTypes.income: "Надходження",
   PayDeskTypes.transfer: "Переміщення",
 };
+
+//period dialog
+enum SortControllers {
+  reload,
+  period,
+}

@@ -19,6 +19,7 @@ import 'package:enterprise/models/result_types.dart';
 import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/widgets/charts_list.dart';
 import 'package:enterprise/widgets/paydesk_list.dart';
+import 'package:enterprise/widgets/period_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
@@ -58,12 +59,13 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
   ScrollController _scrollController, _dialogScrollController;
 
   Map<dynamic, PayDesk> _preparedMap;
+  Map<SortControllers, bool> _controllersMap;
 
   double _sum;
 
   int _currencyCode, _currentIndex, _currentColor;
 
-  bool _isDetail, _isReload, _isPeriod, _isSwitched, _isSortByPayOffice;
+  bool _isDetail, _isSwitched, _isSortByPayOffice;
 
   DateTime _now;
   DateTime _firstDayOfMonth;
@@ -82,13 +84,12 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     _firstDayOfMonth = DateTime(_now.year, _now.month, 1);
     _dateFrom.text = formatDate(_firstDayOfMonth, [dd, '.', mm, '.', yyyy]);
     _dateTo.text = formatDate(_now, [dd, '.', mm, '.', yyyy]);
-    _isReload = false;
-    _isPeriod = true;
     _isDetail = false;
     _isSwitched = true;
     _isSortByPayOffice = false;
     _currentIndex = 0;
     _currentColor = 255;
+    _controllersMap = PeriodDialog.setControllersMap();
     _sceneMap = {
       "видаткiв" : 0,
       "надходжень" : 1,
@@ -126,7 +127,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
               IconButton(
                   icon: Icon(Icons.calendar_today),
                   onPressed: (){
-                    _showPeriodDialog();
+                    PeriodDialog.showPeriodDialog(context, _dateFrom, _dateTo, _controllersMap).whenComplete(() => setState((){}));
                   }
               ),
               IconButton(
@@ -179,19 +180,14 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                           CURRENCY_NAME.entries.where((element) => element.value==dynamicContent.text).toList().first.key;
                       _toShow = snapshot.data[0];
                       _toShow = _toShow.where((element) => element.currencyCode==_currencyCode).toList();
-                      if(_isReload){
-                        _toShow = snapshot.data[0];
-                        _seriesList = _createSampleData(_toShow, _currencyCode, snapshot.data[1], snapshot.data[2]);
-                      } else {
-                        _seriesList = _createSampleData(
-                          _toShow,
-                          _currencyCode,
-                          snapshot.data[1],
-                          snapshot.data[2],
-                          first: DateFormat('dd.MM.yyyy').parse(_dateTo.text),
-                          second: DateFormat('dd.MM.yyyy').parse(_dateFrom.text),
-                        );
-                      }
+                      _seriesList = _createSampleData(
+                        _toShow,
+                        _currencyCode,
+                        snapshot.data[1],
+                        snapshot.data[2],
+                        first: DateFormat('dd.MM.yyyy').parse(_dateTo.text),
+                        second: DateFormat('dd.MM.yyyy').parse(_dateFrom.text),
+                      );
                       if(_sortedPayDeskList.length != 0){
                         _toShow = _sortedPayDeskList;
                       }
@@ -206,9 +202,9 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                             ),
                           ),
-                          _isReload ? Container() : Container(
+                          Container(
                             alignment: Alignment.center,
-                            child: Text("за ${_isPeriod ? "перiод ${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"}",
+                            child: Text("за ${_controllersMap[SortControllers.period] ? "перiод ${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"}",
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
                           ),
                         ],
@@ -222,9 +218,9 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                             child: Text("Iнформацiя по валютi ${dynamicContent.text} ",
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
                           ),
-                          _isReload ? Container() : Container(
+                          _controllersMap[SortControllers.reload] ? Container() : Container(
                             alignment: Alignment.center,
-                            child: Text("за ${_isPeriod ? "перiод ${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"}",
+                            child: Text("за ${_controllersMap[SortControllers.period] ? "перiод ${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"}",
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
                           ),
                           SizedBox(height: 15,),
@@ -370,13 +366,13 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
 
   List<charts.Series<AnalyticData, String>> _createSampleData(List<PayDesk> payDeskList, int currency,
       List<CostItem> costList, List<IncomeItem> incomeList, {DateTime first, DateTime second}) {
-    if(first!=null && !_isPeriod){
+    if(first!=null && !_controllersMap[SortControllers.period]){
       payDeskList = payDeskList.where((element) => DateFormat('yyyy-MM-dd').parse(element.documentDate.toString()).isAtSameMomentAs(first)).toList();
       _sortedPayDeskList = payDeskList;
       _sum = 0;
     }
 
-    if(second!=null && _isPeriod){
+    if(second!=null && _controllersMap[SortControllers.period]){
       payDeskList = payDeskList.where((element) {
         var parse = DateFormat('yyyy-MM-dd').parse(element.documentDate.toString());
         return parse.isBefore(first) && parse.isAfter(second) || parse.isAtSameMomentAs(first) || parse.isAtSameMomentAs(second);
@@ -492,165 +488,6 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
       ..sort((k1, k2) => input[k2].percentage.compareTo(input[k1].percentage));
     return LinkedHashMap
         .fromIterable(_sortedKeys, key: (k) => k, value: (k) => input[k]);
-  }
-
-  Future _showPeriodDialog() {
-    return showDialog(
-        context: context,
-        builder: (context) => GestureDetector(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Center(
-                  child: Container(
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                        color: Colors.white
-                    ),
-                    width: MediaQuery.of(context).size.width/1.3,
-                    child: ListView(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.all(20.0),
-                      children: <Widget>[
-                        Text("Встановити період", style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),),
-                        Padding(
-                          padding: EdgeInsets.only(top: 30),
-                          child: Text("Дата вiд (включно)"),
-                        ),
-                        InkWell(
-                          onTap: () async {
-                            DateTime picked = await showDatePicker(
-                                context: context,
-                                firstDate: DateTime(_now.year - 1),
-                                initialDate: DateFormat('dd.MM.yyyy').parse(_dateFrom.text),
-                                lastDate: DateTime(_now.year + 1));
-
-                            if (picked != null) {
-                              setState(() {
-                                _dateFrom.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
-                              });
-                            }
-                          },
-                          child: TextFormField(
-                            controller: _dateFrom,
-                            enabled: false,
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(top: 10),
-                          child: Text("Дата по (включно)"),
-                        ),
-                        InkWell(
-                          onTap: () async {
-                            DateTime picked = await showDatePicker(
-                                context: context,
-                                firstDate: DateTime(_now.year - 1),
-                                initialDate: DateFormat('dd.MM.yyyy').parse(_dateTo.text),
-                                lastDate: DateTime(_now.year + 1));
-
-                            if (picked != null) {
-                              setState(() {
-                                _dateTo.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
-                              });
-                            }
-                          },
-                          child: TextFormField(
-                            controller: _dateTo,
-                            enabled: false,
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(top: 0),
-                          child: Container(
-                            margin: EdgeInsets.all(0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: <Widget>[
-                                FlatButton(
-                                  child: Text("Застосувати період"),
-                                  onPressed: () {
-                                    setState(() {
-                                      _isReload = false;
-                                      _isPeriod = true;
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                FlatButton(
-                                  child: Text("Сьогодні"),
-                                  onPressed: () {
-                                    setState(() {
-                                      _dateTo.text = DateFormat('dd.MM.yyyy').format(_now);
-                                      _isReload = false;
-                                      _isPeriod = false;
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                FlatButton(
-                                  child: Text("Вчора"),
-                                  onPressed: () {
-                                    final _yesterday = DateTime(_now.year, _now.month, _now.day-1);
-                                    setState(() {
-                                      _dateTo.text = DateFormat('dd.MM.yyyy').format(_yesterday);
-                                      _isReload = false;
-                                      _isPeriod = false;
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                FlatButton(
-                                  child: Text("Поточний місяць"),
-                                  onPressed: (){
-                                    setState(() {
-                                      _dateFrom.text = DateFormat('dd.MM.yyyy').format(_firstDayOfMonth);
-                                      _dateTo.text = DateFormat('dd.MM.yyyy').format(_now);
-                                      _isReload = false;
-                                      _isPeriod = true;
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                FlatButton(
-                                  child: Text("Попередній місяць"),
-                                  onPressed: (){
-                                    final _firstDayOfPreviousMonth = DateTime(_now.year, _now.month-1, 1);
-                                    final _lastDayOfPreviousMonth = DateTime(_now.year, _now.month, 0);
-                                    setState(() {
-                                      _dateFrom.text = DateFormat('dd.MM.yyyy').format(_firstDayOfPreviousMonth);
-                                      _dateTo.text = DateFormat('dd.MM.yyyy').format(_lastDayOfPreviousMonth);
-                                      _isReload = false;
-                                      _isPeriod = true;
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                FlatButton(
-                                  child: Text("За весь час"),
-                                  onPressed: (){
-                                    if(!_isReload){
-                                      setState(() {
-                                        _isReload = true;
-                                        _dateFrom.text = formatDate(_firstDayOfMonth, [dd, '.', mm, '.', yyyy]);
-                                        _dateTo.text = formatDate(_now, [dd, '.', mm, '.', yyyy]);
-                                      });
-                                    }
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  )
-              )
-          ),
-        )
-    );
   }
 
   Color _setColor(PayDesk value){

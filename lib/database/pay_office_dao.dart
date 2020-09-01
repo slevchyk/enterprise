@@ -12,19 +12,23 @@ class PayOfficeDAO implements PayOfficeInterface{
         'INSERT into pay_offices ('
         'mob_id,'
         'id,'
+        'amount,'
         'acc_id,'
         'currency_acc_id,'
         'name,'
-        'is_deleted'
+        'is_deleted,'
+        'updated_at'
         ')'
-        'VALUES (?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?)',
         [
           payOffice.mobID,
           payOffice.id,
+          payOffice.amount,
           payOffice.accID,
           payOffice.currencyAccID,
           payOffice.name,
           payOffice.isDeleted,
+          payOffice.updatedAt != null ? payOffice.updatedAt.toIso8601String() : null,
         ]);
 
     return raw;

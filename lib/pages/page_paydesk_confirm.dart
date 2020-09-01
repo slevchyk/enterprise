@@ -39,89 +39,93 @@ class _PagePayDeskConfirmState extends State<PagePayDeskConfirm>{
       appBar: AppBar(
         title: Text('Пiдтверження'),
       ),
-      body: FutureBuilder(
-        future: payList,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            case ConnectionState.waiting:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            case ConnectionState.active:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            case ConnectionState.done:
-              List<PayDesk> _payList = snapshot.data;
-              return _payList.length==0 ?
-              Container(
-                child: Center(
-                  child: Text("Немає платежiв для пiдтверження"),),) :
-              ListView.builder(
-                itemCount: _payList == null ? 0 : _payList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return InkWell(
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) {
-                        return PagePayDeskDetail(
-                          payDesk: _payList[index],
-                          profile: _profile,
-                        );
-                      })).whenComplete(() => _load());
-                    },
-                    child: Card(
-                      child: ListTile(
-                        isThreeLine: true,
-                        title: _payList[index].payDeskType == 2
-                            ? _getPayDeskDetailsTransfer(_payList[index], context)
-                            : _getPayDeskDetailsLine2(_payList[index], context),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Row(
+      body: OrientationBuilder(
+        builder: (BuildContext context, Orientation orientation) {
+          return FutureBuilder(
+            future: payList,
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.none:
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                case ConnectionState.waiting:
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                case ConnectionState.active:
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                case ConnectionState.done:
+                  List<PayDesk> _payList = snapshot.data;
+                  return _payList.length==0 ?
+                  Container(
+                    child: Center(
+                      child: Text("Немає платежiв для пiдтверження"),),) :
+                  ListView.builder(
+                    itemCount: _payList == null ? 0 : _payList.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) {
+                            return PagePayDeskDetail(
+                              payDesk: _payList[index],
+                              profile: _profile,
+                            );
+                          })).whenComplete(() => _load());
+                        },
+                        child: Card(
+                          child: ListTile(
+                            isThreeLine: true,
+                            title: _payList[index].payDeskType == 2
+                                ? _getPayDeskDetailsTransfer(_payList[index], context)
+                                : _getPayDeskDetailsLine2(_payList[index], context),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                _setIcon(_payList[index].payDeskType),
-                                _getPayDeskDetailsLine1(_payList[index], context),
+                                Row(
+                                  children: <Widget>[
+                                    _setIcon(_payList[index].payDeskType),
+                                    _getPayDeskDetailsLine1(_payList[index], context),
+                                  ],
+                                ),
+                                Text('${formatDate(
+                                  _payList[index].documentDate,
+                                  [dd, '.', mm, '.', yy, ' ', HH, ':', nn],
+                                )}'),
                               ],
                             ),
-                            Text('${formatDate(
-                              _payList[index].documentDate,
-                              [dd, '.', mm, '.', yy, ' ', HH, ':', nn],
-                            )}'),
-                          ],
-                        ),
-                        trailing: Container(
-                          width: MediaQuery.of(context).size.width/2.9,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: <Widget>[
-                              _getAmount(_payList[index]),
-                              _payList[index].filesQuantity != null && _payList[index].filesQuantity != 0 ?
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
+                            trailing: Container(
+                              width: MediaQuery.of(context).size.width/2.9,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: <Widget>[
-                                  Text(_payList[index].filesQuantity.toString()),
-                                  Icon(Icons.attach_file, size: 23,),
-                                ],) :
-                              SizedBox(height: 23,),
-                              _getStatus(_payList[index].isChecked),
-                            ],
+                                  _getAmount(_payList[index]),
+                                  _payList[index].filesQuantity != null && _payList[index].filesQuantity != 0 ?
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: <Widget>[
+                                      Text(_payList[index].filesQuantity.toString()),
+                                      Icon(Icons.attach_file, size: 20,),
+                                    ],) :
+                                  SizedBox(height: 20,),
+                                  _getStatus(_payList[index].isChecked),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   );
-                },
-              );
-            default:
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-          }
+                default:
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+              }
+            },
+          );
         },
       ),
     );

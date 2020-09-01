@@ -7,11 +7,13 @@ import 'package:enterprise/models/analytic_data.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/cost_item.dart';
 import 'package:enterprise/models/income_item.dart';
+import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/models/result_types.dart';
 import 'package:enterprise/widgets/charts_list.dart';
 import 'package:enterprise/widgets/paydesk_list.dart';
+import 'package:enterprise/widgets/period_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter_masked_text/flutter_masked_text.dart';
@@ -22,13 +24,13 @@ class PageBalanceDetails extends StatefulWidget{
   final Profile profile;
   final List<PayDesk> inputListPayDesk;
   final int currencyCode;
-  final String name;
+  final PayOffice payOffice;
 
   PageBalanceDetails({
     this.profile,
     this.inputListPayDesk,
     this.currencyCode,
-    this.name,
+    this.payOffice,
   });
 
   _PageBalanceDetailsState createState() => _PageBalanceDetailsState();
@@ -41,21 +43,23 @@ class _PageBalanceDetailsState extends State<PageBalanceDetails>{
   final _amountFormatter =
   MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: ' ');
 
+  final _amountFormatterBalance =
+  MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: ' ');
+
   final TextEditingController _dateFrom = TextEditingController();
   final TextEditingController _dateTo = TextEditingController();
 
   List<charts.Series<AnalyticData, String>> _seriesList;
   Map<dynamic, PayDesk> _preparedMap;
 
-  String _name;
+  Map<SortControllers, bool> _controllersMap;
 
-  bool _isDetail, _isReload, _isPeriod;
+  PayOffice _payOffice;
+
+  bool _isDetail;
 
   int _currencyCode;
   double _sum, _sumCost, _sumIncome;
-
-  DateTime _now;
-  DateTime _firstDayOfMonth;
 
   List<PayDesk> _inputListPayDesk;
   List<PayDesk> _sortedPayDeskList;
@@ -69,30 +73,91 @@ class _PageBalanceDetailsState extends State<PageBalanceDetails>{
     _profile = widget.profile;
     _inputListPayDesk = widget.inputListPayDesk;
     _currencyCode = widget.currencyCode;
-    _name = widget.name;
+    _payOffice = widget.payOffice;
+    _controllersMap = PeriodDialog.setControllersMap();
     _load();
-    _now = DateTime.now();
-    _firstDayOfMonth = DateTime(_now.year, _now.month, 1);
-    _dateFrom.text = formatDate(_firstDayOfMonth, [dd, '.', mm, '.', yyyy]);
-    _dateTo.text = formatDate(_now, [dd, '.', mm, '.', yyyy]);
     _isDetail = false;
-    _isReload = true;
-    _isPeriod = true;
+  }
+
+  void _infoDialog(){
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
+        insetPadding: MediaQuery.of(context).orientation == Orientation.landscape
+            ? EdgeInsets.only(top: 90, bottom: 90)
+            : EdgeInsets.only(top: 270, bottom: 270),
+        content: ListTile(
+          title: Container(
+            height: 65,
+            child: Column(
+              children: <Widget>[
+                Text(
+                  "Інформація по гаманцю",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(
+                  height: 2,
+                ),
+                Text(
+                  _payOffice.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          subtitle: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                'Гаманець оновлено: ',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Text(
+                _payOffice.updatedAt == null ? "Iнформацiя вiдсутня" : formatDate(_payOffice.updatedAt, [
+                  dd, '.', mm, '.', yyyy,
+                  ' ', HH, ':', nn, ':', ss,
+                ]),
+              ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          FlatButton(
+            child: Text('Гаразд'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Iнформацiя по гаманцю \n$_name", overflow: TextOverflow.ellipsis, maxLines: 2, textAlign: TextAlign.center,),
+        title: Text("Iнформацiя по гаманцю \n${_payOffice.name}", overflow: TextOverflow.ellipsis, maxLines: 2, textAlign: TextAlign.center, style: TextStyle(fontSize: 17),),
         centerTitle: true,
         actions: <Widget>[
           IconButton(
               icon: Icon(Icons.calendar_today),
               onPressed: (){
-                _showPeriodDialog();
+                PeriodDialog.showPeriodDialog(context, _dateFrom, _dateTo, _controllersMap)
+                    .whenComplete(() => setState(() {}));
               }
           ),
+          IconButton(
+              icon: Icon(Icons.info),
+              onPressed: () {
+                _infoDialog();
+              })
         ],
       ),
       body: FutureBuilder(
@@ -120,7 +185,7 @@ class _PageBalanceDetailsState extends State<PageBalanceDetails>{
                   child: CircularProgressIndicator(),
                 );
               }
-              if(_isReload){
+              if(_controllersMap[SortControllers.reload]){
                 _seriesList = _createSampleData(_inputListPayDesk, snapshot.data[0], snapshot.data[1], _currencyCode);
               } else {
                 _seriesList = _createSampleData(
@@ -133,29 +198,30 @@ class _PageBalanceDetailsState extends State<PageBalanceDetails>{
                 );
               }
               _amountFormatter.text = (_sumIncome - _sumCost).toStringAsFixed(2);
+              _amountFormatterBalance.text = _payOffice.amount.toStringAsFixed(2);
               return _seriesList.first.data.isEmpty ?
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Container(
                     child: Center(
-                      child: Text("Нема iнформацiї по \n$_name", textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
+                      child: Text("Нема iнформацiї по \n${_payOffice.name}", textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
                           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     ),
                   ),
-                  _isReload ? Container() : Container(
+                  _controllersMap[SortControllers.reload] ? Container() : Container(
                     alignment: Alignment.center,
-                    child: Text("за ${_isPeriod ? "перiод ${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"}",
+                    child: Text("за ${_controllersMap[SortControllers.period] ? "перiод ${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"}",
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
                   ),
                 ],
               ) : ListView(
                 children: <Widget>[
                   SizedBox(height: 15,),
-                  _isReload ? Container() : Container(
+                  _controllersMap[SortControllers.reload] ? Container() : Container(
                     alignment: Alignment.center,
-                    child: Text("за ${_isPeriod ? "перiод ${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"}",
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                    child: Text("Iнформацiя за ${_controllersMap[SortControllers.period] ? "перiод ${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"}",
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold), textAlign: TextAlign.center,),
                   ),
                   SizedBox(height: 25,),
                   Container(
@@ -170,7 +236,7 @@ class _PageBalanceDetailsState extends State<PageBalanceDetails>{
                             child: Center(
                               child: Text("${_sumIncome >= _sumCost && _preparedMap.keys.first.name!="Видаток" ? "" : "-" }"
                                   "${_amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}"
-                                , style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
+                                , style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: (_sumIncome - _sumCost) > 0 ? Colors.green : Colors.red),),
                             ),
                           ),
                         ],
@@ -190,13 +256,34 @@ class _PageBalanceDetailsState extends State<PageBalanceDetails>{
                         children: <Widget>[
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 5),
-                            child: Text("Всього:", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
+                            child: Text("Всього:", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,),),
                           ),
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 5),
                             child: Text("${_sumIncome >= _sumCost && _preparedMap.keys.first.name!="Видаток" ? "" : "-" }"
                                 "${_amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}"
-                              , style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
+                              , style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: (_sumIncome - _sumCost) > 0 ? Colors.green : Colors.red),),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: 50,
+                    padding: EdgeInsets.symmetric(horizontal: 5),
+                    child: Card(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 5),
+                            child: Text("Баланс:", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,),),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 5),
+                            child: Text(
+                                "${_amountFormatterBalance.text} ${CURRENCY_SYMBOL[_currencyCode]}"
+                              , style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: _payOffice.amount > 0 ? Colors.green : Colors.red),),
                           ),
                         ],
                       ),
@@ -255,12 +342,12 @@ class _PageBalanceDetailsState extends State<PageBalanceDetails>{
   }
 
   List<charts.Series<AnalyticData, String>> _createSampleData(List<PayDesk> payDeskList, List<CostItem> costList,  List<IncomeItem> incomeList, int currency, {DateTime first, DateTime second}) {
-    if(first!=null && !_isPeriod){
+    if(first!=null && !_controllersMap[SortControllers.period]){
       payDeskList = payDeskList.where((element) => DateFormat('yyyy-MM-dd').parse(element.documentDate.toString()).isAtSameMomentAs(first)).toList();
       _sum = 0;
     }
 
-    if(second!=null && _isPeriod){
+    if(second!=null && _controllersMap[SortControllers.period]){
       payDeskList = payDeskList.where((element) {
         var parse = DateFormat('yyyy-MM-dd').parse(element.documentDate.toString());
         return parse.isBefore(first) && parse.isAfter(second) || parse.isAtSameMomentAs(first) || parse.isAtSameMomentAs(second);
@@ -306,6 +393,11 @@ class _PageBalanceDetailsState extends State<PageBalanceDetails>{
 
   Map<dynamic, PayDesk> _getPrepared(List<PayDesk> payDeskList, List<CostItem> costList,  List<IncomeItem> incomeList, double sumInput){
     Map<dynamic, PayDesk> toReturn = {};
+    List<PayDesk> _tmp = payDeskList.where((payment) => payment.payDeskType==2).toList();
+    if(_tmp.length!=0){
+      double sum = _tmp.fold(0, (previousValue, payment) => previousValue + payment.amount);
+      toReturn.addAll({ResultTypes(name: "Перемiщення коштiв", color: Colors.red) : PayDesk(amount: sum, percentage: sum/sumInput*100)});
+    }
     costList.forEach((cost) {
       List<PayDesk> _tmp = payDeskList.where((payment) => payment.costItemName==cost.name).toList();
       double sum = _tmp.fold(0, (previousValue, payment) => previousValue + payment.amount);
@@ -331,165 +423,6 @@ class _PageBalanceDetailsState extends State<PageBalanceDetails>{
       ..sort((k1, k2) => input[k2].percentage.compareTo(input[k1].percentage));
     return LinkedHashMap
         .fromIterable(_sortedKeys, key: (k) => k, value: (k) => input[k]);
-  }
-
-  Future _showPeriodDialog() {
-    return showDialog(
-        context: context,
-        builder: (context) => GestureDetector(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Center(
-                  child: Container(
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                        color: Colors.white
-                    ),
-                    width: MediaQuery.of(context).size.width/1.3,
-                    child: ListView(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.all(20.0),
-                      children: <Widget>[
-                        Text("Встановити період", style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),),
-                        Padding(
-                          padding: EdgeInsets.only(top: 30),
-                          child: Text("Дата вiд (включно)"),
-                        ),
-                        InkWell(
-                          onTap: () async {
-                            DateTime picked = await showDatePicker(
-                                context: context,
-                                firstDate: DateTime(_now.year - 1),
-                                initialDate: DateFormat('dd.MM.yyyy').parse(_dateFrom.text),
-                                lastDate: DateTime(_now.year + 1));
-
-                            if (picked != null) {
-                              setState(() {
-                                _dateFrom.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
-                              });
-                            }
-                          },
-                          child: TextFormField(
-                            controller: _dateFrom,
-                            enabled: false,
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(top: 10),
-                          child: Text("Дата по (включно)"),
-                        ),
-                        InkWell(
-                          onTap: () async {
-                            DateTime picked = await showDatePicker(
-                                context: context,
-                                firstDate: DateTime(_now.year - 1),
-                                initialDate: DateFormat('dd.MM.yyyy').parse(_dateTo.text),
-                                lastDate: DateTime(_now.year + 1));
-
-                            if (picked != null) {
-                              setState(() {
-                                _dateTo.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
-                              });
-                            }
-                          },
-                          child: TextFormField(
-                            controller: _dateTo,
-                            enabled: false,
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(top: 0),
-                          child: Container(
-                            margin: EdgeInsets.all(0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: <Widget>[
-                                FlatButton(
-                                  child: Text("Застосувати період"),
-                                  onPressed: () {
-                                    setState(() {
-                                      _isReload = false;
-                                      _isPeriod = true;
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                FlatButton(
-                                  child: Text("Сьогодні"),
-                                  onPressed: () {
-                                    setState(() {
-                                      _dateTo.text = DateFormat('dd.MM.yyyy').format(_now);
-                                      _isReload = false;
-                                      _isPeriod = false;
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                FlatButton(
-                                  child: Text("Вчора"),
-                                  onPressed: () {
-                                    final _yesterday = DateTime(_now.year, _now.month, _now.day-1);
-                                    setState(() {
-                                      _dateTo.text = DateFormat('dd.MM.yyyy').format(_yesterday);
-                                      _isReload = false;
-                                      _isPeriod = false;
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                FlatButton(
-                                  child: Text("Поточний місяць"),
-                                  onPressed: (){
-                                    setState(() {
-                                      _dateFrom.text = DateFormat('dd.MM.yyyy').format(_firstDayOfMonth);
-                                      _dateTo.text = DateFormat('dd.MM.yyyy').format(_now);
-                                      _isReload = false;
-                                      _isPeriod = true;
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                FlatButton(
-                                  child: Text("Попередній місяць"),
-                                  onPressed: (){
-                                    final _firstDayOfPreviousMonth = DateTime(_now.year, _now.month-1, 1);
-                                    final _lastDayOfPreviousMonth = DateTime(_now.year, _now.month, 0);
-                                    setState(() {
-                                      _dateFrom.text = DateFormat('dd.MM.yyyy').format(_firstDayOfPreviousMonth);
-                                      _dateTo.text = DateFormat('dd.MM.yyyy').format(_lastDayOfPreviousMonth);
-                                      _isReload = false;
-                                      _isPeriod = true;
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                FlatButton(
-                                  child: Text("За весь час"),
-                                  onPressed: (){
-                                    if(!_isReload){
-                                      setState(() {
-                                        _isReload = true;
-                                        _dateFrom.text = formatDate(_firstDayOfMonth, [dd, '.', mm, '.', yyyy]);
-                                        _dateTo.text = formatDate(_now, [dd, '.', mm, '.', yyyy]);
-                                      });
-                                    }
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  )
-              )
-          ),
-        )
-    );
   }
 
   Future<void> _load() async {

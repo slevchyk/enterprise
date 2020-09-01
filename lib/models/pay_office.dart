@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:enterprise/database/pay_office_dao.dart';
 import 'package:enterprise/database/user_grants_dao.dart';
+import 'package:enterprise/models/pay_office_balance.dart';
 import 'package:enterprise/models/user_grants.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,11 +13,12 @@ import 'constants.dart';
 class PayOffice {
   int mobID;
   int id;
-  double amount;
+  int amount;
   String accID;
   String currencyAccID;
   String name;
   String currencyName;
+  DateTime updatedAt;
   bool isDeleted;
   bool isVisible;
   bool isAvailable;
@@ -31,6 +33,7 @@ class PayOffice {
     this.currencyAccID,
     this.name,
     this.currencyName,
+    this.updatedAt,
     this.isDeleted,
     this.isVisible,
     this.isAvailable,
@@ -41,6 +44,7 @@ class PayOffice {
   factory PayOffice.fromMap(Map<String, dynamic> json) => PayOffice(
         mobID: json["mob_id"],
         id: json["id"],
+        amount: json["amount"],
         accID: json["acc_id"],
         currencyAccID: json["currency_acc_id"],
         name: json["name"],
@@ -64,11 +68,15 @@ class PayOffice {
             : json["is_receiver"] is int
                 ? json["is_receiver"] == 1 ? true : false
                 : json["is_receiver"],
+        updatedAt: json['updated_at'] != null
+            ? DateTime.parse(json["updated_at"])
+            : null,
       );
 
   Map<String, dynamic> toMap() => {
         'mob_id': mobID,
         'id': id,
+        'amount' : amount,
         'acc_id': accID,
         'currency_acc_id': currencyAccID,
         'name': name,
@@ -76,6 +84,7 @@ class PayOffice {
         "is_visible" : isVisible == null ? 0 : isVisible ? 1 : 0,
         "is_available" : isAvailable == null ? 0 : isAvailable ? 1 : 0,
         "is_receiver" : isReceiver == null ? 0 : isReceiver ? 1 : 0,
+        'updated_at' : updatedAt != null ? updatedAt.toIso8601String() : null,
       };
 
   static sync() async {
@@ -110,6 +119,7 @@ class PayOffice {
       }
 
       List<UserGrants> _listUserGrants = await UserGrantsDAO().getAll();
+      List<PayOfficeBalance> _listPayOfficeBalance = await PayOfficeBalance.sync();
 
       for (var jsonPayOffice in jsonData) {
         payOffice = PayOffice.fromMap(jsonPayOffice);
@@ -118,7 +128,16 @@ class PayOffice {
             .where((userGrant) => userGrant.objectAccID == payOffice.accID)
             .toList();
 
+        List<PayOfficeBalance> _currentPayOfficeBalance = _listPayOfficeBalance
+            .where((payOfficeBalance) => payOfficeBalance.accID == payOffice.accID)
+            .toList();
+
         PayOffice existPayOffice = await PayOfficeDAO().getByID(payOffice.id);
+
+        if(_currentPayOfficeBalance.length!=0){
+          payOffice.amount = _currentPayOfficeBalance.first.balance;
+          payOffice.updatedAt = _currentPayOfficeBalance.first.updatedAt;
+        }
 
         if (_currentUserGrants.length==0){
           if (existPayOffice != null) {
