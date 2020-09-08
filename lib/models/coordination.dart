@@ -3,50 +3,69 @@ import 'dart:io';
 
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/widgets/snack_bar_show.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
 class Coordination{
-  String iD;
+  String id;
   String name;
   String url;
   DateTime date;
+  CoordinationTypes status;
+  static String _token;
 
   Coordination({
-    this.iD,
+    this.id,
     this.name,
     this.url,
     this.date,
+    this.status,
   });
 
   factory Coordination.fromMap(Map<String, dynamic> json) => Coordination(
-    iD: json["id"],
+    id: json["id"],
     name: json["name"],
     date: json["date"] != null ? DateTime.parse(json["date"]) : null,
+    status: json["status"] != null ? _setType(json["status"]) : null,
   );
 
   Map<String, dynamic> toMap() => {
-    "id" : iD,
+    "id" : id,
     "name" : name,
     "date" : date != null ? date.toIso8601String() : null,
+    "status" : status,
   };
 
-  static Future<List<Coordination>> getCoordinationList(_scaffoldKey) async {
+  static CoordinationTypes _setType(String input){
+    switch (input){
+      case "none":
+        return CoordinationTypes.none;
+      case "approved":
+        return CoordinationTypes.approved;
+      case "reject":
+        return CoordinationTypes.reject;
+      default:
+        return CoordinationTypes.none;
+    }
+  }
+
+
+  static Future<String> get token async {
+    if(_token==null){
+      _token = await _getToken();
+    }
+    return _token;
+  }
+
+  static Future<List<Coordination>> getCoordinationList(GlobalKey<ScaffoldState> scaffoldKey) async {
     Coordination coordination;
 
     List<Coordination> toReturn = [];
 
-    final String _urlToken = "https://api.quickshop.in.ua/test_bk/hs/mobileApi/login";
-    final String _urlGetTask = "https://api.quickshop.in.ua/test_bk/hs/mobileApi/getTask/";
-    final String _token = await _getToken(_urlToken);
-
+    final String _urlGetTask = "https://bot.barkom.ua/test/hs/mobileApi/getTask/";
+    final String _token = await token;
     try{
-      if(_token==null){
-        ShowSnackBar.show(_scaffoldKey, "Помилка отримання токену", Colors.orange);
-        print('no token');
-        return null;
-      }
-
       Response response = await get(
        _urlGetTask,
        headers: {
@@ -65,24 +84,34 @@ class Coordination{
 
        for (var jsonCostItem in jsonData) {
          coordination = Coordination.fromMap(jsonCostItem);
+         coordination.url = "https://bot.barkom.ua/test/hs/mobileApi/getDoc?docType=price&docID=${coordination.id}";
          toReturn.add(coordination);
        }
-       ShowSnackBar.show(_scaffoldKey, "Данi оновлено", Colors.green);
+       ShowSnackBar.show(scaffoldKey, "Данi оновлено", Colors.green);
        return toReturn;
      } else {
-       ShowSnackBar.show(_scaffoldKey, "Помилка оновлення даних", Colors.orange);
+       FLog.error(
+         exception: Exception(response.statusCode),
+         text: "status code error, with token $_token}",
+       );
+       ShowSnackBar.show(scaffoldKey, "Помилка оновлення даних", Colors.orange);
        return null;
      }
-   } catch (e) {
-     print(e);
-     ShowSnackBar.show(_scaffoldKey, "Помилка оновлення даних", Colors.orange);
+   } catch (e, s) {
+     FLog.error(
+       exception: Exception(e.toString()),
+       text: "error in try block",
+       stacktrace: s,
+     );
+     ShowSnackBar.show(scaffoldKey, "Помилка оновлення даних", Colors.orange);
      return null;
     }
   }
 
-  static Future<String> _getToken(String url) async {
+  static Future<String> _getToken() async {
     final String _apiUser = API_USER;
     final String _apiPassword = API_PASSWORD;
+    final String _url = API_URL_TOKEN;
 
     Map<String, String> headers = {
       HttpHeaders.contentTypeHeader: "application/json",
@@ -95,19 +124,30 @@ class Coordination{
 
     try{
       Response response = await post(
-        url,
+        _url,
         headers: headers,
         body: json.encode(body),
       );
 
       if (response.statusCode == 200) {
-        return response.body.split(":").last.replaceAll('"', "").replaceAll("}", "");
+        var jsonData = json.decode(response.body);
+        FLog.info(
+          text: "Token received ${jsonData["token"]}",
+        );
+        return jsonData["token"];
       } else {
-        print('error code ${response.statusCode}');
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
         return null;
       }
-    } catch (e){
-      print(e);
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "exception in try block",
+        stacktrace: s,
+      );
       return null;
     }
   }

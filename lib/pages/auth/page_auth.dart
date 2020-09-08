@@ -5,6 +5,7 @@ import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/widgets/digital_keyboard.dart';
 import 'package:enterprise/widgets/input_indicator.dart';
 import 'package:enterprise/widgets/user_photo.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/auth_strings.dart';
@@ -244,6 +245,11 @@ class _PageAuthState extends State<PageAuth> {
       if (await Vibration.hasVibrator()) {
         Vibration.vibrate();
       }
+
+      FLog.error(
+        exception: Exception("Incorrect pin"),
+        text: "incorrect pin entered",
+      );
 
       setState(() {
         _enteredPin = "";

@@ -1,4 +1,5 @@
 
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
@@ -24,9 +25,18 @@ class ImageDetail extends StatelessWidget {
                 itemCount: listImages.length,
                 pageController: _pageController,
                 builder: (BuildContext context, int index){
-                  return PhotoViewGalleryPageOptions(
-                    imageProvider: listImages.elementAt(index),
-                  );
+                 try{
+                   return PhotoViewGalleryPageOptions(
+                     imageProvider: listImages.elementAt(index),
+                   );
+                 } catch (e, s){
+                   FLog.error(
+                     exception: Exception(e.toString()),
+                     text: "try block error",
+                     stacktrace: s,
+                   );
+                   return null;
+                 }
                 }
             ),
           ),

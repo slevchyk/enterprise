@@ -18,6 +18,7 @@ import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/widgets/attachments_carousel.dart';
 import 'package:enterprise/widgets/snack_bar_show.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -34,11 +35,13 @@ class PagePayDeskDetail extends StatefulWidget {
   final PayDesk payDesk;
   final Profile profile;
   final PayDeskTypes type;
+  final Function callback;
 
   PagePayDeskDetail({
     this.payDesk,
     this.profile,
     this.type,
+    this.callback,
   });
 
   @override
@@ -85,6 +88,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
   bool _readOnly = false;
 
   List<File> _files = [];
+  List<bool> _isError = [false];
 
   @override
   void initState() {
@@ -108,8 +112,12 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     _payOfficeList.then((payOfficeList) {
       try {
         _setPayOfficeAndCurrency(payOfficeList.first);
-      } catch (e) {
-        print("no items $e");
+      } catch (e, s) {
+        FLog.error(
+          exception: Exception(e.toString()),
+          text: "No items to set as default",
+          stacktrace: s,
+        );
       }
     });
   }
@@ -751,6 +759,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                             _files.remove(deletedFile);
                             setState(() {});
                           },
+                          isError: _isError,
                         ),
                       ],
                     ),
@@ -1288,7 +1297,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     } else {
       ShowSnackBar.show(_scaffoldKey, "Помилка збереження в базі", Colors.red);
     }
-
+    if(widget.callback!=null){
+      widget.callback();
+    }
     return _ok;
   }
 
@@ -1326,7 +1337,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
       List<dynamic> _filesPaths = [];
       if (_payDesk.filePaths != null && _payDesk.filePaths.isNotEmpty) _filesPaths = jsonDecode(_payDesk.filePaths);
       _filesPaths.forEach((value) {
-        _files.add(File(value));
+        // if(File(value).existsSync()){
+          _files.add(File(value));
+        // }
       });
 
       _currencyController.text = _currency?.name ?? '';
@@ -1446,7 +1459,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
         break;
       case "saveExit":
         bool _ok = await _save();
-        if (_ok) Navigator.pop(_scaffoldKey.currentContext);
+        if (_ok) {
+          Navigator.pop(_scaffoldKey.currentContext);
+        }
     }
   }
 

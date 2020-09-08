@@ -6,6 +6,7 @@ import 'package:enterprise/pages/page_balance.dart';
 import 'package:enterprise/pages/page_balance_details.dart';
 import 'package:enterprise/pages/page_channel_detail.dart';
 import 'package:enterprise/pages/page_coordination.dart';
+import 'package:enterprise/pages/page_coordination_history.dart';
 import 'package:enterprise/pages/page_helpdesk_detail.dart';
 import 'package:enterprise/pages/page_helpdesk.dart';
 import 'package:enterprise/pages/auth/page_login.dart';
@@ -19,6 +20,7 @@ import 'package:enterprise/pages/page_timing_hitory.dart';
 import 'package:enterprise/pages/page_turnstile.dart';
 import 'package:enterprise/pages/warehouse/page_orders.dart';
 import 'package:enterprise/widgets/image_detail.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:enterprise/pages/page_profile.dart';
@@ -49,11 +51,7 @@ class RouteGenerator {
             ),
           );
         }
-//        return _errorRoute(settings.name);
-        return MaterialPageRoute(
-            builder: (_) => PageMain(
-                  profile: null,
-                ));
+       return _errorRoute(settings.name);
       case '/auth':
         if (args is RouteArgs) {
           return MaterialPageRoute(
@@ -88,7 +86,7 @@ class RouteGenerator {
               builder: (_) => PagePayDeskDetail(
                 profile: args.profile,
                 type: args.type,
-                  ));
+              ));
         }
         return _errorRoute(settings.name);
       case '/paydesk/confirm':
@@ -139,8 +137,17 @@ class RouteGenerator {
         if (args is RouteArgs) {
           return MaterialPageRoute(
               builder: (_) => PageCoordination(
-//                    profile: args.profile,
+                   profile: args.profile,
                   ));
+        }
+        return _errorRoute(settings.name);
+      case '/coordination/history':
+        if (args is RouteArgs) {
+          return MaterialPageRoute(
+              builder: (_) => PageCoordinationHistory(
+                profile: args.profile,
+                coordinationList: args.coordinationList,
+              ));
         }
         return _errorRoute(settings.name);
       case '/settings':
@@ -201,6 +208,10 @@ class RouteGenerator {
   }
 
   static Route<dynamic> _errorRoute(String route) {
+    FLog.error(
+      exception: Exception("Route exception"),
+      text: "error in route $route",
+    );
     return MaterialPageRoute(builder: (_) {
       return Scaffold(
         appBar: AppBar(

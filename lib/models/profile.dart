@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/widgets/snack_bar_show.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
@@ -195,49 +196,65 @@ class Profile {
       HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
     };
 
-    Response response = await get(url, headers: headers);
+    try{
+      Response response = await get(url, headers: headers);
 
-    int statusCode = response.statusCode;
+      int statusCode = response.statusCode;
 
-    if (statusCode != 200) {
-      ShowSnackBar.show(_scaffoldKey, 'не вдалось з\'єднатись із локальним сервером', Colors.redAccent);
-      return profile;
-    }
+      if (statusCode != 200) {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        ShowSnackBar.show(_scaffoldKey, 'не вдалось з\'єднатись із локальним сервером', Colors.redAccent);
+        return profile;
+      }
 
-    String body = utf8.decode(response.bodyBytes);
+      String body = utf8.decode(response.bodyBytes);
 
-    var jsonData = json.decode(body);
+      var jsonData = json.decode(body);
 
-    profile = Profile.fromMap(jsonData);
+      profile = Profile.fromMap(jsonData);
 
-    if (profile.photoName != '' && profile.photoName != null) {
-      final documentDirectory = await getApplicationDocumentsDirectory();
-      File file = new File(join(documentDirectory.path, profile.photoName));
+      if (profile.photoName != '' && profile.photoName != null) {
+        final documentDirectory = await getApplicationDocumentsDirectory();
+        File file = new File(join(documentDirectory.path, profile.photoName));
 
-      var base64Photo = profile.photoData;
-      base64Photo = base64Photo.replaceAll("\r", "");
-      base64Photo = base64Photo.replaceAll("\n", "");
+        var base64Photo = profile.photoData;
+        base64Photo = base64Photo.replaceAll("\r", "");
+        base64Photo = base64Photo.replaceAll("\n", "");
 
-      final _bytePhoto = base64Decode(base64Photo);
-      file.writeAsBytes(_bytePhoto);
+        final _bytePhoto = base64Decode(base64Photo);
+        file.writeAsBytes(_bytePhoto);
 
-      profile.photoName = file.path;
-    }
+        profile.photoName = file.path;
+      }
 
-    Profile existProfile = await ProfileDAO().getByUserId(profile.userID);
-    if (existProfile == null) {
-      await ProfileDAO().insert(profile);
-    } else {
-      profile.id = existProfile.id;
-      await ProfileDAO().update(profile);
-    }
+      Profile existProfile = await ProfileDAO().getByUserId(profile.userID);
+      if (existProfile == null) {
+        await ProfileDAO().insert(profile);
+      } else {
+        profile.id = existProfile.id;
+        await ProfileDAO().update(profile);
+      }
 
-    if (profile != null) {
-      prefs.setString(KEY_USER_ID, profile.userID);
+      if (profile != null) {
+        prefs.setString(KEY_USER_ID, profile.userID);
 
-      ShowSnackBar.show(_scaffoldKey, 'отримано ваш обліковий запис', Colors.green);
-    } else {
-      ShowSnackBar.show(_scaffoldKey, 'не вдалось отримати ваш обліковий запис', Colors.redAccent);
+        ShowSnackBar.show(_scaffoldKey, 'отримано ваш обліковий запис', Colors.green);
+      } else {
+        FLog.error(
+          exception: Exception("Getting profile error"),
+          text: "can't get profile",
+        );
+        ShowSnackBar.show(_scaffoldKey, 'не вдалось отримати ваш обліковий запис', Colors.redAccent);
+      }
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "try block error",
+        stacktrace: s,
+      );
     }
 
     return profile;
@@ -263,16 +280,29 @@ class Profile {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    Response response =
-        await post(url, headers: headers, body: json.encode(jsonData));
+    try{
+      Response response =
+      await post(url, headers: headers, body: json.encode(jsonData));
 
-    int statusCode = response.statusCode;
+      int statusCode = response.statusCode;
 
-    if (statusCode == 200) {
-      ShowSnackBar.show(_scaffoldKey, 'ваш профіль оновлено', Colors.green);
-      return true;
-    } else {
-      ShowSnackBar.show(_scaffoldKey, 'не вдалось поновити профіль', Colors.redAccent);
+      if (statusCode == 200) {
+        ShowSnackBar.show(_scaffoldKey, 'ваш профіль оновлено', Colors.green);
+        return true;
+      } else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        ShowSnackBar.show(_scaffoldKey, 'не вдалось поновити профіль', Colors.redAccent);
+        return false;
+      }
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "try block error",
+        stacktrace: s,
+      );
       return false;
     }
   }
@@ -298,46 +328,58 @@ class Profile {
       HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
     };
 
-    Response response = await get(url, headers: headers);
+   try{
+     Response response = await get(url, headers: headers);
 
-    int statusCode = response.statusCode;
+     int statusCode = response.statusCode;
 
-    if (statusCode != 200) {
-      return profile;
-    }
+     if (statusCode != 200) {
+       FLog.error(
+         exception: Exception(response.statusCode),
+         text: "status code error",
+       );
+       return profile;
+     }
 
-    String body = utf8.decode(response.bodyBytes);
+     String body = utf8.decode(response.bodyBytes);
 
-    var jsonData = json.decode(body);
+     var jsonData = json.decode(body);
 
-    if (jsonData['status'] != 200) {
-      return profile;
-    }
+     if (jsonData['status'] != 200) {
+       return profile;
+     }
 
-    profile = Profile.fromMap(jsonData["application"]);
+     profile = Profile.fromMap(jsonData["application"]);
 
-    if (profile.photoName != '') {
-      final documentDirectory = await getApplicationDocumentsDirectory();
-      File file = new File(join(documentDirectory.path, profile.photoName));
+     if (profile.photoName != '') {
+       final documentDirectory = await getApplicationDocumentsDirectory();
+       File file = new File(join(documentDirectory.path, profile.photoName));
 
-      var base64Photo = profile.photoData;
-      base64Photo = base64Photo.replaceAll("\r", "");
-      base64Photo = base64Photo.replaceAll("\n", "");
+       var base64Photo = profile.photoData;
+       base64Photo = base64Photo.replaceAll("\r", "");
+       base64Photo = base64Photo.replaceAll("\n", "");
 
-      final _bytePhoto = base64Decode(base64Photo);
-      file.writeAsBytes(_bytePhoto);
+       final _bytePhoto = base64Decode(base64Photo);
+       file.writeAsBytes(_bytePhoto);
 
-      profile.photoName = file.path;
+       profile.photoName = file.path;
 //      prefs.setString(KEY_USER_PICTURE, file.path);
-    }
+     }
 
-    Profile existProfile = await ProfileDAO().getByUserId(profile.userID);
-    if (existProfile == null) {
-      await ProfileDAO().insert(profile);
-    } else {
-      profile.id = existProfile.id;
-      await ProfileDAO().update(profile);
-    }
+     Profile existProfile = await ProfileDAO().getByUserId(profile.userID);
+     if (existProfile == null) {
+       await ProfileDAO().insert(profile);
+     } else {
+       profile.id = existProfile.id;
+       await ProfileDAO().update(profile);
+     }
+   } catch (e, s){
+     FLog.error(
+       exception: Exception(e.toString()),
+       text: "try block error",
+       stacktrace: s,
+     );
+   }
 
     return profile;
   }
@@ -360,24 +402,40 @@ class Profile {
       HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
     };
 
-    Response response = await get(url, headers: headers);
+    try{
+      Response response = await get(url, headers: headers);
 
-    int statusCode = response.statusCode;
+      int statusCode = response.statusCode;
 
-    if (statusCode != 200) {
-      return;
-    }
+      if (statusCode != 200) {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        return;
+      }
 
-    String body = utf8.decode(response.bodyBytes);
+      String body = utf8.decode(response.bodyBytes);
 
-    var jsonData = json.decode(body);
+      var jsonData = json.decode(body);
 
-    if (jsonData['status'] != 200) {
-      return;
-    }
+      if (jsonData['status'] != 200) {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        return;
+      }
 
-    for (var jsonRow in jsonData["cards"]) {
-      downloadByInfoCard(jsonRow["info_card"]);
+      for (var jsonRow in jsonData["cards"]) {
+        downloadByInfoCard(jsonRow["info_card"]);
+      }
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "try block error",
+        stacktrace: s,
+      );
     }
   }
 }

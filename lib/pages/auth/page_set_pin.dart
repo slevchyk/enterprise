@@ -1,6 +1,7 @@
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/widgets/digital_keyboard.dart';
 import 'package:enterprise/widgets/input_indicator.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -146,6 +147,11 @@ class _PageSetPinState extends State<PageSetPin> {
       if (await Vibration.hasVibrator()) {
         Vibration.vibrate();
       }
+
+      FLog.error(
+        exception: Exception("Incorrect password"),
+        text: "incorrect password entered",
+      );
 
       setState(() {
         _title = "Введіь ПІН-код";

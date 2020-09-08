@@ -26,6 +26,7 @@ class PayDeskList extends StatelessWidget {
   final bool shrinkWrap;
   final bool showPercent;
   final bool showFileAttach;
+  final Function callback;
 
   PayDeskList({
     @required this.payList,
@@ -42,6 +43,7 @@ class PayDeskList extends StatelessWidget {
     this.shrinkWrap = false,
     this.showPercent = false,
     this.showFileAttach = true,
+    this.callback,
   });
 
   @override
@@ -139,6 +141,7 @@ class PayDeskList extends StatelessWidget {
           return PagePayDeskDetail(
             payDesk: _payList[index],
             profile: profile,
+            callback: callback,
           );
         }));
       },

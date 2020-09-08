@@ -43,7 +43,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
   DateTime _now;
   DateTime _firstDayOfMonth;
 
-  bool _isVisible, _isSort;
+  bool _isVisible;
   int _statusCount;
 
   @override
@@ -57,7 +57,6 @@ class _PagePayDeskState extends State<PagePayDesk> {
     _load();
     _controllersMap = PeriodDialog.setControllersMap();
     _isVisible = true;
-    _isSort = true;
     _scrollController = ScrollController();
     _scrollController.addListener(() {
       switch (_scrollController.position.userScrollDirection) {
@@ -108,7 +107,6 @@ class _PagePayDeskState extends State<PagePayDesk> {
               icon: Icon(Icons.calendar_today),
               onPressed: (){
                 PeriodDialog.showPeriodDialog(context, _dateFrom, _dateTo, _controllersMap).whenComplete(() => setState((){}));
-                // _showPeriodDialog();
               }
           ),
           IconButton(
@@ -139,8 +137,9 @@ class _PagePayDeskState extends State<PagePayDesk> {
             dateTo: DateFormat('dd.MM.yyyy').parse(_dateTo.text),
             isReload: _controllersMap[SortControllers.reload],
             isPeriod: _controllersMap[SortControllers.period],
-            isSort: _isSort,
+            isSort: true,
             textIfEmpty: "Iнформацiя за ${_controllersMap[SortControllers.period] ? "перiод \n${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"} \nвiдсутня",
+            callback: _load,
           );
         },),
       ),

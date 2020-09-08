@@ -46,6 +46,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
   bool _readOnly = false;
 
   final List<IconData> _icons = const [Icons.image, FontAwesomeIcons.filePdf, Icons.photo_camera];
+  List<bool> _isError = [false];
 
   List<File> _files = [];
 
@@ -143,6 +144,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
                           _files.remove(deletedFile);
                           setState(() {});
                         },
+                        isError: _isError,
                       ),
                     ],
                   ),

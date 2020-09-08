@@ -6,7 +6,6 @@ import 'package:enterprise/models/helpdesk.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_helpdesk_detail.dart';
-import 'package:enterprise/pages/page_main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -82,9 +81,10 @@ class _PageHelpDeskState extends State<PageHelpDesk> {
             )
           ],
         ),
-        drawer: AppDrawer(
-          profile: _profile,
-        ),
+        // Enable menu
+        // drawer: AppDrawer(
+        //   profile: _profile,
+        // ),
         body: TabBarView(
           children: [
             RefreshIndicator(
