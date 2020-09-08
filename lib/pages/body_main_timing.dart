@@ -335,15 +335,16 @@ class _TimingMainState extends State<TimingMain> {
         child: CustomScrollView(
           slivers: <Widget>[
             SliverAppBar(
-              leading: MaterialButton(
-                onPressed: () {
-                  widget.parentScaffoldKey.currentState.openDrawer();
-                },
-                child: Icon(
-                  Icons.menu,
-                  color: Colors.white,
-                ),
-              ),
+              // Enable menu
+              // leading: MaterialButton(
+              //   onPressed: () {
+              //     widget.parentScaffoldKey.currentState.openDrawer();
+              //   },
+              //   child: Icon(
+              //     Icons.menu,
+              //     color: Colors.white,
+              //   ),
+              // ),
               title: Text('Хронометраж'),
               pinned: true,
               floating: false,

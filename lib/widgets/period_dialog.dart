@@ -9,7 +9,7 @@ class PeriodDialog{
   /// If TextEditingController is empty, controllers will set automatically
   /// Firs date to choose is 01.01.2000 and last date current year + 1
   /// Last date to choose is current day, month, year
-  /// You can use setControllersMap to set map
+  /// You can use setControllersMap to set [Map]<[SortControllers], [bool]>
 
   static Future showPeriodDialog(BuildContext context, TextEditingController dateFrom, TextEditingController dateTo,  Map<SortControllers, bool> controllersMap) {
     DateTime _now = DateTime.now();

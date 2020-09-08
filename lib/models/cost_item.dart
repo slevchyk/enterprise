@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:enterprise/database/cost_item_dao.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -89,10 +90,19 @@ class CostItem {
           }
         }
         return true;
+      } else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        return false;
       }
-      return false;
-    } catch (e){
-      print(e);
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "try block error",
+        stacktrace: s,
+      );
       return false;
     }
   }

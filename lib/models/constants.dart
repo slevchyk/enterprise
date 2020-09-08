@@ -11,6 +11,7 @@ const String SERVER_IP = "95.217.41.66:8811";
 const String SERVER_USER = "mobile";
 const String SERVER_PASSWORD = "Dq4fS^J&^nqQ(fg4";
 
+const String API_URL_TOKEN = "https://bot.barkom.ua/test/hs/mobileApi/login/";
 const String API_USER = "test@test";
 const String API_PASSWORD = "test";
 
@@ -233,4 +234,11 @@ const Map<PayDeskTypes, String> PAY_DESK_TYPES_ALIAS = {
 enum SortControllers {
   reload,
   period,
+}
+
+//coordination
+enum CoordinationTypes {
+  none, //до погодження
+  approved, //погоджено
+  reject, //відхилено
 }

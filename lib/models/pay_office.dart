@@ -5,6 +5,7 @@ import 'package:enterprise/database/pay_office_dao.dart';
 import 'package:enterprise/database/user_grants_dao.dart';
 import 'package:enterprise/models/pay_office_balance.dart';
 import 'package:enterprise/models/user_grants.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -106,59 +107,73 @@ class PayOffice {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    Response response = await get(
-      url,
-      headers: headers,
-    );
+    try{
+      Response response = await get(
+        url,
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      var jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        var jsonData = json.decode(response.body);
 
-      if (jsonData == null) {
-        return;
-      }
-
-      List<UserGrants> _listUserGrants = await UserGrantsDAO().getAll();
-      List<PayOfficeBalance> _listPayOfficeBalance = await PayOfficeBalance.sync();
-
-      for (var jsonPayOffice in jsonData) {
-        payOffice = PayOffice.fromMap(jsonPayOffice);
-
-        List<UserGrants> _currentUserGrants = _listUserGrants
-            .where((userGrant) => userGrant.objectAccID == payOffice.accID)
-            .toList();
-
-        List<PayOfficeBalance> _currentPayOfficeBalance = _listPayOfficeBalance
-            .where((payOfficeBalance) => payOfficeBalance.accID == payOffice.accID)
-            .toList();
-
-        PayOffice existPayOffice = await PayOfficeDAO().getByID(payOffice.id);
-
-        if(_currentPayOfficeBalance.length!=0){
-          payOffice.amount = _currentPayOfficeBalance.first.balance;
-          payOffice.updatedAt = _currentPayOfficeBalance.first.updatedAt;
-        }
-
-        if (_currentUserGrants.length==0){
-          if (existPayOffice != null) {
-            PayOfficeDAO().delete(existPayOffice);
-          }
+        if (jsonData == null) {
           return;
         }
 
-        payOffice.isVisible = _currentUserGrants.first.isVisible;
-        payOffice.isAvailable = _currentUserGrants.first.isAvailable;
-        payOffice.isReceiver = _currentUserGrants.first.isReceiver;
+        List<UserGrants> _listUserGrants = await UserGrantsDAO().getAll();
+        List<PayOfficeBalance> _listPayOfficeBalance = await PayOfficeBalance.sync();
 
-        if (existPayOffice != null) {
-          payOffice.mobID = existPayOffice.mobID;
-          PayOfficeDAO().update(payOffice);
-        } else {
-          if (!payOffice.isDeleted) {
-            PayOfficeDAO().insert(payOffice);
+        for (var jsonPayOffice in jsonData) {
+          payOffice = PayOffice.fromMap(jsonPayOffice);
+
+          List<UserGrants> _currentUserGrants = _listUserGrants
+              .where((userGrant) => userGrant.objectAccID == payOffice.accID)
+              .toList();
+
+          List<PayOfficeBalance> _currentPayOfficeBalance = _listPayOfficeBalance
+              .where((payOfficeBalance) => payOfficeBalance.accID == payOffice.accID)
+              .toList();
+
+          PayOffice existPayOffice = await PayOfficeDAO().getByID(payOffice.id);
+
+          if(_currentPayOfficeBalance.length!=0){
+            payOffice.amount = _currentPayOfficeBalance.first.balance;
+            payOffice.updatedAt = _currentPayOfficeBalance.first.updatedAt;
+          }
+
+          if (_currentUserGrants.length==0){
+            if (existPayOffice != null) {
+              PayOfficeDAO().delete(existPayOffice);
+            }
+            return;
+          }
+
+          payOffice.isVisible = _currentUserGrants.first.isVisible;
+          payOffice.isAvailable = _currentUserGrants.first.isAvailable;
+          payOffice.isReceiver = _currentUserGrants.first.isReceiver;
+
+          if (existPayOffice != null) {
+            payOffice.mobID = existPayOffice.mobID;
+            PayOfficeDAO().update(payOffice);
+          } else {
+            if (!payOffice.isDeleted) {
+              PayOfficeDAO().insert(payOffice);
+            }
           }
         }
+      } else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        return false;
       }
+    } catch (e, s){
+      FLog.error(
+        exception: e,
+        text: "try block error",
+        stacktrace: s,
+      );
     }
   }
 }

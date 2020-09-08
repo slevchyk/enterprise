@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:enterprise/models/constants.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -67,11 +68,19 @@ class PayOfficeBalance{
           toReturn.add(payOfficeBalance);
         }
         return toReturn;
-      } else {
+      }  else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
         return null;
       }
-    } catch (e) {
-      print(e);
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "try block error",
+        stacktrace: s,
+      );
       return null;
     }
   }

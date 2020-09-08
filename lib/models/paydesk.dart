@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:enterprise/database/pay_desk_dao.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -175,10 +176,18 @@ class PayDesk {
         }
         return true;
       } else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
         return false;
       }
-    } catch (e) {
-      print(e);
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "try block error",
+        stacktrace: s,
+      );
       return false;
     }
   }
@@ -206,20 +215,34 @@ class PayDesk {
     for (var _payDesk in _listPayDesks) {
       requestData = _payDesk.toMap();
 
-      Response response = await post(
-        url,
-        headers: headers,
-        body: json.encode(requestData),
-      );
+     try{
+       Response response = await post(
+         url,
+         headers: headers,
+         body: json.encode(requestData),
+       );
 
-      if (response.statusCode == 200) {
-        if (_payDesk.id == null) {
-          Map<String, dynamic> jsonData = json.decode(response.body);
-          _payDesk.id = jsonData["id"];
-        }
+       if (response.statusCode == 200) {
+         if (_payDesk.id == null) {
+           Map<String, dynamic> jsonData = json.decode(response.body);
+           _payDesk.id = jsonData["id"];
+         }
 
-        PayDeskDAO().update(_payDesk, isModified: false);
-      }
+         PayDeskDAO().update(_payDesk, isModified: false);
+       } else {
+         FLog.error(
+           exception: Exception(response.statusCode),
+           text: "status code error",
+         );
+         return false;
+       }
+     } catch (e, s){
+       FLog.error(
+         exception: Exception(e.toString()),
+         text: "try block error",
+         stacktrace: s,
+       );
+     }
     }
   }
 
@@ -243,43 +266,57 @@ class PayDesk {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    Response response = await get(
-      url,
-      headers: headers,
-    );
+    try {
+      Response response = await get(
+        url,
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      var jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        var jsonData = json.decode(response.body);
 
-      if (jsonData == null) {
-        return;
-      }
+        if (jsonData == null) {
+          return;
+        }
 
-      for (var jsonPayDesk in jsonData) {
-        payDesk = PayDesk.fromMap(jsonPayDesk);
+        for (var jsonPayDesk in jsonData) {
+          payDesk = PayDesk.fromMap(jsonPayDesk);
 
-        bool ok = false;
+          bool ok = false;
 
-        PayDesk existPayDesk = await PayDeskDAO().getByID(payDesk.id);
+          PayDesk existPayDesk = await PayDeskDAO().getByID(payDesk.id);
 
-        if (existPayDesk != null) {
-          payDesk.mobID = existPayDesk.mobID;
-          payDesk.filePaths = existPayDesk.filePaths;
-          payDesk.filesQuantity = existPayDesk.filesQuantity;
-          ok = await PayDeskDAO().update(payDesk, isModified: false);
-        } else {
-          int mobID = await PayDeskDAO().insert(payDesk, isModified: false);
+          if (existPayDesk != null) {
+            payDesk.mobID = existPayDesk.mobID;
+            payDesk.filePaths = existPayDesk.filePaths;
+            payDesk.filesQuantity = existPayDesk.filesQuantity;
+            ok = await PayDeskDAO().update(payDesk, isModified: false);
+          } else {
+            int mobID = await PayDeskDAO().insert(payDesk, isModified: false);
 
-          if (mobID != null) {
-            ok = true;
+            if (mobID != null) {
+              ok = true;
+            }
+          }
+
+          if (ok) {
+            String urlProcessed = 'http://$_serverIP/api/paydesk/processed?from=mobile&id=${payDesk.id.toString()}';
+            post(urlProcessed, headers: headers);
           }
         }
-
-        if (ok) {
-          String urlProcessed = 'http://$_serverIP/api/paydesk/processed?from=mobile&id=${payDesk.id.toString()}';
-          post(urlProcessed, headers: headers);
-        }
+      } else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        return false;
       }
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "try block error",
+        stacktrace: s,
+      );
     }
   }
 }

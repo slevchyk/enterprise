@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:enterprise/database/user_grants_dao.dart';
 import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/widgets/snack_bar_show.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -104,12 +105,21 @@ class UserGrants{
         await PayOffice.sync();
         ShowSnackBar.show(scaffoldKey, "Дані оновлено", Colors.green);
         return true;
+      }  else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        ShowSnackBar.show(scaffoldKey, "Помилка оновлення даних", Colors.orange);
+        return false;
       }
+    } catch (e, s) {
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "try block error",
+        stacktrace: s,
+      );
       ShowSnackBar.show(scaffoldKey, "Помилка оновлення даних", Colors.orange);
-      return false;
-    } catch (e) {
-      ShowSnackBar.show(scaffoldKey, "Помилка оновлення даних", Colors.orange);
-      print(e);
       return false;
     }
   }
