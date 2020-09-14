@@ -24,7 +24,7 @@ class CoordinationApproved{
     'result' : result,
   };
 
-  static Future<bool> setResult(CoordinationApproved result, GlobalKey<ScaffoldState> scaffoldKey) async {
+  static Future<bool> setResult(CoordinationApproved result, GlobalKey<ScaffoldState> scaffoldKey, String action) async {
 
     final String _urlConfirmTask = "https://bot.barkom.ua/test/hs/mobileApi/confirmTask/";
     final String _token = await Coordination.token;
@@ -61,7 +61,7 @@ class CoordinationApproved{
           return false;
         }
 
-        ShowSnackBar.show(scaffoldKey, "Задачу погоджено", Colors.green, duration: Duration(seconds: 1));
+        ShowSnackBar.show(scaffoldKey, "Задачу $action", Colors.green, duration: Duration(seconds: 1));
         return jsonData["result"];
       } else {
         FLog.error(

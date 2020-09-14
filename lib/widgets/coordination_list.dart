@@ -107,7 +107,7 @@ class CoordinationList{
                                 result: false,
                               );
                               if(_isComplete.first){
-                                if(await CoordinationApproved.setResult(_result, scaffoldKey)){
+                                if(await CoordinationApproved.setResult(_result, scaffoldKey, "відхилено")){
                                   await Future.delayed(Duration(seconds: 2));
                                   _callback();
                                 }
@@ -134,7 +134,7 @@ class CoordinationList{
                                 result: true,
                               );
                               if(_isComplete.first){
-                                if(await CoordinationApproved.setResult(_result, scaffoldKey)){
+                                if(await CoordinationApproved.setResult(_result, scaffoldKey, "погоджено")){
                                   await Future.delayed(Duration(seconds: 2));
                                   _callback();
                                 }
