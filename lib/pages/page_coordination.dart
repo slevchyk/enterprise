@@ -105,7 +105,8 @@ class _PageCoordinationState extends State<PageCoordination>{
                       return Container(
                         child: Center(
                           child: Text(
-                              "Вiдсутнi номенклатури до погодження",
+                              "Відсутні заявки до погодження",
+                            textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold

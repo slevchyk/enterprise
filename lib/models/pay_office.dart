@@ -14,7 +14,7 @@ import 'constants.dart';
 class PayOffice {
   int mobID;
   int id;
-  int amount;
+  double amount;
   String accID;
   String currencyAccID;
   String name;
@@ -45,7 +45,7 @@ class PayOffice {
   factory PayOffice.fromMap(Map<String, dynamic> json) => PayOffice(
         mobID: json["mob_id"],
         id: json["id"],
-        amount: json["amount"],
+        amount: json["amount"] != null ? json["amount"].toDouble() : 0.00,
         accID: json["acc_id"],
         currencyAccID: json["currency_acc_id"],
         name: json["name"],
@@ -169,6 +169,7 @@ class PayOffice {
         return false;
       }
     } catch (e, s){
+      print("$e $s");
       FLog.error(
         exception: e,
         text: "try block error",

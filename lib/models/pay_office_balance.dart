@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class PayOfficeBalance{
   String accID;
-  int balance;
+  double balance;
   DateTime updatedAt;
 
   PayOfficeBalance({
@@ -19,7 +19,7 @@ class PayOfficeBalance{
 
   factory PayOfficeBalance.fromMap(Map<String, dynamic> json) => PayOfficeBalance(
     accID: json['acc_id'],
-    balance: json['balance'],
+    balance: json["balance"] != null ? json["balance"].toDouble() : 0.00,
     updatedAt: json['updated_at'] != null ? DateTime.parse(json["updated_at"]) : null,
   );
 

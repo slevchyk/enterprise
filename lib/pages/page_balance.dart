@@ -378,7 +378,7 @@ class _PageBalanceState extends State<PageBalance>{
                                     ),
                                     Container(
                                       width: orientation == Orientation.landscape ? MediaQuery.of(context).size.height/2.5 : MediaQuery.of(context).size.width/3,
-                                      child: Text("${amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}", overflow: TextOverflow.ellipsis, maxLines: 2, textAlign: TextAlign.end,),
+                                      child: Text("${ _listPayOfficeToShow[listIndex].amount.isNegative ? "-" : ""} ${amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}", overflow: TextOverflow.ellipsis, maxLines: 2, textAlign: TextAlign.end,),
                                     ),
                                   ],
                                 ),

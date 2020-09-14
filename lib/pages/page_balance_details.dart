@@ -282,7 +282,7 @@ class _PageBalanceDetailsState extends State<PageBalanceDetails>{
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 5),
                             child: Text(
-                                "${_amountFormatterBalance.text} ${CURRENCY_SYMBOL[_currencyCode]}"
+                                "${_payOffice.amount.isNegative ? "-" : ""} ${_amountFormatterBalance.text} ${CURRENCY_SYMBOL[_currencyCode]}"
                               , style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: _payOffice.amount > 0 ? Colors.green : Colors.red),),
                           ),
                         ],
