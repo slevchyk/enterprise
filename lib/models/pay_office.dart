@@ -141,16 +141,13 @@ class PayOffice {
             payOffice.updatedAt = _currentPayOfficeBalance.first.updatedAt;
           }
 
-          if (_currentUserGrants.length==0){
-            if (existPayOffice != null) {
-              PayOfficeDAO().delete(existPayOffice);
-            }
-            return;
+          if(_currentUserGrants.length!=0){
+            payOffice.isVisible = _currentUserGrants.first.isVisible;
+            payOffice.isAvailable = _currentUserGrants.first.isAvailable;
+            payOffice.isReceiver = _currentUserGrants.first.isReceiver;
+          } else if(existPayOffice != null) {
+            PayOfficeDAO().delete(existPayOffice);
           }
-
-          payOffice.isVisible = _currentUserGrants.first.isVisible;
-          payOffice.isAvailable = _currentUserGrants.first.isAvailable;
-          payOffice.isReceiver = _currentUserGrants.first.isReceiver;
 
           if (existPayOffice != null) {
             payOffice.mobID = existPayOffice.mobID;
@@ -171,7 +168,7 @@ class PayOffice {
     } catch (e, s){
       print("$e $s");
       FLog.error(
-        exception: e,
+        exception: Exception(e.toString()),
         text: "try block error",
         stacktrace: s,
       );

@@ -98,8 +98,11 @@ class _PageBalanceState extends State<PageBalance>{
                       child: CircularProgressIndicator(),
                     );
                   case ConnectionState.done:
-                    _listPayOfficeToShow = snapshot.data;
-                    _listPayOfficeToShow = _listPayOfficeToShow.reversed.toList();
+                    if(_isSwitched){
+                      _listPayOfficeToShow = snapshot.data;
+                      _listPayOfficeToShow = _listPayOfficeToShow.reversed.toList();
+                    }
+
                     _mapToShow = _setMapMap(_listPayOfficeToShow);
                     var _emptyLength = _mapToShow.values.where((element) => element!=0).toList();
                     if(_emptyLength.length==0){
@@ -197,7 +200,9 @@ class _PageBalanceState extends State<PageBalance>{
                                           onChanged: (value) {
                                             setState(() {
                                               _isSwitched = value;
-                                              inputCostItem.where((element) => element.isShow = value).toList();
+                                              _listPayOfficeToShow.forEach((element) {
+                                                element.isShow = value;
+                                              });
                                               this.setState(() {});
                                             });
                                           },
@@ -255,14 +260,14 @@ class _PageBalanceState extends State<PageBalance>{
                                       child: Column(
                                         children: <Widget>[
                                           Switch(
-                                            value: inputCostItem[index].isShow,
+                                            value: _listPayOfficeToShow[index].isShow,
                                             onChanged: (value) {
                                               setState(() {
                                                 if(_isSwitched){
                                                   _isSwitched = false;
                                                 }
-                                                _listPayOfficeToShow[index].isShow = !_listPayOfficeToShow[index].isShow;
-                                                if(inputCostItem.where((element) => element.isShow).length==inputCostItem.length){
+                                                _listPayOfficeToShow[index].isShow = value;
+                                                if(_listPayOfficeToShow.where((element) => element.isShow).length==_listPayOfficeToShow.length){
                                                   _isSwitched = true;
                                                 }
                                                 this.setState(() { });
@@ -325,7 +330,7 @@ class _PageBalanceState extends State<PageBalance>{
                               width: orientation == Orientation.landscape ? MediaQuery.of(context).size.height/2.5 : MediaQuery.of(context).size.width/4,
                               child: Wrap(
                                 children: <Widget>[
-                                  Text("${amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}", style: TextStyle(fontSize: 18), textAlign: TextAlign.end,),
+                                  Text("${listToShow.values.elementAt(index).isNegative ? "-" : ""}${amountFormatter.text}${CURRENCY_SYMBOL[_currencyCode]}", style: TextStyle(fontSize: 18), textAlign: TextAlign.end,),
                                 ],
                               ),
                             ),
@@ -378,7 +383,7 @@ class _PageBalanceState extends State<PageBalance>{
                                     ),
                                     Container(
                                       width: orientation == Orientation.landscape ? MediaQuery.of(context).size.height/2.5 : MediaQuery.of(context).size.width/3,
-                                      child: Text("${ _listPayOfficeToShow[listIndex].amount.isNegative ? "-" : ""} ${amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}", overflow: TextOverflow.ellipsis, maxLines: 2, textAlign: TextAlign.end,),
+                                      child: Text("${ _listPayOfficeToShow[listIndex].amount.isNegative ? "-" : ""}${amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}", overflow: TextOverflow.ellipsis, maxLines: 2, textAlign: TextAlign.end,),
                                     ),
                                   ],
                                 ),
