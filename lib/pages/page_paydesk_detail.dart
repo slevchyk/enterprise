@@ -1156,7 +1156,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                               // Divider(),
                                               Container(height: 1, color: Colors.lightGreen, margin: EdgeInsets.all(5),),
                                               Text(
-                                                "Баланс: ${_data.amount.isNegative ? "-" : ""} ${_amountFormatter.text} ${CURRENCY_SYMBOL[_currency?.code]}",
+                                                "Баланс: ${_data.amount.isNegative ? "-" : ""}${_amountFormatter.text} ${CURRENCY_SYMBOL[_currency?.code]}",
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                               )

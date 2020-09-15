@@ -18,7 +18,6 @@ import 'package:enterprise/models/warehouse/goods.dart';
 import 'package:enterprise/models/warehouse/partners.dart';
 import 'package:enterprise/pages/page_timing_db.dart';
 import 'package:enterprise/widgets/snack_bar_show.dart';
-import 'package:f_logs/f_logs.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -467,46 +466,6 @@ class PageDebugState extends State<PageDebug> {
     DBWarehouseProvider.db.deleteDB();
   }
 
-  Widget _showLog() {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Logs"),
-      ),
-      body: Container(
-        child: FutureBuilder<List>(
-          future: FLog.getAllLogs(),
-          builder: (context, snapshot){
-            print(snapshot.hasData);
-            if(snapshot.hasData){
-              if(snapshot.data.length == 0){
-                return Container(
-                  margin: EdgeInsets.only(top: 20, bottom: 20, left: 20, right: 20.0),
-                  child: FractionallySizedBox(
-                    widthFactor: 1.0,
-                    child: Text(
-                      'on logs',
-                      style: TextStyle(fontSize: 20.0),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                );
-              }
-              List<Log> _listToShow = snapshot.data[0];
-              return Container(
-                child: ListView.builder(
-                  itemCount: _listToShow.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return Text(_listToShow.elementAt(index).text);
-                  },
-                ),
-              );
-            }
-            return CircularProgressIndicator();
-          },
-        ),
-      ),
-    );
-  }
 }
 
 class Choice {
