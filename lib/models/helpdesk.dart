@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:enterprise/database/help_desk_dao.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'constants.dart';
@@ -122,19 +123,33 @@ class HelpDesk {
     for (var _helpDesk in _listHelpDesk) {
       requestData = _helpDesk.toMap();
 
-      Response response = await post(
-        url,
-        headers: headers,
-        body: json.encode(requestData),
-      );
+      try{
+        Response response = await post(
+          url,
+          headers: headers,
+          body: json.encode(requestData),
+        );
 
-      if (response.statusCode == 200) {
-        if (_helpDesk.id == null) {
-          Map<String, dynamic> jsonData = json.decode(response.body);
-          _helpDesk.id = jsonData["id"];
+        if (response.statusCode == 200) {
+          if (_helpDesk.id == null) {
+            Map<String, dynamic> jsonData = json.decode(response.body);
+            _helpDesk.id = jsonData["id"];
+          }
+
+          HelpdeskDAO().update(_helpDesk, isModified: false);
+        } else {
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error",
+          );
+          return false;
         }
-
-        HelpdeskDAO().update(_helpDesk, isModified: false);
+      } catch (e, s){
+        FLog.error(
+          exception: Exception(e.toString()),
+          text: "try block error",
+          stacktrace: s,
+        );
       }
     }
   }
@@ -160,44 +175,57 @@ class HelpDesk {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    Response response = await get(
-      url,
-      headers: headers,
-    );
+    try{
+      Response response = await get(
+        url,
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      var jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        var jsonData = json.decode(response.body);
 
-      if (jsonData == null) {
-        return;
-      }
+        if (jsonData == null) {
+          return;
+        }
 
-      for (var jsonPayDesk in jsonData) {
-        helpDesk = HelpDesk.fromMap(jsonPayDesk);
+        for (var jsonPayDesk in jsonData) {
+          helpDesk = HelpDesk.fromMap(jsonPayDesk);
 
-        bool ok = false;
+          bool ok = false;
 
-        HelpDesk existPayDesk = await HelpdeskDAO().getByID(helpDesk.id);
+          HelpDesk existPayDesk = await HelpdeskDAO().getByID(helpDesk.id);
 
-        if (existPayDesk != null) {
-          helpDesk.mobID = existPayDesk.mobID;
-          helpDesk.filePaths = existPayDesk.filePaths;
-          helpDesk.filesQuantity = existPayDesk.filesQuantity;
-          ok = await HelpdeskDAO().update(helpDesk, isModified: false);
-        } else {
-          int mobID = await HelpdeskDAO().insert(helpDesk, isModified: false);
+          if (existPayDesk != null) {
+            helpDesk.mobID = existPayDesk.mobID;
+            helpDesk.filePaths = existPayDesk.filePaths;
+            helpDesk.filesQuantity = existPayDesk.filesQuantity;
+            ok = await HelpdeskDAO().update(helpDesk, isModified: false);
+          } else {
+            int mobID = await HelpdeskDAO().insert(helpDesk, isModified: false);
 
-          if (mobID != null) {
-            ok = true;
+            if (mobID != null) {
+              ok = true;
+            }
+          }
+
+          if (ok) {
+            String urlProcessed =
+                'http://$_serverIP/api/helpdesk/processed?from=mobile&id=${helpDesk.id.toString()}';
+            post(urlProcessed, headers: headers);
           }
         }
-
-        if (ok) {
-          String urlProcessed =
-              'http://$_serverIP/api/helpdesk/processed?from=mobile&id=${helpDesk.id.toString()}';
-          post(urlProcessed, headers: headers);
-        }
+      }  else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
       }
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "try block error",
+        stacktrace: s,
+      );
     }
   }
 }

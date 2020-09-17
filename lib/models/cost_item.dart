@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:enterprise/database/cost_item_dao.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -42,7 +43,7 @@ class CostItem {
         "is_deleted": isDeleted == null ? 0 : isDeleted ? 1 : 0,
       };
 
-  static sync() async {
+  static Future<bool> sync() async {
     CostItem costItem;
 
     final prefs = await SharedPreferences.getInstance();
@@ -61,32 +62,48 @@ class CostItem {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    Response response = await get(
-      url,
-      headers: headers,
-    );
+    try {
+      Response response = await get(
+        url,
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      var jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        var jsonData = json.decode(response.body);
 
-      if (jsonData == null) {
-        return;
-      }
+        if (jsonData == null) {
+          return true;
+        }
 
-      for (var jsonCostItem in jsonData) {
-        costItem = CostItem.fromMap(jsonCostItem);
+        for (var jsonCostItem in jsonData) {
+          costItem = CostItem.fromMap(jsonCostItem);
 
-        CostItem existCostItem = await CostItemDAO().getByID(costItem.id);
+          CostItem existCostItem = await CostItemDAO().getByID(costItem.id);
 
-        if (existCostItem != null) {
-          costItem.mobID = existCostItem.mobID;
-          CostItemDAO().update(costItem);
-        } else {
-          if (!costItem.isDeleted) {
-            CostItemDAO().insert(costItem);
+          if (existCostItem != null) {
+            costItem.mobID = existCostItem.mobID;
+            CostItemDAO().update(costItem);
+          } else {
+            if (!costItem.isDeleted) {
+              CostItemDAO().insert(costItem);
+            }
           }
         }
+        return true;
+      } else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        return false;
       }
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "try block error",
+        stacktrace: s,
+      );
+      return false;
     }
   }
 }

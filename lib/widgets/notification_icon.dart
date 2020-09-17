@@ -23,8 +23,7 @@ class IconWithNotification extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        width: 72,
-        padding: EdgeInsets.symmetric(horizontal: 6),
+        width: 45,
         child: Stack(
           alignment: Alignment.center,
           children: [
@@ -33,7 +32,7 @@ class IconWithNotification extends StatelessWidget {
               children: <Widget>[
                 Icon(iconData),
                 text != null
-                    ? Text(text, overflow: TextOverflow.ellipsis)
+                    ? Text(text, overflow : TextOverflow.ellipsis)
                     : Container(),
               ],
             ),
@@ -42,7 +41,7 @@ class IconWithNotification extends StatelessWidget {
               top: 0,
               right: 0,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: EdgeInsets.symmetric(horizontal: 5, vertical: 7),
                 decoration: BoxDecoration(shape: boxShape, color: circleColor),
                 alignment: Alignment.center,
                 child: Text('$notificationCount'),

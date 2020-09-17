@@ -1,9 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.intellectcase.enterprise">
 
-    <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
+<!--    <uses-permission android:name="android.permission.USE_FINGERPRINT"/>-->
+    <uses-permission android:name="androidx.biometric:biometric:1.0.1"/>
+    <uses-permission android:name="android.support.FILE_PROVIDER_PATHS"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.

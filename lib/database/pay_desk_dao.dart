@@ -1,7 +1,8 @@
 import 'package:enterprise/database/core.dart';
+import 'package:enterprise/interfaces/pay_desk_dao_interface.dart';
 import 'package:enterprise/models/paydesk.dart';
 
-class PayDeskDAO {
+class PayDeskDAO implements PayDeskInterface{
   final dbProvider = DBProvider.db;
 
   insert(PayDesk payDesk, {bool isModified = true, sync = true}) async {
@@ -13,6 +14,7 @@ class PayDeskDAO {
 
     var raw = await db.rawInsert(
         'INSERT Into pay_desk ('
+        'id,'
         'pay_desk_type,'
         'currency_acc_id,'
         'cost_item_acc_id,'
@@ -32,8 +34,9 @@ class PayDeskDAO {
         'is_deleted,'
         'is_modified'
         ')'
-        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
+          payDesk.id,
           payDesk.payDeskType,
           payDesk.currencyAccID,
           payDesk.costItemAccID,
@@ -296,7 +299,6 @@ class PayDeskDAO {
 
   Future<List<PayDesk>> getByType(int typeId) async {
     final db = await dbProvider.database;
-//    var res = await db.query("pay_desk", where: 'is_deleted = 0 AND pay_desk_type = ?', whereArgs: [typeId]);
     var res = await db.rawQuery(
         'SELECT '
             'pd.mob_id, '
@@ -351,6 +353,129 @@ class PayDeskDAO {
             'ORDER BY '
             ' pd.id DESC',
         [typeId]
+    );
+
+    List<PayDesk> list = res.isNotEmpty ? res.map((c) => PayDesk.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  Future<List<PayDesk>> getByPayOfficeID(String payOfficeID) async {
+    final db = await dbProvider.database;
+    var res = await db.rawQuery(
+        'SELECT '
+            'pd.mob_id, '
+            'pd.id, '
+            'pd.pay_desk_type, '
+            'pd.currency_acc_id, '
+            'c.code AS currency_code, '
+            'pd.cost_item_acc_id, '
+            'ci.name AS cost_item_name, '
+            'pd.income_item_acc_id, '
+            'ii.name AS income_item_name, '
+            'pd.from_pay_office_acc_id, '
+            'fpo.name AS from_pay_office_name, '
+            'pd.to_pay_office_acc_id, '
+            'tpo.name AS to_pay_office_name, '
+            'pd.user_id, '
+            'pd.amount, '
+            'pd.payment, '
+            'pd.document_number, '
+            'pd.document_date, '
+            'pd.file_paths, '
+            'pd.files_quantity, '
+            'pd.is_checked, '
+            'pd.created_at, '
+            'pd.updated_at, '
+            'pd.is_deleted, '
+            'pd.is_modified '
+            'FROM '
+            ' pay_desk pd '
+            'LEFT JOIN '
+            '   currency c '
+            ' ON '
+            '   pd.currency_acc_id = c.acc_id '
+            'LEFT JOIN '
+            '   cost_items ci '
+            ' ON '
+            '   pd.cost_item_acc_id = ci.acc_id '
+            'LEFT JOIN '
+            '   income_items ii '
+            ' ON '
+            '   pd.income_item_acc_id = ii.acc_id '
+            'LEFT JOIN '
+            '   pay_offices fpo '
+            ' ON '
+            '   pd.from_pay_office_acc_id = fpo.acc_id '
+            'LEFT JOIN '
+            '   pay_offices tpo '
+            ' ON '
+            '   pd.to_pay_office_acc_id = tpo.acc_id '
+            'WHERE '
+            ' from_pay_office_acc_id=? AND is_checked=0 '
+            'ORDER BY '
+            ' pd.id DESC',
+        [payOfficeID]
+    );
+
+    List<PayDesk> list = res.isNotEmpty ? res.map((c) => PayDesk.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  Future<List<PayDesk>> getAllExceptTransfer() async {
+    final db = await dbProvider.database;
+    var res = await db.rawQuery(
+        'SELECT '
+            'pd.mob_id, '
+            'pd.id, '
+            'pd.pay_desk_type, '
+            'pd.currency_acc_id, '
+            'c.code AS currency_code, '
+            'pd.cost_item_acc_id, '
+            'ci.name AS cost_item_name, '
+            'pd.income_item_acc_id, '
+            'ii.name AS income_item_name, '
+            'pd.from_pay_office_acc_id, '
+            'fpo.name AS from_pay_office_name, '
+            'pd.to_pay_office_acc_id, '
+            'tpo.name AS to_pay_office_name, '
+            'pd.user_id, '
+            'pd.amount, '
+            'pd.payment, '
+            'pd.document_number, '
+            'pd.document_date, '
+            'pd.file_paths, '
+            'pd.files_quantity, '
+            'pd.is_checked, '
+            'pd.created_at, '
+            'pd.updated_at, '
+            'pd.is_deleted, '
+            'pd.is_modified '
+            'FROM '
+            ' pay_desk pd '
+            'LEFT JOIN '
+            '   currency c '
+            ' ON '
+            '   pd.currency_acc_id = c.acc_id '
+            'LEFT JOIN '
+            '   cost_items ci '
+            ' ON '
+            '   pd.cost_item_acc_id = ci.acc_id '
+            'LEFT JOIN '
+            '   income_items ii '
+            ' ON '
+            '   pd.income_item_acc_id = ii.acc_id '
+            'LEFT JOIN '
+            '   pay_offices fpo '
+            ' ON '
+            '   pd.from_pay_office_acc_id = fpo.acc_id '
+            'LEFT JOIN '
+            '   pay_offices tpo '
+            ' ON '
+            '   pd.to_pay_office_acc_id = tpo.acc_id '
+            'WHERE '
+            ' pay_desk_type!=2 AND is_checked=0 '
+            'ORDER BY '
+            ' pd.id DESC',
     );
 
     List<PayDesk> list = res.isNotEmpty ? res.map((c) => PayDesk.fromMap(c)).toList() : [];

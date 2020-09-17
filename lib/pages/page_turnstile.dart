@@ -8,6 +8,7 @@ import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/models/timing.dart';
 import 'package:enterprise/utils.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,6 +63,9 @@ class _PageTurnstileState extends State<PageTurnstile> {
   }
 
   Widget _pageNfcDisabled() {
+    FLog.info(
+      text: "nfc off",
+    );
     return Material(
       child: Center(
         child: Text('На Вашому телефонi вимкнено NFC'),
@@ -70,6 +74,9 @@ class _PageTurnstileState extends State<PageTurnstile> {
   }
 
   Widget _pageNfcNotSupported() {
+    FLog.info(
+      text: "nfc don't support",
+    );
     return Material(
       child: Center(
         child: Text('Ваш телефон не підтримує NFC'),

@@ -1,8 +1,8 @@
 import 'package:enterprise/models/cost_item.dart';
 import 'package:enterprise/models/currency.dart';
 import 'package:enterprise/models/income_item.dart';
-import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/route_generator.dart';
+import 'package:enterprise/set_log.dart';
 import 'package:flutter/material.dart';
 
 import 'models/timing.dart';
@@ -17,6 +17,7 @@ class EnterpriseAppState extends State<EnterpriseApp> {
   @override
   void initState() {
     super.initState();
+    Logs.setLog();
 
     Timing.closePastTiming();
     Timing.downloadByDate(DateTime.now());
@@ -34,7 +35,6 @@ class EnterpriseAppState extends State<EnterpriseApp> {
         primaryColorLight: Colors.grey.shade100,
         accentColor: Colors.lightGreen.shade700,
         dividerColor: Colors.grey.shade400,
-//        dividerColor: Colors.transparent,
       ),
     );
   }
@@ -43,6 +43,5 @@ class EnterpriseAppState extends State<EnterpriseApp> {
     CostItem.sync();
     IncomeItem.sync();
     Currency.sync();
-    PayOffice.sync();
   }
 }

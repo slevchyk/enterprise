@@ -1,5 +1,8 @@
 import 'dart:ui';
 
+import 'package:enterprise/models/constants.dart';
+import 'package:enterprise/models/coordination.dart';
+import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -30,13 +33,27 @@ class RouteArgs {
   ScrollController scrollController;
   DateTime dateSort;
   bool showTransfer;
-  ImageProvider image;
+  int initialPage;
+  List<ImageProvider> listImage;
+  List<dynamic> listDynamic;
+  int currencyCode;
+  PayOffice payOffice;
+  PayDeskTypes type;
+  List<Coordination> coordinationList;
+  Function callback;
 
   RouteArgs({
     this.profile,
     this.scrollController,
     this.dateSort,
     this.showTransfer,
-    this.image,
+    this.initialPage,
+    this.listImage,
+    this.listDynamic,
+    this.currencyCode,
+    this.payOffice,
+    this.type,
+    this.coordinationList,
+    this.callback,
   });
 }

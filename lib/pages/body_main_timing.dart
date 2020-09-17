@@ -335,15 +335,16 @@ class _TimingMainState extends State<TimingMain> {
         child: CustomScrollView(
           slivers: <Widget>[
             SliverAppBar(
-              leading: MaterialButton(
-                onPressed: () {
-                  widget.parentScaffoldKey.currentState.openDrawer();
-                },
-                child: Icon(
-                  Icons.menu,
-                  color: Colors.white,
-                ),
-              ),
+              // Enable menu
+              // leading: MaterialButton(
+              //   onPressed: () {
+              //     widget.parentScaffoldKey.currentState.openDrawer();
+              //   },
+              //   child: Icon(
+              //     Icons.menu,
+              //     color: Colors.white,
+              //   ),
+              // ),
               title: Text('Хронометраж'),
               pinned: true,
               floating: false,
@@ -606,7 +607,7 @@ class DonutAutoLabelChart extends StatelessWidget {
 
 class PlusMinusEntry extends PopupMenuEntry<String> {
   @override
-  double height = 100;
+  final double height = 100;
 //  // height doesn't matter, as long as we are not giving
 //  // initialValue to showMenu().
 //

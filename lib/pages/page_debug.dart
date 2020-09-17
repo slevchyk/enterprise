@@ -13,9 +13,11 @@ import 'package:enterprise/models/cost_item.dart';
 import 'package:enterprise/models/income_item.dart';
 import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/models/warehouse/goods.dart';
 import 'package:enterprise/models/warehouse/partners.dart';
 import 'package:enterprise/pages/page_timing_db.dart';
+import 'package:enterprise/widgets/snack_bar_show.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -246,6 +248,13 @@ class PageDebugState extends State<PageDebug> {
                       ),
                       FlatButton(
                         onPressed: () {
+                          Navigator.pushNamed(context, "/log");
+                        },
+                        child: Text('show log'),
+                        color: Colors.blueGrey,
+                      ),
+                      FlatButton(
+                        onPressed: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => PageTimingDB()),
@@ -293,6 +302,12 @@ class PageDebugState extends State<PageDebug> {
                       ),
                       FlatButton(
                         onPressed: () {
+                          UserGrants.sync(scaffoldKey: _scaffoldKey);
+                        },
+                        child: Text('Sync User Grants'),
+                      ),
+                      FlatButton(
+                        onPressed: () {
                           for (int i = 1; i <= 20; i++) {
                             GoodsDAO().insert(Goods(
                                 userID: '1', status: true, count: i, name: 'Номенклатура тест $i', unit: 'smt $i'));
@@ -302,7 +317,7 @@ class PageDebugState extends State<PageDebug> {
                       ),
                       FlatButton(
                         onPressed: () {
-                          _delteDBWarehouse();
+                          _deleteDBWarehouse();
                         },
                         child: Text('delete warehouse DB'),
                       ),
@@ -391,49 +406,31 @@ class PageDebugState extends State<PageDebug> {
       _serverUserController.text = responseJSON["srv_user"];
       _serverPasswordController.text = responseJSON["srv_password"];
 
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Налаштування отримано'),
-        backgroundColor: Colors.green,
-      ));
+      ShowSnackBar.show(_scaffoldKey, 'Налаштування отримано', Colors.green);
       return;
     }
 
     if (response.statusCode == 400) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Невірні параметри\n$body'),
-        backgroundColor: Colors.redAccent,
-      ));
+      ShowSnackBar.show(_scaffoldKey, 'Невірні параметри\n$body', Colors.redAccent);
       return;
     }
 
     if (response.statusCode == 401) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Помилка сервера:\n$body'),
-        backgroundColor: Colors.redAccent,
-      ));
+      ShowSnackBar.show(_scaffoldKey, 'Помилка сервера:\n$body', Colors.redAccent);
       return;
     }
 
     if (response.statusCode == 404) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Не знайдено користувача з такими параметрами'),
-        backgroundColor: Colors.redAccent,
-      ));
+      ShowSnackBar.show(_scaffoldKey, 'Не знайдено користувача з такими параметрами', Colors.redAccent);
       return;
     }
 
     if (response.statusCode == 500) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Помилка сервера:\n$body'),
-        backgroundColor: Colors.redAccent,
-      ));
+      ShowSnackBar.show(_scaffoldKey, 'Помилка сервера:\n$body', Colors.redAccent);
       return;
     }
 
-    _scaffoldKey.currentState.showSnackBar(SnackBar(
-      content: Text('Не вдалось отримати налаштування'),
-      backgroundColor: Colors.green,
-    ));
+    ShowSnackBar.show(_scaffoldKey, 'Не вдалось отримати налаштування', Colors.redAccent);
   }
 
   _sendFireBaseToken() async {
@@ -465,9 +462,10 @@ class PageDebugState extends State<PageDebug> {
     Response response = await post(url, headers: headers, body: requestJSON);
   }
 
-  void _delteDBWarehouse() {
+  void _deleteDBWarehouse() {
     DBWarehouseProvider.db.deleteDB();
   }
+
 }
 
 class Choice {

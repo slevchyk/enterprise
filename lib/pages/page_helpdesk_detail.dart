@@ -1,21 +1,22 @@
-import 'package:enterprise/database/help_desk_dao.dart';
-import 'package:enterprise/models/helpdesk.dart';
-import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'dart:async';
-import 'package:flutter/rendering.dart';
-import 'dart:io';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:enterprise/models/profile.dart';
 import 'dart:convert';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:date_format/date_format.dart';
+import 'package:enterprise/database/help_desk_dao.dart';
+import 'package:enterprise/models/helpdesk.dart';
+import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/widgets/attachments_carousel.dart';
+import 'package:enterprise/widgets/snack_bar_show.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 class PageHelpdeskDetail extends StatefulWidget {
   final HelpDesk helpdesk;
@@ -44,11 +45,8 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
 
   bool _readOnly = false;
 
-  final List<IconData> _icons = const [
-    Icons.image,
-    FontAwesomeIcons.filePdf,
-    Icons.photo_camera
-  ];
+  final List<IconData> _icons = const [Icons.image, FontAwesomeIcons.filePdf, Icons.photo_camera];
+  List<bool> _isError = [false];
 
   List<File> _files = [];
 
@@ -117,8 +115,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
                         ),
                         maxLines: 8,
                         validator: (value) {
-                          if (value.isEmpty)
-                            return 'Ви не вказали опис проблеми';
+                          if (value.isEmpty) return 'Ви не вказали опис проблеми';
                           return null;
                         },
                         onChanged: (value) {
@@ -138,8 +135,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
                       ),
                       Text(
                         'Прикріплені файли',
-                        style: TextStyle(
-                            fontSize: 24.0, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
                       ),
                       AttachmentsCarousel(
                         files: _files,
@@ -148,6 +144,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
                           _files.remove(deletedFile);
                           setState(() {});
                         },
+                        isError: _isError,
                       ),
                     ],
                   ),
@@ -225,7 +222,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
         _readOnly = true;
       });
     } else {
-      _displaySnackBar("Помилка збереження в базі", Colors.red);
+      ShowSnackBar.show(_scaffoldKey, "Помилка збереження в базі", Colors.red);
     }
 
     return _ok;
@@ -235,8 +232,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
     _files.clear();
     if (_helpDesk != null) {
       List<dynamic> _filesPaths = [];
-      if (_helpDesk.filePaths != null && _helpDesk.filePaths.isNotEmpty)
-        _filesPaths = jsonDecode(_helpDesk.filePaths);
+      if (_helpDesk.filePaths != null && _helpDesk.filePaths.isNotEmpty) _filesPaths = jsonDecode(_helpDesk.filePaths);
       _filesPaths.forEach((value) {
         _files.add(File(value));
       });
@@ -295,19 +291,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                formatDate(_helpDesk.createdAt, [
-                                  dd,
-                                  '-',
-                                  mm,
-                                  '-',
-                                  yyyy,
-                                  ' ',
-                                  HH,
-                                  ':',
-                                  nn,
-                                  ':',
-                                  ss
-                                ]),
+                                formatDate(_helpDesk.createdAt, [dd, '-', mm, '-', yyyy, ' ', HH, ':', nn, ':', ss]),
                               ),
                             ],
                           ),
@@ -318,19 +302,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                formatDate(_helpDesk.updatedAt, [
-                                  dd,
-                                  '-',
-                                  mm,
-                                  '-',
-                                  yyyy,
-                                  ' ',
-                                  HH,
-                                  ':',
-                                  nn,
-                                  ':',
-                                  ss
-                                ]),
+                                formatDate(_helpDesk.updatedAt, [dd, '-', mm, '-', yyyy, ' ', HH, ':', nn, ':', ss]),
                               ),
                             ],
                           ),
@@ -361,24 +333,22 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
               child: Icon(_icons[index]),
               onPressed: () {
                 if (_files.length >= 4) {
-                  _displaySnackBar(
-                      "Вже досягнута максимальна кількість файлів: 4",
-                      Colors.redAccent);
+                  ShowSnackBar.show(_scaffoldKey, "Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
                   return;
                 }
 
                 switch (index) {
                   case 0:
-                    _getFile(FileType.IMAGE);
+                    _getFile(FileType.image);
                     break;
                   case 1:
-                    _getFile(FileType.CUSTOM);
+                    _getFile(FileType.custom);
                     break;
                   case 2:
                     _getImageCamera();
                     break;
                   default:
-                    _getFile(FileType.IMAGE);
+                    _getFile(FileType.image);
                 }
               },
             ),
@@ -394,32 +364,21 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
     if (files <= 4) {
       return true;
     }
-    _showDialog(
-        title: 'Максимальна кількість',
-        body: 'Досягнуто максимальну кількість файлів - 4');
+    ShowSnackBar.show(_scaffoldKey, "Досягнуто максимальну кількість файлів - 4", Colors.red) ;
     return false;
-  }
-
-  void _displaySnackBar(String title, Color color) {
-    final snackBar = SnackBar(
-      content: Text(title),
-      backgroundColor: color,
-    );
-    _scaffoldKey.currentState.showSnackBar(snackBar);
   }
 
   void _getFile(FileType type) async {
     List<File> files;
     switch (type) {
-      case FileType.IMAGE:
-        files = await FilePicker.getMultiFile(type: FileType.IMAGE);
+      case FileType.image:
+        files = await FilePicker.getMultiFile(type: FileType.image);
         break;
-      case FileType.CUSTOM:
-        files = await FilePicker.getMultiFile(
-            type: FileType.CUSTOM, fileExtension: 'pdf');
+      case FileType.custom:
+        files = await FilePicker.getMultiFile(type: FileType.custom, allowedExtensions: ['pdf']);
         break;
       default:
-        files = await FilePicker.getMultiFile(type: FileType.IMAGE);
+        files = await FilePicker.getMultiFile(type: FileType.image);
     }
 
     if (files != null) {
@@ -428,26 +387,6 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
       }
       setState(() {});
     }
-  }
-
-  void _showDialog({String title, String body}) {
-    showDialog(
-      context: _scaffoldKey.currentContext,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: new Text(title),
-          content: new Text(body),
-          actions: <Widget>[
-            new FlatButton(
-              child: new Text("Закрити"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future<void> _saveAttachments() async {
@@ -480,17 +419,13 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
         final _fileBytes = _file.readAsBytesSync();
         String _fileHash = sha256.convert(_fileBytes).toString();
 
-        if (_files.where((value) => value.path.contains(_fileHash)).length >
-            0) {
-          _displaySnackBar(
-              "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+        if (_files.where((value) => value.path.contains(_fileHash)).length > 0) {
+          ShowSnackBar.show(_scaffoldKey, "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
           continue;
         }
 
-        if (_newFiles.where((value) => value.path.contains(_fileHash)).length >
-            0) {
-          _displaySnackBar(
-              "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+        if (_newFiles.where((value) => value.path.contains(_fileHash)).length > 0) {
+          ShowSnackBar.show(_scaffoldKey, "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
           continue;
         }
 
@@ -515,10 +450,10 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
   }
 
   Future _getImageCamera() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.camera);
+    var image = await ImagePicker().getImage(source: ImageSource.camera);
     setState(() {
       if (_isNotLimitElement(_files.length + 1)) {
-        if (image != null) _files.add(image);
+        if (image != null) _files.add(File(image.path));
       }
     });
   }
@@ -609,8 +544,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
         }
 
         return Theme(
-          data: Theme.of(_scaffoldKey.currentContext)
-              .copyWith(canvasColor: Colors.transparent),
+          data: Theme.of(_scaffoldKey.currentContext).copyWith(canvasColor: Colors.transparent),
           child: Container(
             color: Colors.grey.shade600,
             child: Container(

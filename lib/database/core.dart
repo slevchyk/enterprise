@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:f_logs/f_logs.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -160,9 +161,14 @@ class DBProvider {
           'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
           'id INTEGER,'
           'acc_id TEXT,'
+          'amount INTEGER,'
           'currency_acc_id TEXT,'
           'name TEXT,'
-          'is_deleted BIT'
+          'is_deleted BIT,'
+          'is_visible BIT,'
+          'is_available BIT,'
+          'is_receiver BIT,'
+          'updated_at TEXT'
           ')');
       await db.execute('CREATE TABLE currency ('
           'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
@@ -171,6 +177,14 @@ class DBProvider {
           'code INTEGER,'
           'name TEXT,'
           'is_deleted BIT'
+          ')');
+      await db.execute('CREATE TABLE user_grants ('
+          'user_id TEXT,'
+          'odject_type INT,'
+          'odject_acc_id TEXT,'
+          'is_visible BIT,'
+          'is_available BIT,'
+          'is_receiver BIT'
           ')');
 //      await db.execute('CREATE TRIGGER log_timing_after_update'
 //          'AFTER UPDATE ON timing'
@@ -206,12 +220,18 @@ class DBProvider {
 //          'DATETIME(\'NOW\')'
 //          ');'
 //          'END;');
+      FLog.info(
+        text: "initDB complete",
+      );
     });
   }
 
   deleteDB() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, "main.db");
+    FLog.info(
+      text: "db deleted",
+    );
     return await deleteDatabase(path);
   }
 }

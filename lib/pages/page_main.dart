@@ -1,15 +1,18 @@
+import 'dart:io';
+
 import 'package:enterprise/database/profile_dao.dart';
 import 'package:enterprise/models/channel.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/auth/page_login.dart';
+import 'package:enterprise/pages/body_main_chanel.dart';
+import 'package:enterprise/pages/body_main_timing.dart';
 import 'package:enterprise/widgets/user_photo.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:enterprise/pages/body_main_chanel.dart';
-import 'package:enterprise/pages/body_main_timing.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/constants.dart';
@@ -106,8 +109,7 @@ class PageMainState extends State<PageMain> {
     );
   }
 
-  _onMessage(
-      GlobalKey<ScaffoldState> _globalKey, Map<String, dynamic> message) async {
+  _onMessage(GlobalKey<ScaffoldState> _globalKey, Map<String, dynamic> message) async {
     final prefs = await SharedPreferences.getInstance();
     final String userID = prefs.get(KEY_USER_ID);
 
@@ -140,8 +142,7 @@ class PageMainState extends State<PageMain> {
               child: Text('Переглянути'),
               onPressed: () {
                 Navigator.of(context).pop();
-                Navigator.of(context)
-                    .pushNamed("/channel/detail", arguments: channel);
+                Navigator.of(context).pushNamed("/channel/detail", arguments: channel);
               },
             ),
           ],
@@ -227,159 +228,47 @@ class _AppDrawerState extends State<AppDrawer> {
             UserAccountsDrawerHeader(
               accountName: widget.profile == null
                   ? Text('Ім\'я')
-                  : Text(
-                      widget.profile.firstName + ' ' + widget.profile.lastName),
-              accountEmail: widget.profile == null
-                  ? Text('email')
-                  : Text(widget.profile.email),
+                  : Text(widget.profile.firstName + ' ' + widget.profile.lastName),
+              accountEmail: widget.profile == null ? Text('email') : Text(widget.profile.email),
               currentAccountPicture: UserPhoto(
                 profile: widget.profile,
               ),
             ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Головна'),
-              onTap: () {
-                RouteArgs args = RouteArgs(profile: widget.profile);
-                Navigator.of(context).pushNamed(
-                  '/main',
-                  arguments: args,
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(FontAwesomeIcons.cashRegister),
-              title: Text('Каса'),
-              onTap: () {
-                RouteArgs args = RouteArgs(
-                  profile: widget.profile,
-                );
-                Navigator.of(context).pushNamed(
-                  '/paydesk',
-                  arguments: args,
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(FontAwesomeIcons.boxes),
-              title: Text('Склад'),
-              onTap: () {
-                Navigator.of(context).pushNamed(
-                  '/warehouse/orders',
-                  arguments: "",
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.account_balance),
-              title: Text('Баланс'),
-              onTap: () {
-                Navigator.of(context).pushNamed(
-                  '/balance',
-                  arguments: "",
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(FontAwesomeIcons.chartPie),
-              title: Text('Аналiтика'),
-              onTap: () {
-                RouteArgs args = RouteArgs(
-                  profile: widget.profile,
-                );
-                Navigator.of(context).pushNamed(
-                  '/results',
-                  arguments: args,
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.play_circle_outline),
-              title: Text('Турнікет'),
-              onTap: () {
-                Navigator.of(context).pushNamed(
-                  '/turnstile',
-                  arguments: "",
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.help),
-              title: Text('HelpDesk'),
-              onTap: () {
-                RouteArgs args = RouteArgs(
-                  profile: widget.profile,
-                );
-                Navigator.of(context).pushNamed(
-                  '/helpdesk',
-                  arguments: args,
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.bug_report),
-              title: Text('Debug'),
-              onTap: () {
-                RouteArgs args = RouteArgs(
-                  profile: widget.profile,
-                );
-                Navigator.of(context).pushNamed(
-                  '/debug',
-                  arguments: args,
-                );
-              },
-            ),
-            Divider(),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Профіль'),
-              onTap: () {
-                RouteArgs args = RouteArgs(
-                  profile: widget.profile,
-                );
-                Navigator.of(context).pushNamed(
-                  '/profile',
-                  arguments: args,
-                );
-              },
-            ),
-            ListTile(
-              leading: widget.profile?.userID == ""
-                  ? Icon(FontAwesomeIcons.signInAlt)
-                  : Icon(FontAwesomeIcons.signOutAlt),
-              title:
-                  widget.profile?.userID == "" ? Text('Увійти') : Text('Вийти'),
-              onTap: () async {
-                singInOutDialog(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Налаштування'),
-              onTap: () {
-                RouteArgs args = RouteArgs(
-                  profile: widget.profile,
-                );
-                Navigator.of(context).pushNamed(
-                  '/settings',
-                  arguments: args,
-                );
-              },
-            ),
-            Divider(),
-            ListTile(
-              leading: Icon(Icons.info),
-              title: Text('Про додаток'),
-              onTap: () {
-                Navigator.of(context).pushNamed(
-                  '/about',
-                  arguments: "",
-                );
-              },
-            ),
+            for (var menuElement in menuList.keys)
+              Column(
+                children: <Widget>[
+                  ListTile(
+                    leading: menuElement.path == "/exit"
+                        ? widget.profile?.userID == ""
+                            ? Icon(FontAwesomeIcons.signInAlt)
+                            : Icon(FontAwesomeIcons.signOutAlt)
+                        : Icon(menuElement.icon),
+                    title: Text(menuElement.path == "/exit"
+                        ? widget.profile?.userID == "" ? 'Увійти' : 'Вийти'
+                        : menuElement.name),
+                    onTap: () {
+                      if (menuElement.path == "/exit") {
+                        singInOutDialog(context);
+                      } else {
+                        RouteArgs args = RouteArgs(profile: widget.profile);
+                        Navigator.of(context).pushNamed(
+                          '${menuElement.path}',
+                          arguments: args,
+                        ).whenComplete(() => menuElement.isClearCache ? _clearTemp() : null);
+                      }
+                    },
+                  ),
+                  menuElement.isDivider ? Divider() : SizedBox(),
+                ],
+              ),
           ],
         ),
       ),
     );
+  }
+
+  void _clearTemp() async {
+    var appDir = (await getTemporaryDirectory()).path;
+    new Directory(appDir).delete(recursive: true);
   }
 }

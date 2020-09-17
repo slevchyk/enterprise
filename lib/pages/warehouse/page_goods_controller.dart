@@ -5,6 +5,7 @@ import 'package:enterprise/database/warehouse/goods_dao.dart';
 import 'package:enterprise/database/warehouse/user_goods_dao.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/warehouse/goods.dart';
+import 'package:enterprise/widgets/snack_bar_show.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -300,10 +301,10 @@ class _GoodsState extends State<GoodsView>{
     if (_ok) {
       setState(() {
         _readOnly = true;
-        _displaySnackBar(context, "Номенклатуру збережно", Colors.green);
+        ShowSnackBar.show(_scaffoldKey, "Номенклатуру збережно", Colors.green);
       });
     } else {
-      _displaySnackBar(context, "Помилка збереження", Colors.red);
+      ShowSnackBar.show(_scaffoldKey, "Помилка збереження", Colors.red);
     }
 
     return _ok;
@@ -706,14 +707,6 @@ class _GoodsState extends State<GoodsView>{
         bool _ok = await _save();
         if (_ok) Navigator.pop(_scaffoldKey.currentContext);
     }
-  }
-
-  void _displaySnackBar(BuildContext context, String title, Color color) {
-    final snackBar = SnackBar(
-      content: Text(title),
-      backgroundColor: color,
-    );
-    _scaffoldKey.currentState.showSnackBar(snackBar);
   }
 
 }

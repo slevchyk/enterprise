@@ -1,10 +1,9 @@
 import 'package:enterprise/models/constants.dart';
-import 'package:enterprise/models/models.dart';
 import 'package:enterprise/widgets/digital_keyboard.dart';
 import 'package:enterprise/widgets/input_indicator.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
 
@@ -14,7 +13,6 @@ class PageSetPin extends StatefulWidget {
 }
 
 class _PageSetPinState extends State<PageSetPin> {
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String _authPinFirst = "";
   String _authPinSecond = "";
   String _title = "Введіь ПІН-код";
@@ -149,6 +147,11 @@ class _PageSetPinState extends State<PageSetPin> {
       if (await Vibration.hasVibrator()) {
         Vibration.vibrate();
       }
+
+      FLog.error(
+        exception: Exception("Incorrect password"),
+        text: "incorrect password entered",
+      );
 
       setState(() {
         _title = "Введіь ПІН-код";

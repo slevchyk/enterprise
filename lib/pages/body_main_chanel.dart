@@ -8,6 +8,7 @@ import 'package:enterprise/models/channel.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_channel_detail.dart';
 import 'package:enterprise/pages/page_main.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -65,35 +66,47 @@ class BodyChannelState extends State<BodyChannel> {
       HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
     };
 
-    Response response = await get(url, headers: headers);
+    try{
+      Response response = await get(url, headers: headers);
 
-    if (response.statusCode != 200) {
-      Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text('Не вдалось отримати дані'),
-        backgroundColor: Colors.redAccent,
-      ));
-      return;
-    }
-
-    String body = utf8.decode(response.bodyBytes);
-
-    final jsonData = json.decode(body);
-
-    for (var jsonRow in jsonData) {
-      Channel _channel = Channel.fromMap(jsonRow);
-
-      _channel.userID = _userID;
-      if (_updateID < jsonRow["update_id"]) {
-        _updateID = jsonRow["update_id"];
+      if (response.statusCode != 200) {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text('Не вдалось отримати дані'),
+          backgroundColor: Colors.redAccent,
+        ));
+        return;
       }
 
-      await _channel.processDownloads();
+      String body = utf8.decode(response.bodyBytes);
 
-      if (_channel.type == CHANNEL_TYPE_MESSAGE) {
-        countMessages++;
-      } else {
-        countStatuses++;
+      final jsonData = json.decode(body);
+
+      for (var jsonRow in jsonData) {
+        Channel _channel = Channel.fromMap(jsonRow);
+
+        _channel.userID = _userID;
+        if (_updateID < jsonRow["update_id"]) {
+          _updateID = jsonRow["update_id"];
+        }
+
+        await _channel.processDownloads();
+
+        if (_channel.type == CHANNEL_TYPE_MESSAGE) {
+          countMessages++;
+        } else {
+          countStatuses++;
+        }
       }
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "try block error",
+        stacktrace: s,
+      );
     }
     prefs.setInt(KEY_CHANNEL_UPDATE_ID, _updateID);
   }
@@ -106,11 +119,11 @@ class BodyChannelState extends State<BodyChannel> {
     setState(() {});
   }
 
-  Future<List<Channel>> getChannels(String Status) async {
+  Future<List<Channel>> getChannels(String status) async {
     final prefs = await SharedPreferences.getInstance();
 
     String userID = prefs.getString(KEY_USER_ID) ?? "";
-    return ChannelDAO().getByUserIdType(userID, Status);
+    return ChannelDAO().getByUserIdType(userID, status);
   }
 
   Future<List<Channel>> getArchived() async {

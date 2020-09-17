@@ -4,12 +4,18 @@ import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/page_paydesk_detail.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:intl/intl.dart';
 
 class PayDeskList extends StatelessWidget {
   final Future<List<PayDesk>> payList;
-  final DateTime dateSort;
+  final DateTime dateFrom;
+  final DateTime dateTo;
+  final bool isReload;
+  final bool isPeriod;
+  final bool isSort;
   final Profile profile;
   final ScrollController scrollController;
   final String textIfEmpty;
@@ -20,11 +26,16 @@ class PayDeskList extends StatelessWidget {
   final bool shrinkWrap;
   final bool showPercent;
   final bool showFileAttach;
+  final Function callback;
 
   PayDeskList({
     @required this.payList,
     @required this.profile,
-    this.dateSort,
+    this.dateFrom,
+    this.dateTo,
+    this.isReload = false,
+    this.isPeriod = false,
+    this.isSort = false,
     this.scrollController,
     this.textIfEmpty,
     this.showStatus = true,
@@ -32,6 +43,7 @@ class PayDeskList extends StatelessWidget {
     this.shrinkWrap = false,
     this.showPercent = false,
     this.showFileAttach = true,
+    this.callback,
   });
 
   @override
@@ -54,12 +66,29 @@ class PayDeskList extends StatelessWidget {
             );
           case ConnectionState.done:
             List<PayDesk> _payList = snapshot.data;
-            _payList.sort((first, second) =>
-                second.createdAt.compareTo(first.createdAt));
+            if(isSort){
+              if(dateTo!=null && !isPeriod){
+                _payList = _payList.where((element) => DateFormat('yyyy-MM-dd').parse(element.documentDate.toString()).isAtSameMomentAs(dateTo)).toList();
+              }
+              if(dateFrom!=null && isPeriod){
+                _payList = _payList.where((element) {
+                  var parse = DateFormat('yyyy-MM-dd').parse(element.documentDate.toString());
+                  return parse.isBefore(dateTo) && parse.isAfter(dateFrom) || parse.isAtSameMomentAs(dateTo) || parse.isAtSameMomentAs(dateFrom);
+                }).toList();
+              }
+            }
+            if(_payList!=null){
+              _payList.sort((first, second) =>
+                  second.documentDate.compareTo(first.documentDate));
+            }
             return _setEmptyText(_payList) ?
             Container(
               child: Center(
-                child: Text(textIfEmpty),),) :
+                child: Text(textIfEmpty,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),),) :
             ListView.separated(
               controller: scrollController,
               physics: physics,
@@ -69,22 +98,28 @@ class PayDeskList extends StatelessWidget {
                 if(index==0){
                   return Column(
                     children: <Widget>[
-                      _setSeparatorWithDate(_payList[index].createdAt),
+                      isSort ? isReload ? Container() : Container(
+                        alignment: Alignment.center,
+                        padding: EdgeInsets.only(top: 10),
+                        child: Text("За ${isPeriod ? "перiод ${formatDate(dateFrom, [dd, '.', mm, '.', yyyy])} - ${formatDate(dateTo, [dd, '.', mm, '.', yyyy])}" : "${formatDate(dateTo, [dd, '.', mm, '.', yyyy])}"}",
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                      ) : Container(),
+                      _setSeparatorWithDate(_payList[index].documentDate),
                       _listBuilder(_payList, index, context)
                     ],
                   );
                 } else if(_payList[index].payDeskType != 2
-                    || _payList[index].isChecked){
+                    || !_payList[index].isChecked || _payList[index].isChecked){
                   return _listBuilder(_payList, index, context);
                 } else {
                   return Container();
                 }
               },
               separatorBuilder: (BuildContext context, int index) {
-                if(_payList[index].createdAt.day.compareTo(_payList[index+1].createdAt.day)==1
-                    || _payList[index+1].createdAt.day.compareTo(_payList[index].createdAt.day)==1
+                if(_payList[index].documentDate.day.compareTo(_payList[index+1].documentDate.day)==1
+                    || _payList[index+1].documentDate.day.compareTo(_payList[index].documentDate.day)==1
                 ){
-                  return _setSeparatorWithDate(_payList[index+1].createdAt);
+                  return _setSeparatorWithDate(_payList[index+1].documentDate);
                 } else {
                   return Container();
                 }
@@ -106,6 +141,7 @@ class PayDeskList extends StatelessWidget {
           return PagePayDeskDetail(
             payDesk: _payList[index],
             profile: profile,
+            callback: callback,
           );
         }));
       },
@@ -121,16 +157,11 @@ class PayDeskList extends StatelessWidget {
               Row(
                 children: <Widget>[
                   _setIcon(_payList[index].payDeskType),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      _getPayDeskDetailsLine1(_payList[index]),
-                    ],
-                  ),
+                  _getPayDeskDetailsLine1(_payList[index], context),
                 ],
               ),
               Text('${formatDate(
-                _payList[index].createdAt,
+                _payList[index].documentDate,
                 [dd, '.', mm, '.', yy, ' ', HH, ':', nn],
               )}'),
             ],
@@ -150,12 +181,12 @@ class PayDeskList extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
                     Text(_payList[index].filesQuantity.toString()),
-                    Icon(Icons.attach_file, size: 23,),
+                    Icon(Icons.attach_file, size: 20,),
                   ],) :
-                showStatus || _payList[index].payDeskType==2 ?
-                SizedBox(height: 23,) :
+                showStatus || !showPercent && _payList[index].payDeskType==2 ?
+                SizedBox(height: 20,) :
                 Container(),
-                showStatus || _payList[index].payDeskType==2 ?
+                showStatus || !showPercent && _payList[index].payDeskType==2 ?
                 _getStatus(_payList[index].isChecked) :
                 Container(),
               ],
@@ -176,7 +207,7 @@ class PayDeskList extends StatelessWidget {
         return Colors.green;
         break;
       case PayDeskTypes.transfer:
-        return Colors.blue;
+        return Colors.red;
         break;
       default:
         return Colors.black;
@@ -199,7 +230,7 @@ class PayDeskList extends StatelessWidget {
     return Container();
   }
 
-  Widget _getPayDeskDetailsLine1(PayDesk _payDesk) {
+  Widget _getPayDeskDetailsLine1(PayDesk _payDesk, BuildContext context) {
     String _details = "";
     PayDeskTypes _payDeskType;
 
@@ -221,6 +252,7 @@ class PayDeskList extends StatelessWidget {
 //    }
 
     return Container(
+      width: MediaQuery.of(context).orientation==Orientation.portrait ? 150 : 400,
       child: Text(
         _details,
         overflow: TextOverflow.ellipsis,
@@ -249,6 +281,9 @@ class PayDeskList extends StatelessWidget {
 //    if (_details.length > 25 && MediaQuery.of(context).orientation==Orientation.portrait) {
 //      _details = _details.substring(0, 24) + '...';
 //    }
+    if(_details==null){
+      return Container();
+    }
 
     return Container(
       child: Text(
@@ -260,7 +295,7 @@ class PayDeskList extends StatelessWidget {
   }
 
   bool _setEmptyText(List<PayDesk> input) {
-    if(textIfEmpty != null && input.isEmpty){
+    if(textIfEmpty != null && input == null || input.isEmpty){
       return true;
     }
     return false;
