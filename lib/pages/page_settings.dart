@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:package_info/package_info.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -261,6 +262,7 @@ class _PageSettingsState extends State<PageSettings> {
   }
 
   Future<String> _getDeviceInfo() async {
+    PackageInfo _packageInfo = await PackageInfo.fromPlatform();
     DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
     Map<String, dynamic> _deviceData;
     try {
@@ -274,6 +276,11 @@ class _PageSettingsState extends State<PageSettings> {
         'Error:': 'Failed to get platform version.'
       };
     }
+    _deviceData.addAll({"user: " : widget.profile.userID});
+    _deviceData.addAll({"package_name: " : _packageInfo.packageName});
+    _deviceData.addAll({"name: " : _packageInfo.appName});
+    _deviceData.addAll({"version: " : _packageInfo.version});
+    _deviceData.addAll({"screen_resolution: " : "${MediaQuery.of(context).size.width} x ${MediaQuery.of(context).size.height}"});
     return _deviceData.toString();
   }
 
@@ -299,7 +306,6 @@ class _PageSettingsState extends State<PageSettings> {
       'tags': build.tags,
       'type': build.type,
       'androidId': build.androidId,
-      'user' : widget.profile.userID,
     };
   }
 
@@ -315,7 +321,6 @@ class _PageSettingsState extends State<PageSettings> {
       'utsname.release:': data.utsname.release,
       'utsname.version:': data.utsname.version,
       'utsname.machine:': data.utsname.machine,
-      'user' : widget.profile.userID,
     };
   }
 
