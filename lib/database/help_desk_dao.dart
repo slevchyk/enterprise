@@ -20,7 +20,7 @@ class HelpdeskDAO {
         'user_id,'
         'date,'
         'title,'
-        'description,'
+        'body,'
         'status,'
         'answered_at,'
         'answered_by,'
@@ -37,7 +37,7 @@ class HelpdeskDAO {
           helpdesk.userID,
           helpdesk.date != null ? helpdesk.date.toIso8601String() : null,
           helpdesk.title,
-          helpdesk.description,
+          helpdesk.body,
           helpdesk.status,
           helpdesk.answeredAt != null
               ? helpdesk.answeredAt.toIso8601String()

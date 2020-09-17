@@ -134,7 +134,7 @@ class _PageHelpDeskState extends State<PageHelpDesk> {
                                       child: Text(helpDesk.mobID.toString()),
                                     ),
                                     subtitle: Text(
-                                      helpDesk.description,
+                                      helpDesk.body,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -200,7 +200,7 @@ class _PageHelpDeskState extends State<PageHelpDesk> {
                                       child: Text(helpDesk.mobID.toString()),
                                     ),
                                     subtitle: Text(
-                                      helpDesk.description,
+                                      helpDesk.body,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),

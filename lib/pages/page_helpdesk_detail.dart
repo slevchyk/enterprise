@@ -206,8 +206,8 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
 
     _helpDesk.userID = profile.userID;
     _helpDesk.title = _titleController.text;
-    _helpDesk.description = _descriptionController.text;
-    _helpDesk.status = "processed";
+    _helpDesk.body = _descriptionController.text;
+    _helpDesk.status = "unprocessed";
 
     if (_existHelpDesk == null) {
       _helpDesk.mobID = await HelpdeskDAO().insert(_helpDesk);
@@ -242,7 +242,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
       });
 
       _titleController.text = _helpDesk?.title ?? "";
-      _descriptionController.text = _helpDesk?.description ?? "";
+      _descriptionController.text = _helpDesk?.body ?? "";
     }
   }
 
