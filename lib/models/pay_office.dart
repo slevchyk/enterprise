@@ -166,7 +166,6 @@ class PayOffice {
         return false;
       }
     } catch (e, s){
-      print("$e $s");
       FLog.error(
         exception: Exception(e.toString()),
         text: "try block error",

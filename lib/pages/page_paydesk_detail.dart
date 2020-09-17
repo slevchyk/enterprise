@@ -770,7 +770,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
           ),
         ),
         floatingActionButton: _floatingButton(context),
-        bottomSheet: _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly  ? _confirmButton() : SizedBox(),
+        bottomSheet: _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly && _toPayOffice != null && _toPayOffice.isAvailable ? _confirmButton() : SizedBox(),
       ),
     );
   }
@@ -1149,7 +1149,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                        _data.runtimeType == PayOffice
+                                        _data.runtimeType == PayOffice && _data.isAvailable
                                             ? Container(
                                           child: Column(
                                             children: [
