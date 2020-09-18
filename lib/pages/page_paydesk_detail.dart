@@ -186,7 +186,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     _costItemController.text = _setField(_costItem?.name ?? '');
     _incomeItemController.text = _incomeItem?.name ?? '';
     _fromPayOfficeController.text = _fromPayOffice?.name ?? '';
-    _toPayOfficeController.text = _toPayOffice?.name ?? '';
+    _toPayOfficeController.text = _toPayOffice?.name ?? 'Iнформацiя вiдсутня';
   }
 
   _setField(String input) {
@@ -388,59 +388,62 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                             suffixIcon: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
-                                IconButton(
-                                    icon: Icon(
-                                      FontAwesomeIcons.calculator,
-                                      size: 22,
-                                    ),
-                                    onPressed: () {
-                                      showModalBottomSheet(
-                                          isScrollControlled: true,
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return Wrap(
-                                              children: <Widget>[
-                                                SizedBox(
-                                                  height: MediaQuery.of(context).size.height * 0.5,
-                                                  child: _calc(context),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: <Widget>[
-                                                    Container(
-                                                      width: MediaQuery.of(context).size.width / 2,
-                                                      child: RaisedButton(
-                                                        onPressed: () {
-                                                          Navigator.of(context).pop();
-                                                          _currentValue = 0;
-                                                        },
-                                                        child: Text("Вiдмiнити"),
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      width: MediaQuery.of(context).size.width / 2,
-                                                      child: RaisedButton(
-                                                        color: Colors.lightGreen,
-                                                        onPressed: () {
-                                                          Navigator.of(context).pop();
-                                                          if (_currentValue != 0) {
-                                                            _amount = _currentValue;
-                                                            _amountController.text = _currentValue.toStringAsFixed(2);
+                                Visibility(
+                                  visible: !_readOnly,
+                                  child: IconButton(
+                                      icon: Icon(
+                                        FontAwesomeIcons.calculator,
+                                        size: 22,
+                                      ),
+                                      onPressed: () {
+                                        showModalBottomSheet(
+                                            isScrollControlled: true,
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return Wrap(
+                                                children: <Widget>[
+                                                  SizedBox(
+                                                    height: MediaQuery.of(context).size.height * 0.5,
+                                                    child: _calc(context),
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: <Widget>[
+                                                      Container(
+                                                        width: MediaQuery.of(context).size.width / 2,
+                                                        child: RaisedButton(
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
                                                             _currentValue = 0;
-                                                          }
-                                                        },
-                                                        child: Text(
-                                                          "Додати",
-                                                          style: TextStyle(color: Colors.white),
+                                                          },
+                                                          child: Text("Вiдмiнити"),
                                                         ),
                                                       ),
-                                                    ),
-                                                  ],
-                                                )
-                                              ],
-                                            );
-                                          });
-                                    }),
+                                                      Container(
+                                                        width: MediaQuery.of(context).size.width / 2,
+                                                        child: RaisedButton(
+                                                          color: Colors.lightGreen,
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
+                                                            if (_currentValue != 0) {
+                                                              _amount = _currentValue;
+                                                              _amountController.text = _currentValue.toStringAsFixed(2);
+                                                              _currentValue = 0;
+                                                            }
+                                                          },
+                                                          child: Text(
+                                                            "Додати",
+                                                            style: TextStyle(color: Colors.white),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  )
+                                                ],
+                                              );
+                                            });
+                                      }),
+                                ),
                                 _clearIconButton(_amountController) != null
                                     ? _clearIconButton(_amountController)
                                     : Container(),
@@ -770,7 +773,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
           ),
         ),
         floatingActionButton: _floatingButton(context),
-        bottomSheet: _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly && _toPayOffice != null && _toPayOffice.isAvailable ? _confirmButton() : SizedBox(),
+        bottomSheet: _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly && _toPayOffice != null && _toPayOffice.isAvailable != null && _toPayOffice.isAvailable ? _confirmButton() : SizedBox(),
       ),
     );
   }
@@ -1232,12 +1235,16 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
             Icons.image,
             color: Colors.white,
           ),
-          onClick: (){
+          onClick: () async {
             if (_files.length >= 4) {
               ShowSnackBar.show(_scaffoldKey, "Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
               return;
             }
-            _getFile(FileType.image);
+            FilePickerResult result = await FilePicker.platform.pickFiles(allowMultiple: true, type: FileType.image);
+            if(result != null){
+              _files = result.paths.map((path) => File(path)).toList();
+              setState(() {});
+            }
           },
         ),
         CircularButton(
@@ -1462,27 +1469,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
         if (_ok) {
           Navigator.pop(_scaffoldKey.currentContext);
         }
-    }
-  }
-
-  void _getFile(FileType type) async {
-    List<File> files;
-    switch (type) {
-      case FileType.image:
-        files = await FilePicker.getMultiFile(type: FileType.image);
-        break;
-      case FileType.custom:
-        files = await FilePicker.getMultiFile(type: FileType.custom, allowedExtensions: ['pdf']);
-        break;
-      default:
-        files = await FilePicker.getMultiFile(type: FileType.image);
-    }
-
-    if (files != null) {
-      if (_isNotLimitElement((files.length + _files.length))) {
-        files.forEach((file) => _files.add(file));
-      }
-      setState(() {});
     }
   }
 

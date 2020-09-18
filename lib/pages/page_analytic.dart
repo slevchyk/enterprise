@@ -536,7 +536,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                           borderRadius: BorderRadius.all(Radius.circular(20.0))
                       ),
                       content: Container(
-                        height: inputCostItem.length == 0 ? 50 : inputCostItem.length == 1 ? 115 : inputCostItem.length >3 ? 210 : 160,
+                        // height: inputCostItem.length == 0 ? 50 : inputCostItem.length == 1 ? 115 : inputCostItem.length >3 ? 210 : 160,
                         width: 500,
                         child: ListView.builder(
                           shrinkWrap: true,

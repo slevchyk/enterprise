@@ -2,7 +2,6 @@ import 'package:enterprise/models/cost_item.dart';
 import 'package:enterprise/models/currency.dart';
 import 'package:enterprise/models/income_item.dart';
 import 'package:enterprise/route_generator.dart';
-import 'package:enterprise/set_log.dart';
 import 'package:flutter/material.dart';
 
 import 'models/timing.dart';
@@ -17,7 +16,6 @@ class EnterpriseAppState extends State<EnterpriseApp> {
   @override
   void initState() {
     super.initState();
-    Logs.setLog();
 
     Timing.closePastTiming();
     Timing.downloadByDate(DateTime.now());
