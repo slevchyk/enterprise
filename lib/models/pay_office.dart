@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:enterprise/database/pay_office_dao.dart';
 import 'package:enterprise/database/user_grants_dao.dart';
 import 'package:enterprise/models/pay_office_balance.dart';
+import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/user_grants.dart';
 import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
@@ -157,6 +158,11 @@ class PayOffice {
               PayOfficeDAO().insert(payOffice);
             }
           }
+
+          if(payOffice.isVisible){
+            await PayDesk.downloadByPayOfficeID(payOffice.accID);
+          }
+
         }
       } else {
         FLog.error(

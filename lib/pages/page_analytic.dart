@@ -20,11 +20,11 @@ import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/widgets/charts_list.dart';
 import 'package:enterprise/widgets/paydesk_list.dart';
 import 'package:enterprise/widgets/period_dialog.dart';
+import 'package:enterprise/widgets/sort_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:intl/intl.dart';
 
@@ -56,7 +56,8 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
   List<PayOffice> _payOfficeList;
   List<PayDesk> _sortedPayDeskList = [];
 
-  ScrollController _scrollController, _dialogScrollController;
+  ScrollController _scrollController;
+  ScrollController _scrollControllerPayOffice;
 
   Map<dynamic, PayDesk> _preparedMap;
   Map<SortControllers, bool> _controllersMap;
@@ -65,7 +66,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
 
   int _currencyCode, _currentIndex, _currentColor;
 
-  bool _isDetail, _isSwitched, _isSortByPayOffice;
+  bool _isDetail;
 
   DateTime _now;
   DateTime _firstDayOfMonth;
@@ -85,8 +86,6 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     _dateFrom.text = formatDate(_firstDayOfMonth, [dd, '.', mm, '.', yyyy]);
     _dateTo.text = formatDate(_now, [dd, '.', mm, '.', yyyy]);
     _isDetail = false;
-    _isSwitched = true;
-    _isSortByPayOffice = false;
     _currentIndex = 0;
     _currentColor = 255;
     _controllersMap = PeriodDialog.setControllersMap();
@@ -99,7 +98,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     UserGrants.sync(scaffoldKey: _scaffoldKey);
     _profile = widget.profile;
     _scrollController = ScrollController();
-    _dialogScrollController = ScrollController();
+    _scrollControllerPayOffice = ScrollController();
     _tabController = TabController(vsync: this, length: _myTabs.length);
   }
 
@@ -120,8 +119,8 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
             actions: <Widget>[
               IconButton(
                 icon: Icon(Icons.sort),
-                onPressed: () {
-                  _sortDialog(_payOfficeList);
+                onPressed: () async {
+                  SortWidget.sortPayOffice(_payOfficeList, _scrollControllerPayOffice, _callBack, context);
                 },
               ),
               IconButton(
@@ -218,7 +217,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                             child: Text("Iнформацiя по валютi ${dynamicContent.text} ",
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
                           ),
-                          _controllersMap[SortControllers.reload] ? Container() : Container(
+                          Container(
                             alignment: Alignment.center,
                             child: Text("за ${_controllersMap[SortControllers.period] ? "перiод ${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"}",
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
@@ -381,16 +380,19 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
       _sum = 0;
     }
 
-    if(_isSortByPayOffice){
-      List<PayDesk> toReturn = [];
-      _payOfficeList.forEach((payOffice) {
-        payDeskList.where((payDesk) => payDesk.fromPayOfficeAccID == payOffice.accID && payOffice.isShow)
-            .forEach((payDeskOutput) {
-          toReturn.add(payDeskOutput);
+    if(_payOfficeList!=null){
+      var where = _payOfficeList?.where((payOffice) => payOffice.isShow==false);
+      if(where!=null){
+        List<PayDesk> toReturn = [];
+        _payOfficeList.forEach((payOffice) {
+          payDeskList.where((payDesk) => payDesk.fromPayOfficeAccID == payOffice.accID && payOffice.isShow)
+              .forEach((payDeskOutput) {
+            toReturn.add(payDeskOutput);
+          });
         });
-      });
-      payDeskList = toReturn;
-      _sortedPayDeskList = payDeskList;
+        payDeskList = toReturn;
+        _sortedPayDeskList = payDeskList;
+      }
     }
 
     List<AnalyticData> _data = [];
@@ -513,159 +515,18 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     }
   }
 
+  void _callBack(){
+    setState(() {});
+  }
+
   void _onTabTapped(int index) {
     _currentIndex = index;
     _load();
   }
 
-  void _sortDialog(List<PayOffice> inputCostItem){
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      _dialogScrollController
-          .jumpTo(_dialogScrollController.position.maxScrollExtent);
-    });
-    showDialog(
-        context: context,
-        builder: (context) {
-          return OrientationBuilder(
-              builder: (context, orientation) {
-                return StatefulBuilder(
-                  builder: (BuildContext context, void Function(void Function()) setState) {
-                    return AlertDialog(
-                      contentPadding: EdgeInsets.all(0.0),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(20.0))
-                      ),
-                      content: Container(
-                        // height: inputCostItem.length == 0 ? 50 : inputCostItem.length == 1 ? 115 : inputCostItem.length >3 ? 210 : 160,
-                        width: 500,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          reverse: true,
-                          controller: _dialogScrollController,
-                          itemCount: inputCostItem.length+1,
-                          itemBuilder: (BuildContext context, int index){
-                            if(inputCostItem.length==0){
-                              return Container(
-                                padding: EdgeInsets.only(bottom: 15),
-                                child: Center(
-                                  child: Text("Нема активних гаманців",textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.lightGreen),),
-                                ),
-                              );
-                            }
-                            if(inputCostItem.length==index){
-                              return Column(
-                                children: <Widget>[
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: <Widget>[
-                                      Container(
-                                        height: 60,
-                                        padding: EdgeInsets.only(left: 25),
-                                        alignment: Alignment.center,
-                                        child: Text("Обрати всi",textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.lightGreen),),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.only(right: 25),
-                                        child: Switch(
-                                          value: _isSwitched,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _isSwitched = value;
-                                              _isSortByPayOffice = true;
-                                              inputCostItem.where((element) => element.isShow = value).toList();
-                                              this.setState(() {});
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 20),
-                                    child: Container(
-                                      height: 1.5,
-                                      color: Colors.lightGreen,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }
-                            if(!inputCostItem[index].isVisible){
-                              return Container();
-                            }
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: <Widget>[
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: <Widget>[
-                                    Container(
-                                      width: orientation == Orientation.portrait ? 180 : 350,
-                                      alignment: Alignment.centerLeft,
-                                      padding: EdgeInsets.only(left: 30),
-                                      child: Column(
-                                        children: <Widget>[
-                                          Text(inputCostItem[index].name,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      width: 35,
-                                      alignment: Alignment.centerLeft,
-                                      child: Column(
-                                        children: <Widget>[
-                                          Text("${inputCostItem[index].currencyName}",
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      alignment: Alignment.center,
-                                      padding: EdgeInsets.only(right: 25),
-                                      child: Column(
-                                        children: <Widget>[
-                                          Switch(
-                                            value: inputCostItem[index].isShow,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                if(_isSwitched){
-                                                  _isSwitched = false;
-                                                }
-                                                _isSortByPayOffice = true;
-                                                _payOfficeList[index].isShow = !_payOfficeList[index].isShow;
-                                                if(inputCostItem.where((element) => element.isShow).length==inputCostItem.length){
-                                                  _isSwitched = true;
-                                                }
-                                                this.setState(() { });
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                    );},
-                );
-              }
-          );
-        }
-    );
-  }
-
   Future<void> _load() async {
     if(_payOfficeList==null){
-      _payOfficeList = (await ImplPayOfficeDAO().getUnDeleted()).reversed.toList();
+      _payOfficeList = await ImplPayOfficeDAO().getUnDeleted();
     }
     setState(() {
       _currentIndex == 2 ? _payDeskList = PayDeskDAO().getAllExceptTransfer() : _payDeskList = ImplPayDeskDao().getByType(_sceneMap.values.elementAt(_currentIndex));

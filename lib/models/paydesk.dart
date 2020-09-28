@@ -84,7 +84,7 @@ class PayDesk {
         isChecked: json["is_checked"] == null
             ? false
             : json["is_checked"] is int ? json["is_checked"] == 1 ? true : false : json["is_checked"],
-        createdAt: json['created_at'] != null ? DateTime.parse(json["created_at"]) : null,
+        createdAt: json['created_at'] != null ? DateTime.parse(json["created_at"]) : json['document_date'] != null ? DateTime.parse(json["document_date"]) : null,
         updatedAt: json['updated_at'] != null ? DateTime.parse(json["updated_at"]) : null,
         isDeleted: json["is_deleted"] == null
             ? false
@@ -124,73 +124,71 @@ class PayDesk {
 
   static sync() async {
     await upload();
-    await download();
   }
 
-  static Future<bool> downloadAll() async {
-    PayDesk payDesk;
-
-    final prefs = await SharedPreferences.getInstance();
-    final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
-    final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
-    final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
-    final String _userID = prefs.getString(KEY_USER_ID) ?? "";
-
-    final String url = 'http://$_serverIP/api/paydesk?user_id=$_userID';
-
-    final credentials = '$_serverUser:$_serverPassword';
-    final stringToBase64 = utf8.fuse(base64);
-    final encodedCredentials = stringToBase64.encode(credentials);
-
-    Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
-      HttpHeaders.contentTypeHeader: "application/json",
-    };
-
-    try {
-      Response response = await get(
-        url,
-        headers: headers,
-      );
-
-      if (response.statusCode == 200) {
-        var jsonData = json.decode(response.body);
-
-        if (jsonData == null) {
-          return true;
-        }
-
-        for (var jsonPayDesk in jsonData) {
-          payDesk = PayDesk.fromMap(jsonPayDesk);
-
-          PayDesk existPayDesk = await PayDeskDAO().getByID(payDesk.id);
-
-          if (existPayDesk != null) {
-            payDesk.mobID = existPayDesk.mobID;
-            payDesk.filePaths = existPayDesk.filePaths;
-            payDesk.filesQuantity = existPayDesk.filesQuantity;
-            PayDeskDAO().update(payDesk, isModified: false);
-          } else {
-            PayDeskDAO().insert(payDesk, isModified: false);
-          }
-        }
-        return true;
-      } else {
-        FLog.error(
-          exception: Exception(response.statusCode),
-          text: "status code error",
-        );
-        return false;
-      }
-    } catch (e, s){
-      FLog.error(
-        exception: Exception(e.toString()),
-        text: "try block error",
-        stacktrace: s,
-      );
-      return false;
-    }
-  }
+  // static Future<bool> downloadAll(String id) async {
+  //   PayDesk payDesk;
+  //
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
+  //   final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
+  //   final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+  //
+  //   final String url = 'http://$_serverIP/api/paydesk?pay_office_id=$id';
+  //
+  //   final credentials = '$_serverUser:$_serverPassword';
+  //   final stringToBase64 = utf8.fuse(base64);
+  //   final encodedCredentials = stringToBase64.encode(credentials);
+  //
+  //   Map<String, String> headers = {
+  //     HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+  //     HttpHeaders.contentTypeHeader: "application/json",
+  //   };
+  //
+  //   try {
+  //     Response response = await get(
+  //       url,
+  //       headers: headers,
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       var jsonData = json.decode(response.body);
+  //
+  //       if (jsonData == null) {
+  //         return true;
+  //       }
+  //
+  //       for (var jsonPayDesk in jsonData) {
+  //         payDesk = PayDesk.fromMap(jsonPayDesk);
+  //
+  //         PayDesk existPayDesk = await PayDeskDAO().getByID(payDesk.id);
+  //
+  //         if (existPayDesk != null) {
+  //           payDesk.mobID = existPayDesk.mobID;
+  //           payDesk.filePaths = existPayDesk.filePaths;
+  //           payDesk.filesQuantity = existPayDesk.filesQuantity;
+  //           PayDeskDAO().update(payDesk, isModified: false);
+  //         } else {
+  //           PayDeskDAO().insert(payDesk, isModified: false);
+  //         }
+  //       }
+  //       return true;
+  //     } else {
+  //       FLog.error(
+  //         exception: Exception(response.statusCode),
+  //         text: "status code error",
+  //       );
+  //       return false;
+  //     }
+  //   } catch (e, s){
+  //     FLog.error(
+  //       exception: Exception(e.toString()),
+  //       text: "try block error",
+  //       stacktrace: s,
+  //     );
+  //     return false;
+  //   }
+  // }
 
   static upload() async {
     List<PayDesk> _listPayDesks = await PayDeskDAO().getToUpload();
@@ -246,16 +244,18 @@ class PayDesk {
     }
   }
 
-  static download() async {
+  static downloadByPayOfficeID(String id) async {
     PayDesk payDesk;
 
     final prefs = await SharedPreferences.getInstance();
     final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
     final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
     final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
-    final String _userID = prefs.getString(KEY_USER_ID) ?? "";
 
-    final String url = 'http://$_serverIP/api/paydesk?for=mobile&userid=$_userID';
+    // final String _userID = prefs.getString(KEY_USER_ID) ?? "";
+    // final String url = 'http://$_serverIP/api/paydesk?for=mobile&userid=$_userID';
+
+    final String url = 'http://$_serverIP/api/paydesk?pay_office_id=$id';
 
     final credentials = '$_serverUser:$_serverPassword';
     final stringToBase64 = utf8.fuse(base64);

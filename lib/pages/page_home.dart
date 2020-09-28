@@ -7,7 +7,6 @@ import 'package:enterprise/models/currency.dart';
 import 'package:enterprise/models/income_item.dart';
 import 'package:enterprise/models/menu.dart';
 import 'package:enterprise/models/models.dart';
-import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/pages/page_main.dart';
@@ -33,12 +32,6 @@ class _HomePageState extends State<HomePage>{
   void initState() {
     super.initState();
     _load();
-  }
-
-  Future<void> _load() async {
-    await CostItem.sync() && await IncomeItem.sync() && await Currency.sync() && await UserGrants.sync() && await PayDesk.downloadAll()
-        ? ShowSnackBar.show(_scaffoldKey, "Дані оновлено", Colors.green)
-        : ShowSnackBar.show(_scaffoldKey, "Помилка оновлення даних", Colors.orange);
   }
 
   @override
@@ -173,6 +166,12 @@ class _HomePageState extends State<HomePage>{
         },
       ),
     );
+  }
+
+  Future<void> _load() async {
+    await CostItem.sync() && await IncomeItem.sync() && await Currency.sync() && await UserGrants.sync()
+        ? ShowSnackBar.show(_scaffoldKey, "Дані оновлено", Colors.green)
+        : ShowSnackBar.show(_scaffoldKey, "Помилка оновлення даних", Colors.orange);
   }
 
   IconData _setIcon(int index){
