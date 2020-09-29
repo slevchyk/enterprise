@@ -243,7 +243,7 @@ class PayDeskList extends StatelessWidget {
         _details = "До ${_payDesk.fromPayOfficeName}";
         break;
       case PayDeskTypes.transfer:
-        _details = "${_payDesk.toPayOfficeName}";
+        _details = _payDesk.toPayOfficeName != null ? "${_payDesk.toPayOfficeName}" : "Iнформацiя вiдсутня";
         break;
     }
 

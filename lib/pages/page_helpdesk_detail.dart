@@ -342,7 +342,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
                     _getFile(FileType.image);
                     break;
                   case 1:
-                    _getFile(FileType.custom);
+                    _getFile(FileType.custom, extensions: ['pdf', 'jpg', 'png']);
                     break;
                   case 2:
                     _getImageCamera();
@@ -368,23 +368,10 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
     return false;
   }
 
-  void _getFile(FileType type) async {
-    List<File> files;
-    switch (type) {
-      case FileType.image:
-        files = await FilePicker.getMultiFile(type: FileType.image);
-        break;
-      case FileType.custom:
-        files = await FilePicker.getMultiFile(type: FileType.custom, allowedExtensions: ['pdf']);
-        break;
-      default:
-        files = await FilePicker.getMultiFile(type: FileType.image);
-    }
-
-    if (files != null) {
-      if (_isNotLimitElement((files.length + _files.length))) {
-        files.forEach((file) => _files.add(file));
-      }
+  void _getFile(FileType type, {List<String> extensions}) async {
+    FilePickerResult result = await FilePicker.platform.pickFiles(type: type, allowMultiple: true, allowedExtensions: extensions!=null ? extensions : []);
+    if(result != null){
+      _files = result.paths.map((path) => File(path)).toList();
       setState(() {});
     }
   }

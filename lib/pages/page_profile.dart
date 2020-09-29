@@ -682,9 +682,12 @@ class PageProfileState extends State<PageProfile> {
       return;
     }
 
-    File file = await FilePicker.getFile(
-      type: FileType.image,
-    );
+    File file;
+    FilePickerResult result = await FilePicker.platform.pickFiles();
+
+    if(result != null) {
+      file = File(result.files.single.path);
+    }
 
     final documentDirectory = await getApplicationDocumentsDirectory();
     file.copy(documentDirectory.path);

@@ -108,94 +108,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     _setDefaultPayOffice();
   }
 
-  _setDefaultPayOffice() {
-    _payOfficeList.then((payOfficeList) {
-      try {
-        _setPayOfficeAndCurrency(payOfficeList.first);
-      } catch (e, s) {
-        FLog.error(
-          exception: Exception(e.toString()),
-          text: "No items to set as default",
-          stacktrace: s,
-        );
-      }
-    });
-  }
-
-  _setPayOfficeAndCurrency(PayOffice input) {
-    _fromPayOfficeController.text = input.name;
-    _fromPayOffice = input;
-    CurrencyDAO().getByAccId(input.currencyAccID).then((currency) => setState(() {
-          _currency = currency;
-        }));
-  }
-
-  Future<void> initAsync() async {
-    getApplicationDocumentsDirectory().then((value) {
-      setState(() {
-        _appPath = value.path;
-      });
-    });
-
-    Currency _c;
-    CostItem _ci;
-    IncomeItem _ii;
-    PayOffice _fpo;
-    PayOffice _tpo;
-
-    if (_payDesk?.currencyAccID == null) {
-      _c = Currency();
-    } else {
-      _c = await CurrencyDAO().getByAccId(_payDesk.currencyAccID);
-    }
-
-    if (_payDesk?.costItemAccID == null) {
-      _ci = CostItem();
-    } else {
-      _ci = await CostItemDAO().getByAccId(_payDesk.costItemAccID);
-    }
-
-    if (_payDesk?.incomeItemAccID == null) {
-      _ii = IncomeItem();
-    } else {
-      _ii = await IncomeItemDAO().getByAccId(_payDesk.incomeItemAccID);
-    }
-
-    if (_payDesk?.fromPayOfficeAccID == null) {
-      _fpo = PayOffice();
-    } else {
-      _fpo = await PayOfficeDAO().getByAccId(_payDesk.fromPayOfficeAccID);
-    }
-
-    if (_payDesk?.toPayOfficeAccID == null) {
-      _tpo = PayOffice();
-    } else {
-      _tpo = await PayOfficeDAO().getByAccId(_payDesk.toPayOfficeAccID);
-    }
-
-    setState(() {
-      _currency = _c;
-      _costItem = _ci;
-      _incomeItem = _ii;
-      _fromPayOffice = _fpo;
-      _toPayOffice = _tpo;
-    });
-
-    _currencyController.text = _currency?.name ?? '';
-//    _costItemController.text = _costItem?.name ?? '';
-    _costItemController.text = _setField(_costItem?.name ?? '');
-    _incomeItemController.text = _incomeItem?.name ?? '';
-    _fromPayOfficeController.text = _fromPayOffice?.name ?? '';
-    _toPayOfficeController.text = _toPayOffice?.name ?? '';
-  }
-
-  _setField(String input) {
-    if (input.length >= 35 && MediaQuery.of(this.context).orientation == Orientation.portrait) {
-      return "${input.substring(0, 35)}...";
-    }
-    return input;
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -388,59 +300,62 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                             suffixIcon: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
-                                IconButton(
-                                    icon: Icon(
-                                      FontAwesomeIcons.calculator,
-                                      size: 22,
-                                    ),
-                                    onPressed: () {
-                                      showModalBottomSheet(
-                                          isScrollControlled: true,
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return Wrap(
-                                              children: <Widget>[
-                                                SizedBox(
-                                                  height: MediaQuery.of(context).size.height * 0.5,
-                                                  child: _calc(context),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: <Widget>[
-                                                    Container(
-                                                      width: MediaQuery.of(context).size.width / 2,
-                                                      child: RaisedButton(
-                                                        onPressed: () {
-                                                          Navigator.of(context).pop();
-                                                          _currentValue = 0;
-                                                        },
-                                                        child: Text("Вiдмiнити"),
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      width: MediaQuery.of(context).size.width / 2,
-                                                      child: RaisedButton(
-                                                        color: Colors.lightGreen,
-                                                        onPressed: () {
-                                                          Navigator.of(context).pop();
-                                                          if (_currentValue != 0) {
-                                                            _amount = _currentValue;
-                                                            _amountController.text = _currentValue.toStringAsFixed(2);
+                                Visibility(
+                                  visible: !_readOnly,
+                                  child: IconButton(
+                                      icon: Icon(
+                                        FontAwesomeIcons.calculator,
+                                        size: 22,
+                                      ),
+                                      onPressed: () {
+                                        showModalBottomSheet(
+                                            isScrollControlled: true,
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return Wrap(
+                                                children: <Widget>[
+                                                  SizedBox(
+                                                    height: MediaQuery.of(context).size.height * 0.5,
+                                                    child: _calc(context),
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: <Widget>[
+                                                      Container(
+                                                        width: MediaQuery.of(context).size.width / 2,
+                                                        child: RaisedButton(
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
                                                             _currentValue = 0;
-                                                          }
-                                                        },
-                                                        child: Text(
-                                                          "Додати",
-                                                          style: TextStyle(color: Colors.white),
+                                                          },
+                                                          child: Text("Вiдмiнити"),
                                                         ),
                                                       ),
-                                                    ),
-                                                  ],
-                                                )
-                                              ],
-                                            );
-                                          });
-                                    }),
+                                                      Container(
+                                                        width: MediaQuery.of(context).size.width / 2,
+                                                        child: RaisedButton(
+                                                          color: Colors.lightGreen,
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
+                                                            if (_currentValue != 0) {
+                                                              _amount = _currentValue;
+                                                              _amountController.text = _currentValue.toStringAsFixed(2);
+                                                              _currentValue = 0;
+                                                            }
+                                                          },
+                                                          child: Text(
+                                                            "Додати",
+                                                            style: TextStyle(color: Colors.white),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  )
+                                                ],
+                                              );
+                                            });
+                                      }),
+                                ),
                                 _clearIconButton(_amountController) != null
                                     ? _clearIconButton(_amountController)
                                     : Container(),
@@ -770,35 +685,34 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
           ),
         ),
         floatingActionButton: _floatingButton(context),
-        bottomSheet: _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly && _toPayOffice != null && _toPayOffice.isAvailable ? _confirmButton() : SizedBox(),
+        bottomSheet: _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly && _toPayOffice != null && _toPayOffice.isAvailable != null && _toPayOffice.isAvailable ? _confirmButton() : SizedBox(),
       ),
     );
   }
 
-  Widget _confirmButton() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 7.0),
-      child: ChoiceChip(
-        padding: EdgeInsets.all(5.0),
-        label: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              "Пiдтвердити",
-              style: TextStyle(color: Colors.white),
-            ),
-          ],
-        ),
-        selected: true,
-        selectedColor: Colors.lightGreen,
-        onSelected: (bool value) {
-          _confirmingDialog();
-        },
-      ),
-    );
+  void _setPayOfficeAndCurrency(PayOffice input) {
+    _fromPayOfficeController.text = input.name;
+    _fromPayOffice = input;
+    CurrencyDAO().getByAccId(input.currencyAccID).then((currency) => setState(() {
+          _currency = currency;
+        }));
   }
 
-  _confirmingDialog() {
+  void _setDefaultPayOffice() {
+    _payOfficeList.then((payOfficeList) {
+      try {
+        _setPayOfficeAndCurrency(payOfficeList.first);
+      } catch (e, s) {
+        FLog.error(
+          exception: Exception(e.toString()),
+          text: "No items to set as default",
+          stacktrace: s,
+        );
+      }
+    });
+  }
+
+  void _confirmingDialog() {
     showGeneralDialog(
       barrierLabel: 'confirmDialog',
       barrierDismissible: true,
@@ -837,7 +751,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                 ),
                 Text(
                   '${formatDate(
-                    _payDesk.createdAt,
+                    _payDesk.documentDate,
                     [dd, '.', mm, '.', yyyy, ' ',
                       HH, ':', nn, ':', ss,],
                   )}\n',
@@ -926,6 +840,29 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
   void _closeWindow(BuildContext context) {
     Navigator.of(context).pop();
     Navigator.pop(_scaffoldKey.currentContext);
+  }
+
+  Widget _confirmButton() {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 7.0),
+      child: ChoiceChip(
+        padding: EdgeInsets.all(5.0),
+        label: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              "Пiдтвердити",
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+        selected: true,
+        selectedColor: Colors.lightGreen,
+        onSelected: (bool value) {
+          _confirmingDialog();
+        },
+      ),
+    );
   }
 
   Widget _paymentType(PayDeskTypes _type) {
@@ -1232,12 +1169,16 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
             Icons.image,
             color: Colors.white,
           ),
-          onClick: (){
+          onClick: () async {
             if (_files.length >= 4) {
               ShowSnackBar.show(_scaffoldKey, "Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
               return;
             }
-            _getFile(FileType.image);
+            FilePickerResult result = await FilePicker.platform.pickFiles(allowMultiple: true, type: FileType.image);
+            if(result != null){
+              _files = result.paths.map((path) => File(path)).toList();
+              setState(() {});
+            }
           },
         ),
         CircularButton(
@@ -1257,50 +1198,24 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     );
   }
 
-  Future<bool> _save() async {
-    bool _ok = false;
+  Widget _calc(BuildContext context) {
+    return SimpleCalculator(
+      value: _currentValue,
+      hideExpression: false,
+      hideSurroundingBorder: true,
+      onChanged: (key, value, expression) {
+        setState(() {
+          _currentValue = value;
+        });
+      },
+    );
+  }
 
-    if (!_formKey.currentState.validate()) {
-      return _ok;
+  String _setField(String input) {
+    if (input.length >= 35 && MediaQuery.of(this.context).orientation == Orientation.portrait) {
+      return "${input.substring(0, 35)}...";
     }
-
-    PayDesk _existPayDesk;
-    if (_payDesk.mobID != null) {
-      _existPayDesk = await PayDeskDAO().getByMobID(_payDesk.mobID);
-    }
-
-    _payDesk.payDeskType = _currentType.index;
-    _payDesk.currencyAccID = _currency?.accID;
-    _payDesk.costItemAccID = _costItem?.accID;
-    _payDesk.incomeItemAccID = _incomeItem?.accID;
-    _payDesk.fromPayOfficeAccID = _fromPayOffice?.accID;
-    _payDesk.toPayOfficeAccID = _toPayOffice?.accID;
-    _payDesk.userID = profile?.userID;
-    _payDesk.amount = _amount;
-    _payDesk.payment = _paymentController.text;
-//    _payDesk.documentNumber = _documentNumberController.text;
-    _payDesk.documentDate =
-        DateFormat("dd.MM.yyyy HH:mm").parse("${_documentDateController.text} ${_documentTimeController.text}");
-
-    if (_existPayDesk == null) {
-      _payDesk.mobID = await PayDeskDAO().insert(_payDesk, sync: false);
-      if (_payDesk.mobID != null) {
-        _payDesk = await PayDeskDAO().getByMobID(_payDesk.mobID);
-        _ok = true;
-      }
-    } else {
-      _ok = await PayDeskDAO().update(_payDesk, sync: false);
-    }
-
-    if (_ok) {
-      _saveAttachments();
-    } else {
-      ShowSnackBar.show(_scaffoldKey, "Помилка збереження в базі", Colors.red);
-    }
-    if(widget.callback!=null){
-      widget.callback();
-    }
-    return _ok;
+    return input;
   }
 
   bool _isNotNumber(String input) {
@@ -1337,9 +1252,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
       List<dynamic> _filesPaths = [];
       if (_payDesk.filePaths != null && _payDesk.filePaths.isNotEmpty) _filesPaths = jsonDecode(_payDesk.filePaths);
       _filesPaths.forEach((value) {
-        // if(File(value).existsSync()){
-          _files.add(File(value));
-        // }
+        _files.add(File(value));
       });
 
       _currencyController.text = _currency?.name ?? '';
@@ -1465,25 +1378,50 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     }
   }
 
-  void _getFile(FileType type) async {
-    List<File> files;
-    switch (type) {
-      case FileType.image:
-        files = await FilePicker.getMultiFile(type: FileType.image);
-        break;
-      case FileType.custom:
-        files = await FilePicker.getMultiFile(type: FileType.custom, allowedExtensions: ['pdf']);
-        break;
-      default:
-        files = await FilePicker.getMultiFile(type: FileType.image);
+  Future<bool> _save() async {
+    bool _ok = false;
+
+    if (!_formKey.currentState.validate()) {
+      return _ok;
     }
 
-    if (files != null) {
-      if (_isNotLimitElement((files.length + _files.length))) {
-        files.forEach((file) => _files.add(file));
-      }
-      setState(() {});
+    PayDesk _existPayDesk;
+    if (_payDesk.mobID != null) {
+      _existPayDesk = await PayDeskDAO().getByMobID(_payDesk.mobID);
     }
+
+    _payDesk.payDeskType = _currentType.index;
+    _payDesk.currencyAccID = _currency?.accID;
+    _payDesk.costItemAccID = _costItem?.accID;
+    _payDesk.incomeItemAccID = _incomeItem?.accID;
+    _payDesk.fromPayOfficeAccID = _fromPayOffice?.accID;
+    _payDesk.toPayOfficeAccID = _toPayOffice?.accID;
+    _payDesk.userID = profile?.userID;
+    _payDesk.amount = _amount;
+    _payDesk.payment = _paymentController.text;
+//    _payDesk.documentNumber = _documentNumberController.text;
+    _payDesk.documentDate =
+        DateFormat("dd.MM.yyyy HH:mm").parse("${_documentDateController.text} ${_documentTimeController.text}");
+
+    if (_existPayDesk == null) {
+      _payDesk.mobID = await PayDeskDAO().insert(_payDesk, sync: false);
+      if (_payDesk.mobID != null) {
+        _payDesk = await PayDeskDAO().getByMobID(_payDesk.mobID);
+        _ok = true;
+      }
+    } else {
+      _ok = await PayDeskDAO().update(_payDesk, sync: false);
+    }
+
+    if (_ok) {
+      _saveAttachments();
+    } else {
+      ShowSnackBar.show(_scaffoldKey, "Помилка збереження в базі", Colors.red);
+    }
+    if(widget.callback!=null){
+      widget.callback();
+    }
+    return _ok;
   }
 
   Future<void> _saveAttachments() async {
@@ -1546,6 +1484,65 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     });
   }
 
+  Future<void> initAsync() async {
+    getApplicationDocumentsDirectory().then((value) {
+      setState(() {
+        _appPath = value.path;
+      });
+    });
+
+    Currency _c;
+    CostItem _ci;
+    IncomeItem _ii;
+    PayOffice _fpo;
+    PayOffice _tpo;
+
+    if (_payDesk?.currencyAccID == null) {
+      _c = Currency();
+    } else {
+      _c = await CurrencyDAO().getByAccId(_payDesk.currencyAccID);
+    }
+
+    if (_payDesk?.costItemAccID == null) {
+      _ci = CostItem();
+    } else {
+      _ci = await CostItemDAO().getByAccId(_payDesk.costItemAccID);
+    }
+
+    if (_payDesk?.incomeItemAccID == null) {
+      _ii = IncomeItem();
+    } else {
+      _ii = await IncomeItemDAO().getByAccId(_payDesk.incomeItemAccID);
+    }
+
+    if (_payDesk?.fromPayOfficeAccID == null) {
+      _fpo = PayOffice();
+    } else {
+      _fpo = await PayOfficeDAO().getByAccId(_payDesk.fromPayOfficeAccID);
+    }
+
+    if (_payDesk?.toPayOfficeAccID == null) {
+      _tpo = PayOffice();
+    } else {
+      _tpo = await PayOfficeDAO().getByAccId(_payDesk.toPayOfficeAccID);
+    }
+
+    setState(() {
+      _currency = _c;
+      _costItem = _ci;
+      _incomeItem = _ii;
+      _fromPayOffice = _fpo;
+      _toPayOffice = _tpo;
+    });
+
+    _currencyController.text = _currency?.name ?? '';
+//    _costItemController.text = _costItem?.name ?? '';
+    _costItemController.text = _setField(_costItem?.name ?? '');
+    _incomeItemController.text = _incomeItem?.name ?? '';
+    _fromPayOfficeController.text = _fromPayOffice?.name ?? '';
+    _toPayOfficeController.text = _toPayOffice?.name ?? 'Iнформацiя вiдсутня';
+  }
+
   Future _getImageCamera() async {
     var image = await ImagePicker().getImage(source: ImageSource.camera);
     setState(() {
@@ -1553,19 +1550,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
         if (image != null) _files.add(File(image.path));
       }
     });
-  }
-
-  Widget _calc(BuildContext context) {
-    return SimpleCalculator(
-      value: _currentValue,
-      hideExpression: false,
-      hideSurroundingBorder: true,
-      onChanged: (key, value, expression) {
-        setState(() {
-          _currentValue = value;
-        });
-      },
-    );
   }
 }
 

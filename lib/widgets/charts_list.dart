@@ -62,11 +62,28 @@ class AnalyticChartsList{
                 ),
                 Container(
                   width: MediaQuery.of(context).size.width/1.2,
-                  child: Text(
-                    "${_toShow.keys.elementAt(index).name} ${amountFormatter.text} ${CURRENCY_SYMBOL[currency]}",
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 3,
-                    softWrap: true,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${_toShow.keys.elementAt(index).name}",
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        softWrap: true,
+                        style: TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
+                      Text("${amountFormatter.text} ${CURRENCY_SYMBOL[currency]}",
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        softWrap: true,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      )
+                    ],
                   ),
                 ),
               ],
