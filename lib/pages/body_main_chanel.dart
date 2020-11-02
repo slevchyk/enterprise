@@ -1,5 +1,4 @@
 import 'dart:convert';
-//import 'dart:html';
 import 'dart:io';
 
 import 'package:enterprise/models/constants.dart';
@@ -104,7 +103,7 @@ class BodyChannelState extends State<BodyChannel> {
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
     }
@@ -217,7 +216,7 @@ class BodyChannelState extends State<BodyChannel> {
                             itemBuilder: (BuildContext context, int index) {
                               Channel channel = listChannels[index];
                               return Slidable(
-                                delegate: new SlidableDrawerDelegate(),
+                                actionPane: SlidableDrawerActionPane(),
                                 actionExtentRatio: 0.25,
                                 actions: <Widget>[
                                   new IconSlideAction(
@@ -328,7 +327,7 @@ class BodyChannelState extends State<BodyChannel> {
                             itemBuilder: (BuildContext context, int index) {
                               Channel channel = listChanneles[index];
                               return Slidable(
-                                delegate: new SlidableDrawerDelegate(),
+                                actionPane: SlidableDrawerActionPane(),
                                 actionExtentRatio: 0.25,
                                 actions: <Widget>[
                                   new IconSlideAction(
@@ -422,7 +421,7 @@ class BodyChannelState extends State<BodyChannel> {
                             itemBuilder: (BuildContext context, int index) {
                               Channel channel = listChanneles[index];
                               return Slidable(
-                                delegate: new SlidableDrawerDelegate(),
+                                actionPane: SlidableDrawerActionPane(),
                                 actionExtentRatio: 0.25,
                                 actions: <Widget>[
                                   new IconSlideAction(

@@ -161,7 +161,7 @@ class RouteGenerator {
             ),
           );
         }
-        return _errorRoute(settings.name + " worng args type");
+        return _errorRoute(settings.name + " wrong args type");
       case '/debug':
         return MaterialPageRoute(builder: (_) => PageDebug());
       case '/about':

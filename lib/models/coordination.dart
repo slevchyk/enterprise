@@ -7,6 +7,8 @@ import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
+import '../main.dart';
+
 class Coordination{
   String id;
   String name;
@@ -59,6 +61,9 @@ class Coordination{
   }
 
   static Future<List<Coordination>> getCoordinationList(GlobalKey<ScaffoldState> scaffoldKey) async {
+    if(!await EnterpriseApp.checkInternet(showSnackBar: true, scaffoldKey: scaffoldKey)){
+      return null;
+    }
     Coordination coordination;
 
     List<Coordination> toReturn = [];
@@ -100,7 +105,7 @@ class Coordination{
    } catch (e, s) {
      FLog.error(
        exception: Exception(e.toString()),
-       text: "error in try block",
+       text: "response error",
        stacktrace: s,
      );
      ShowSnackBar.show(scaffoldKey, "Помилка оновлення даних", Colors.orange);
@@ -145,7 +150,7 @@ class Coordination{
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "exception in try block",
+        text: "response error",
         stacktrace: s,
       );
       return null;

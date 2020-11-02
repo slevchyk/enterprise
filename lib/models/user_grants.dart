@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../main.dart';
 import 'constants.dart';
 
 class UserGrants{
@@ -59,6 +60,9 @@ class UserGrants{
   };
 
   static Future<bool> sync({GlobalKey<ScaffoldState> scaffoldKey}) async {
+    if(!await EnterpriseApp.checkInternet(showSnackBar: true, scaffoldKey: scaffoldKey)){
+      return false;
+    }
     UserGrants userGrants;
 
     final prefs = await SharedPreferences.getInstance();
@@ -102,7 +106,7 @@ class UserGrants{
             UserGrantsDAO().insert(userGrants);
           }
         }
-        await PayOffice.sync();
+        PayOffice.sync();
         ShowSnackBar.show(scaffoldKey, "Дані оновлено", Colors.green);
         return true;
       }  else {
@@ -116,7 +120,7 @@ class UserGrants{
     } catch (e, s) {
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
       ShowSnackBar.show(scaffoldKey, "Помилка оновлення даних", Colors.orange);

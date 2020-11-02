@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:enterprise/database/core.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
@@ -11,6 +12,8 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../main.dart';
 
 class PageSignInOut extends StatefulWidget {
   @override
@@ -137,6 +140,9 @@ class _PageSignInOutState extends State<PageSignInOut> {
 
   void _getLocalServerSettingsProfile(
       GlobalKey<ScaffoldState> _scaffoldKey) async {
+    if(!await EnterpriseApp.checkInternet(showSnackBar: true, scaffoldKey: _scaffoldKey)){
+      return;
+    }
     Map<String, String> requestMap = {
       "phone": "+380${maskTextInputFormatter.getUnmaskedText()}",
       "pin": _userPinController.text
@@ -187,6 +193,9 @@ class _PageSignInOutState extends State<PageSignInOut> {
             RouteArgs args = RouteArgs(profile: _profile);
 
             prefs.setString(KEY_USER_ID, _profile.userID);
+            FLog.info(
+                text: "login user ${_profile.userID}"
+            );
             Navigator.of(context).pushReplacementNamed(
               '/',
               arguments: args,
@@ -197,51 +206,47 @@ class _PageSignInOutState extends State<PageSignInOut> {
         return;
       }
 
-      if (response.statusCode == 400) {
-        FLog.error(
-          exception: Exception(response.statusCode),
-          text: "status code error, incorrect parameters licence server $body",
-        );
-        ShowSnackBar.show(_scaffoldKey, 'Невірні параметри сервера ліцензування\n$body', Colors.redAccent);
-        return;
+      switch (response.statusCode){
+        case 400:
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error, incorrect parameters licence server $body",
+          );
+          ShowSnackBar.show(_scaffoldKey, 'Невірні параметри сервера ліцензування\n$body', Colors.redAccent);
+          return;
+        case 401:
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error, error licence server $body",
+          );
+          ShowSnackBar.show(_scaffoldKey, 'Помилка сервера сервера ліцензування:\n$body', Colors.redAccent);
+          return;
+        case 404:
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error, not found user on licence server with this parameters",
+          );
+          ShowSnackBar.show(_scaffoldKey, 'Не знайдено обілковий запис сервера ліцензування з такими параметрами', Colors.redAccent);
+          return;
+        case 500:
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error, error licence server $body",
+          );
+          ShowSnackBar.show(_scaffoldKey, 'Помилка сервера ліцензування:\n$body', Colors.redAccent);
+          return;
+        default:
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error, can't get settings from licence server",
+          );
+          ShowSnackBar.show(_scaffoldKey, 'Не вдалось отримати налаштування сервера ліцензування', Colors.redAccent);
       }
 
-      if (response.statusCode == 401) {
-        FLog.error(
-          exception: Exception(response.statusCode),
-          text: "status code error, error licence server $body",
-        );
-        ShowSnackBar.show(_scaffoldKey, 'Помилка сервера сервера ліцензування:\n$body', Colors.redAccent);
-        return;
-      }
-
-      if (response.statusCode == 404) {
-        FLog.error(
-          exception: Exception(response.statusCode),
-          text: "status code error, not found user on licence server with this parameters",
-        );
-        ShowSnackBar.show(_scaffoldKey, 'Не знайдено обілковий запис сервера ліцензування з такими параметрами', Colors.redAccent);
-        return;
-      }
-
-      if (response.statusCode == 500) {
-        FLog.error(
-          exception: Exception(response.statusCode),
-          text: "status code error, error licence server $body",
-        );
-        ShowSnackBar.show(_scaffoldKey, 'Помилка сервера ліцензування:\n$body', Colors.redAccent);
-        return;
-      }
-
-      FLog.error(
-        exception: Exception(response.statusCode),
-        text: "status code error, can't get settings from licence server",
-      );
-      ShowSnackBar.show(_scaffoldKey, 'Не вдалось отримати налаштування сервера ліцензування', Colors.redAccent);
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
     }
@@ -265,8 +270,14 @@ singInOutDialog(BuildContext context) {
               child: Text("Так"),
               onPressed: () async {
                 final prefs = await SharedPreferences.getInstance();
+                FLog.info(
+                    text: "logout user ${prefs.getString(KEY_USER_ID)}"
+                );
                 prefs.setString(KEY_USER_ID, "");
-                Navigator.of(context).pushNamed("/sign_in_out");
+                DBProvider.db.deleteDB();
+                EnterpriseApp.deleteApplicationFileDir();
+
+                Navigator.of(context).pushNamedAndRemoveUntil("/sign_in_out", (Route<dynamic> route) => false);
               },
             )
           ],

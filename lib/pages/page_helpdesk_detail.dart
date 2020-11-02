@@ -145,6 +145,7 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
                           setState(() {});
                         },
                         isError: _isError,
+                        onError: _loadImages,
                       ),
                     ],
                   ),
@@ -162,6 +163,10 @@ class _PageHelpDeskDetailState extends State<PageHelpdeskDetail> {
       ),
       bottomNavigationBar: _setNavigationBar(),
     );
+  }
+
+  void _loadImages(){
+    //implement
   }
 
   void _handleBottomSheet(String action) async {

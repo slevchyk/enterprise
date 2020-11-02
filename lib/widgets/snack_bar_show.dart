@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 
 class ShowSnackBar{
   static show(GlobalKey<ScaffoldState> scaffoldKey, String title, Color color, {Duration duration}){
-    scaffoldKey == null ? Container() :
-    scaffoldKey.currentState.showSnackBar(
-        SnackBar(
-          duration: duration == null ? Duration(milliseconds: 700) : duration,
-          content: Text(title.capitalize()),
-          backgroundColor: color,
-        )
-    );
+   try {
+     scaffoldKey == null ? Container() :
+     scaffoldKey.currentState.showSnackBar(
+         SnackBar(
+           duration: duration == null ? Duration(milliseconds: 700) : duration,
+           content: Text(title.capitalize()),
+           backgroundColor: color,
+         )
+     );
+   } catch (_) {}
   }
 }
 

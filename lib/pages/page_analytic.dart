@@ -95,11 +95,17 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
       "" : 1,
     };
     _load();
-    UserGrants.sync(scaffoldKey: _scaffoldKey);
     _profile = widget.profile;
     _scrollController = ScrollController();
     _scrollControllerPayOffice = ScrollController();
     _tabController = TabController(vsync: this, length: _myTabs.length);
+  }
+
+  @override
+  void setState(fn) {
+    if(mounted){
+      super.setState(fn);
+    }
   }
 
   @override
@@ -131,8 +137,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
               ),
               IconButton(
                 onPressed: () async {
-                  UserGrants.sync(scaffoldKey: _scaffoldKey);
-                  _load();
+                  _load(action: true);
                 },
                 icon: Icon(
                   Icons.sync,
@@ -524,7 +529,10 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
     _load();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool action}) async {
+    if(action!=null && action){
+      await UserGrants.sync(scaffoldKey: _scaffoldKey);
+    }
     if(_payOfficeList==null){
       _payOfficeList = await ImplPayOfficeDAO().getUnDeleted();
     }

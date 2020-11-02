@@ -6,6 +6,8 @@ import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../main.dart';
+
 class PayOfficeBalance{
   String accID;
   double balance;
@@ -30,6 +32,9 @@ class PayOfficeBalance{
   };
 
   static Future<List<PayOfficeBalance>> sync() async {
+    if(!await EnterpriseApp.checkInternet()){
+      return null;
+    }
     PayOfficeBalance payOfficeBalance;
     List<PayOfficeBalance> toReturn = [];
 
@@ -78,7 +83,7 @@ class PayOfficeBalance{
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
       return null;

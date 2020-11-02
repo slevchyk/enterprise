@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:enterprise/models/models.dart';
-import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 
 class AttachmentsCarousel extends StatelessWidget {
@@ -9,12 +8,14 @@ class AttachmentsCarousel extends StatelessWidget {
   final bool readOnly;
   final Function(File deletedFile) onDelete;
   final List<bool> isError;
+  final Function onError;
 
   AttachmentsCarousel({
     this.files,
     this.readOnly,
     this.onDelete,
     @required this.isError,
+    @required this.onError,
   });
 
   @override
@@ -28,7 +29,7 @@ class AttachmentsCarousel extends StatelessWidget {
           ImageProvider _image = FileImage(File(files[index].path));
           return GestureDetector(
             onTap: (){
-              if(!File(_image.toString()).existsSync()){
+              if(!File(files[index].path).existsSync()){
                 return;
               }
               List<ImageProvider> toReturn = [];
@@ -119,15 +120,8 @@ class AttachmentsCarousel extends StatelessWidget {
   Widget _showImage(String path, ImageProvider _image){
     if(!File(path).existsSync()){
       if(!isError.first){
-        var _allPaths = StringBuffer();
-        files.forEach((element) {
-          _allPaths.write("${element.path}\n");
-        });
-        FLog.error(
-          exception: Exception("File not found"),
-          text: "image paths: $_allPaths",
-        );
         isError.first = true;
+        this.onError();
       }
       return Container(
         height: 220,

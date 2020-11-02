@@ -1,5 +1,7 @@
 import 'package:enterprise/database/channel_dao.dart';
 
+import '../main.dart';
+
 class Channel {
   int id;
   String userID;
@@ -54,6 +56,9 @@ class Channel {
       };
 
   processDownloads() async {
+    if(!await EnterpriseApp.checkInternet()){
+      return;
+    }
     Channel existChannel = await ChannelDAO().getById(this.id);
 
     if (existChannel != null) {

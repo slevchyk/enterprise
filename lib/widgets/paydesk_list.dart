@@ -240,7 +240,7 @@ class PayDeskList extends StatelessWidget {
         _details = "З ${_payDesk.fromPayOfficeName}";
         break;
       case PayDeskTypes.income:
-        _details = "До ${_payDesk.fromPayOfficeName}";
+        _details = "До ${_payDesk.fromPayOfficeName != null ? _payDesk.fromPayOfficeName : "Iнформацiя вiдсутня"}";
         break;
       case PayDeskTypes.transfer:
         _details = _payDesk.toPayOfficeName != null ? "${_payDesk.toPayOfficeName}" : "Iнформацiя вiдсутня";
@@ -282,7 +282,9 @@ class PayDeskList extends StatelessWidget {
 //      _details = _details.substring(0, 24) + '...';
 //    }
     if(_details==null){
-      return Container();
+      return Container(
+        child: Text("Iнформацiя вiдсутня"),
+      );
     }
 
     return Container(

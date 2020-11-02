@@ -239,7 +239,7 @@ class CoordinationList{
           ));
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
       return e.toString();

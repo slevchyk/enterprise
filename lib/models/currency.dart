@@ -6,6 +6,7 @@ import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../main.dart';
 import 'constants.dart';
 
 class Currency {
@@ -48,6 +49,9 @@ class Currency {
       };
 
   static Future<bool> sync() async {
+    if(!await EnterpriseApp.checkInternet()){
+      return false;
+    }
     Currency currency;
 
     final prefs = await SharedPreferences.getInstance();
@@ -87,10 +91,8 @@ class Currency {
           if (existCurrency != null) {
             currency.mobID = existCurrency.mobID;
             CurrencyDAO().update(currency);
-          } else {
-            if (!currency.isDeleted) {
-              CurrencyDAO().insert(currency);
-            }
+          } else if (!currency.isDeleted) {
+            CurrencyDAO().insert(currency);
           }
         }
         return true;
@@ -104,7 +106,7 @@ class Currency {
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
       return false;

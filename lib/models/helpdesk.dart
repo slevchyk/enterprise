@@ -4,6 +4,7 @@ import 'package:enterprise/database/help_desk_dao.dart';
 import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../main.dart';
 import 'constants.dart';
 
 class HelpDesk {
@@ -96,6 +97,9 @@ class HelpDesk {
       };
 
   static sync() async {
+    if(!await EnterpriseApp.checkInternet()){
+      return;
+    }
     await upload();
     await download();
   }
@@ -147,7 +151,7 @@ class HelpDesk {
       } catch (e, s){
         FLog.error(
           exception: Exception(e.toString()),
-          text: "try block error",
+          text: "response error",
           stacktrace: s,
         );
       }
@@ -223,7 +227,7 @@ class HelpDesk {
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
     }

@@ -1,13 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.intellectcase.enterprise">
 
-<!--    <uses-permission android:name="android.permission.USE_FINGERPRINT"/>-->
-    <uses-permission android:name="androidx.biometric:biometric:1.0.1"/>
-    <uses-permission android:name="android.support.FILE_PROVIDER_PATHS"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="androidx.biometric:biometric:1.0.1" />
+    <uses-permission android:name="android.support.FILE_PROVIDER_PATHS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
@@ -15,6 +15,7 @@
          additional functionality it is fine to subclass or reimplement
          FlutterApplication and put your custom class here. -->
     <application
+        android:requestLegacyExternalStorage="true"
         android:name="io.flutter.app.FlutterApplication"
         android:label="My Enterprise"
         android:icon="@mipmap/ic_launcher">
@@ -43,6 +44,9 @@
             </intent-filter>
 
         </activity>
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
     </application>
 
 </manifest>

@@ -26,9 +26,9 @@ class PayDeskDAO implements PayDeskInterface{
         'payment,'
         'document_number,'
         'document_date,'
-        'file_paths,'
         'files_quantity,'
         'is_checked,'
+        'is_read_only,'
         'created_at,'
         'updated_at,'
         'is_deleted,'
@@ -48,9 +48,9 @@ class PayDeskDAO implements PayDeskInterface{
           payDesk.payment,
           payDesk.documentNumber,
           payDesk.documentDate != null ? payDesk.documentDate.toIso8601String() : null,
-          payDesk.filePaths,
           payDesk.filesQuantity,
           payDesk.isChecked,
+          payDesk.isReadOnly,
           createdAt,
           updatedAt,
           payDesk.isDeleted,
@@ -58,7 +58,7 @@ class PayDeskDAO implements PayDeskInterface{
         ]);
 
     if (raw.isFinite && payDesk.id == null && sync) {
-      PayDesk.sync();
+      await PayDesk.upload();
     }
 
     return raw;
@@ -68,6 +68,12 @@ class PayDeskDAO implements PayDeskInterface{
     final db = await dbProvider.database;
     var res = await db.query("pay_desk", where: "mob_id = ? ", whereArgs: [mobID]);
     return res.isNotEmpty ? PayDesk.fromMap(res.first) : null;
+  }
+
+  Future<int> getIdByMobID(int mobID) async {
+    final db = await dbProvider.database;
+    var res = await db.rawQuery("SELECT id FROM pay_desk WHERE mob_id = ?", [mobID]);
+    return res.isNotEmpty ? res.first["id"] : 0;
   }
 
   Future<PayDesk> getByID(int id) async {
@@ -88,7 +94,7 @@ class PayDeskDAO implements PayDeskInterface{
     var res = await db.update("pay_desk", payDesk.toMap(), where: "mob_id = ?", whereArgs: [payDesk.mobID]);
 
     if (res.isFinite && sync) {
-      PayDesk.sync();
+      await PayDesk.upload();
     }
 
     return res.isFinite;
@@ -116,9 +122,9 @@ class PayDeskDAO implements PayDeskInterface{
         'pd.payment, '
         'pd.document_number, '
         'pd.document_date, '
-        'pd.file_paths, '
         'pd.files_quantity, '
         'pd.is_checked, '
+        'pd.is_read_only, '
         'pd.created_at, '
         'pd.updated_at, '
         'pd.is_deleted, '
@@ -185,9 +191,9 @@ class PayDeskDAO implements PayDeskInterface{
         'pd.payment, '
         'pd.document_number, '
         'pd.document_date, '
-        'pd.file_paths, '
         'pd.files_quantity, '
         'pd.is_checked, '
+        'pd.is_read_only, '
         'pd.created_at, '
         'pd.updated_at, '
         'pd.is_deleted, '
@@ -248,9 +254,9 @@ class PayDeskDAO implements PayDeskInterface{
             'pd.payment, '
             'pd.document_number, '
             'pd.document_date, '
-            'pd.file_paths, '
             'pd.files_quantity, '
             'pd.is_checked, '
+            'pd.is_read_only, '
             'pd.created_at, '
             'pd.updated_at, '
             'pd.is_deleted, '
@@ -319,9 +325,9 @@ class PayDeskDAO implements PayDeskInterface{
             'pd.payment, '
             'pd.document_number, '
             'pd.document_date, '
-            'pd.file_paths, '
             'pd.files_quantity, '
             'pd.is_checked, '
+            'pd.is_read_only, '
             'pd.created_at, '
             'pd.updated_at, '
             'pd.is_deleted, '
@@ -381,9 +387,9 @@ class PayDeskDAO implements PayDeskInterface{
             'pd.payment, '
             'pd.document_number, '
             'pd.document_date, '
-            'pd.file_paths, '
             'pd.files_quantity, '
             'pd.is_checked, '
+            'pd.is_read_only, '
             'pd.created_at, '
             'pd.updated_at, '
             'pd.is_deleted, '
@@ -443,9 +449,9 @@ class PayDeskDAO implements PayDeskInterface{
             'pd.payment, '
             'pd.document_number, '
             'pd.document_date, '
-            'pd.file_paths, '
             'pd.files_quantity, '
             'pd.is_checked, '
+            'pd.is_read_only, '
             'pd.created_at, '
             'pd.updated_at, '
             'pd.is_deleted, '

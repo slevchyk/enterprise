@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
@@ -8,13 +7,16 @@ import 'package:enterprise/database/currency_dao.dart';
 import 'package:enterprise/database/impl/pay_office_dao.dart';
 import 'package:enterprise/database/income_item_dao.dart';
 import 'package:enterprise/database/pay_desk_dao.dart';
+import 'package:enterprise/database/pay_desk_image_dao.dart';
 import 'package:enterprise/database/pay_office_dao.dart';
+import 'package:enterprise/main.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/cost_item.dart';
 import 'package:enterprise/models/currency.dart';
 import 'package:enterprise/models/income_item.dart';
 import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/models/paydesk.dart';
+import 'package:enterprise/models/paydesk_image.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/widgets/attachments_carousel.dart';
 import 'package:enterprise/widgets/snack_bar_show.dart';
@@ -29,7 +31,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PagePayDeskDetail extends StatefulWidget {
   final PayDesk payDesk;
@@ -62,10 +64,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
   final _toPayOfficeController = TextEditingController();
   final _documentDateController = TextEditingController();
   final _documentTimeController = TextEditingController();
-//  final _documentNumberController = TextEditingController();
-//  final _documentDateController = TextEditingController();
 
-//  Future<List<Currency>> _currencyList;
   Future<List<CostItem>> _costItemsList;
   Future<List<IncomeItem>> _incomeItemsList;
   Future<List<PayOffice>> _payOfficeList;
@@ -74,9 +73,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
   Profile profile;
 
   double _amount, _currentValue;
-//  DateTime _documentDate;
   DateTime _now;
-  String _appPath;
 
   Currency _currency;
   CostItem _costItem;
@@ -97,7 +94,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     WidgetsBinding.instance.addPostFrameCallback((_) => initAsync());
 
     _currentValue = 0;
-//    _currencyList = CurrencyDAO().getUnDeleted();
     _costItemsList = CostItemDAO().getUnDeleted();
     _incomeItemsList = IncomeItemDAO().getUnDeleted();
     _payOfficeList = ImplPayOfficeDAO().getUnDeletedAndAvailable();
@@ -106,6 +102,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     profile = widget.profile;
     _setControllers();
     _setDefaultPayOffice();
+  }
+
+  @override
+  void setState(fn) {
+    if(mounted){
+      super.setState(fn);
+    }
   }
 
   @override
@@ -154,42 +157,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                     margin: EdgeInsets.only(left: 20.0),
                     child: Column(
                       children: <Widget>[
-//                      InkWell(
-//                        onTap: () {
-//                          if (!_readOnly)
-//                            showGeneralDialog(
-//                              barrierLabel: "currency",
-//                              barrierDismissible: true,
-//                              barrierColor: Colors.black.withOpacity(0.5),
-//                              transitionDuration: Duration(milliseconds: 250),
-//                              context: this.context,
-//                              pageBuilder: (context, anim1, anim2) {
-//                                return _selectionDialog(
-//                                    _currencyController, _currencyList, payDeskVariablesTypes.currency, _scaffoldKey);
-//                              },
-//                              transitionBuilder: (context, anim1, anim2, child) {
-//                                return SlideTransition(
-//                                  position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
-//                                  child: child,
-//                                );
-//                              },
-//                            );
-//                        },
-//                        child: IgnorePointer(
-//                          child: TextFormField(
-//                            enabled: !_readOnly,
-//                            controller: _currencyController,
-//                            decoration: InputDecoration(
-//                                icon: Icon(FontAwesomeIcons.moneyBillAlt),
-//                                labelText: 'Валюта*',
-//                                hintText: 'Оберiть валюту'),
-//                            validator: (value) {
-//                              if (value.trim().isEmpty) return 'Ви не вибради валюту';
-//                              return null;
-//                            },
-//                          ),
-//                        ),
-//                      ),
                         Container(
                           child: InkWell(
                             onTap: () {
@@ -483,7 +450,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                             setState(() {});
                           },
                           validator: (value) {
-//                          if (value.isEmpty) return 'Ви не вказали призначення платежу';
                             return null;
                           },
                         ),
@@ -583,78 +549,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                       ],
                     ),
                   ),
-//                SizedBox(
-//                  height: 24.0,
-//                ),
-//                Text(
-//                  'Підтверджуючий документ',
-//                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-//                ),
-//                Container(
-//                  margin: EdgeInsets.only(left: 20.0),
-//                  child: Column(
-//                    children: <Widget>[
-//                      TextFormField(
-//                        enabled: !_readOnly,
-//                        controller: _documentNumberController,
-//                        decoration: InputDecoration(
-//                          icon: SizedBox(
-//                            width: 24.0,
-//                            child: Text(
-//                              '\u2116',
-//                              style: TextStyle(
-//                                  fontSize: 24.0, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
-//                            ),
-//                          ),
-//                          suffixIcon: _clearIconButton(_documentNumberController),
-//                          hintText: 'номер чеку',
-//                          labelText: 'Номер',
-//                        ),
-//                        onChanged: (_) {
-//                          setState(() {});
-//                        },
-//                      ),
-//                      InkWell(
-//                        onLongPress: () {
-//                          if (!_readOnly) {
-//                            _documentDateController.clear();
-//                            setState(() {
-//                              _payDesk.documentDate = null;
-//                              _documentDate = null;
-//                            });
-//                          }
-//                        },
-//                        onTap: () async {
-//                          if (_readOnly) {
-//                            return;
-//                          }
-//                          FocusScope.of(this.context).unfocus();
-//                          DateTime picked = await showDatePicker(
-//                              context: context,
-//                              firstDate: DateTime(DateTime.now().year - 1),
-//                              initialDate: _payDesk?.documentDate != null ? _payDesk.documentDate : DateTime.now(),
-//                              lastDate: DateTime(DateTime.now().year + 1));
-//
-//                          if (picked != null)
-//                            setState(() {
-//                              _documentDate = picked;
-//                              _documentDateController.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
-//                            });
-//                        },
-//                        child: IgnorePointer(
-//                          child: TextFormField(
-//                            controller: _documentDateController,
-//                            readOnly: _readOnly,
-//                            decoration: InputDecoration(
-//                              icon: Icon(FontAwesomeIcons.calendar),
-//                              labelText: 'Дата',
-//                            ),
-//                          ),
-//                        ),
-//                      ),
-//                    ],
-//                  ),
-//                ),
                   Visibility(
                     visible: _files.length > 0,
                     child: Column(
@@ -675,6 +569,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                             setState(() {});
                           },
                           isError: _isError,
+                          onError: _loadImages,
                         ),
                       ],
                     ),
@@ -1007,6 +902,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                     margin: EdgeInsets.only(top: 5, bottom: 5),
                     child: ListView.builder(
                       shrinkWrap: true,
+                      padding: EdgeInsets.symmetric(vertical: 5),
                       itemCount: snapshot == null ? 0 : snapshot.data.length,
                       itemBuilder: (context, int index) {
                         var _data = snapshot.data[index];
@@ -1075,7 +971,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                 Center(
                                   child: ListTile(
                                     leading: CircleAvatar(
-                                      child: Text(_data.name.toString().substring(0, 1).toUpperCase()),
+                                      child: _data.runtimeType == PayOffice ? Text(_data.currencyName) : Text(_data.name.toString().substring(0, 1).toUpperCase()),
                                     ),
                                     title: Column(
                                       children: [
@@ -1093,7 +989,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                               // Divider(),
                                               Container(height: 1, color: Colors.lightGreen, margin: EdgeInsets.all(5),),
                                               Text(
-                                                "Баланс: ${_data.amount.isNegative ? "-" : ""}${_amountFormatter.text} ${CURRENCY_SYMBOL[_currency?.code]}",
+                                                "Баланс: ${_data.amount.isNegative ? "-" : ""}${_amountFormatter.text} ${CURRENCY_SYMBOL_BY_NAME[_data.currencyName]}",
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                               )
@@ -1174,25 +1070,49 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
               ShowSnackBar.show(_scaffoldKey, "Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
               return;
             }
-            FilePickerResult result = await FilePicker.platform.pickFiles(allowMultiple: true, type: FileType.image);
-            if(result != null){
-              _files = result.paths.map((path) => File(path)).toList();
-              setState(() {});
+            var status = await Permission.storage.status;
+            switch (status){
+              case PermissionStatus.undetermined:
+                await Permission.storage.request();
+                break;
+              case PermissionStatus.granted:
+                FilePickerResult result = await FilePicker.platform.pickFiles(allowMultiple: true, type: FileType.image, allowCompression: true);
+                if(result != null){
+                  if(_files.length + result.paths.length <=4){
+                    result.paths.map((path) => _files.add(File(path))).toList();
+                    setState(() {});
+                  } else {
+                    ShowSnackBar.show(_scaffoldKey, "Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
+                  }
+                }
+                break;
+              case PermissionStatus.denied:
+                ShowSnackBar.show(_scaffoldKey, "Надайте доступ на запис файлів в дозволах додатку ", Colors.red, duration: Duration(seconds: 2));
+                break;
+              case PermissionStatus.restricted:
+                ShowSnackBar.show(_scaffoldKey, "Надайте доступ на запис файлів в дозволах додатку ", Colors.red, duration: Duration(seconds: 2));
+                break;
+              case PermissionStatus.permanentlyDenied:
+                ShowSnackBar.show(_scaffoldKey, "Надайте доступ на запис файлів в дозволах додатку ", Colors.red, duration: Duration(seconds: 2));
+                break;
             }
           },
         ),
-        CircularButton(
-          color: Colors.lightGreen,
-          width: 55,
-          height: 55,
-          icon: Icon(
-            _readOnly ? Icons.edit : Icons.save,
-            color: Colors.white,
+        Visibility(
+          visible: _payDesk.mobID==null ? true : !_payDesk.isReadOnly,
+          child: CircularButton(
+            color: Colors.lightGreen,
+            width: 55,
+            height: 55,
+            icon: Icon(
+              _readOnly ? Icons.edit : Icons.save,
+              color: Colors.white,
+            ),
+            onClick: (){
+              _readOnly ? _handleBottomSheet("edit") :
+              _handleBottomSheet("saveExit");
+            },
           ),
-          onClick: (){
-            _readOnly ? _handleBottomSheet("edit") :
-            _handleBottomSheet("saveExit");
-          },
         ),
       ],
     );
@@ -1230,8 +1150,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
   bool _isNotCorrectAmount(String value) {
     //Check if the sum is of type *.xx
     // (Two digits after the period)
-    List<String> tmp = value.split('.');
-    if ((tmp.last.length <= 2 || tmp.length == 1) && double.parse(tmp.first) >= 0) {
+    List<String> _tmp = value.split('.');
+    if ((_tmp.last.length <= 2 || _tmp.length == 1) && double.parse(_tmp.first) >= 0) {
       return false;
     } else {
       return true;
@@ -1246,14 +1166,20 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     return false;
   }
 
-  void _setControllers() {
+  void _setControllers() async {
     _files.clear();
     if (_payDesk != null) {
-      List<dynamic> _filesPaths = [];
-      if (_payDesk.filePaths != null && _payDesk.filePaths.isNotEmpty) _filesPaths = jsonDecode(_payDesk.filePaths);
-      _filesPaths.forEach((value) {
-        _files.add(File(value));
-      });
+      if(_payDesk.filesQuantity != null && _payDesk.filesQuantity>0){
+        List<PayDeskImage> _pdiList = await PayDeskImageDAO().getUnDeletedByMobID(_payDesk.mobID);
+        _pdiList.forEach((element) {
+          if(!element.isDeleted){
+            _files.add(File(element.path));
+          }
+        });
+        if(_pdiList.length<=0){
+          _loadImages();
+        }
+      }
 
       _currencyController.text = _currency?.name ?? '';
       _costItemController.text = _costItem?.name ?? '';
@@ -1262,10 +1188,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
       _toPayOfficeController.text = _toPayOffice?.name ?? '';
       _amountController.text = _payDesk?.amount?.toStringAsFixed(2) ?? "";
       _paymentController.text = _payDesk?.payment ?? "";
-//      _documentNumberController.text = _payDesk?.documentNumber ?? "";
-//      _documentDateController.text =
-//          _payDesk?.documentDate == null ? "" : formatDate(_payDesk.documentDate, [dd, '.', mm, '.', yyyy]);
-//      _documentDate = _payDesk?.documentDate ?? null;
       _currentType = _payDesk?.payDeskType == null ? widget.type : PayDeskTypes.values[_payDesk.payDeskType];
 
       _documentDateController.text = formatDate(
@@ -1399,7 +1321,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     _payDesk.userID = profile?.userID;
     _payDesk.amount = _amount;
     _payDesk.payment = _paymentController.text;
-//    _payDesk.documentNumber = _documentNumberController.text;
     _payDesk.documentDate =
         DateFormat("dd.MM.yyyy HH:mm").parse("${_documentDateController.text} ${_documentTimeController.text}");
 
@@ -1425,17 +1346,22 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
   }
 
   Future<void> _saveAttachments() async {
-    Directory _dir = Directory('$_appPath/paydesk/${_payDesk.mobID}');
+
+    EnterpriseApp.createApplicationFileDir(action: "pay_desk", scaffoldKey: _scaffoldKey);
+
+    var status = await Permission.storage.status;
+    if (!status.isGranted) {
+      await Permission.storage.request();
+    }
+
+    Directory _dir = Directory('$APPLICATION_FILE_PATH_PAY_DESK_IMAGE/${_payDesk.mobID}');
     if (_dir.existsSync()) {
       List<FileSystemEntity> _listFileSystemEntity = _dir.listSync();
-      for (var _fileSystemEntity in _listFileSystemEntity) {
-        if (_fileSystemEntity is File) {
-          for (var _f in _files) {
-            if (_fileSystemEntity != _f) {
-              _fileSystemEntity.deleteSync();
-              break;
-            }
-          }
+      for (FileSystemEntity _fileSystemEntry in _listFileSystemEntity) {
+        List<File> where = _files.where((element) => element.path==_fileSystemEntry.path).toList();
+        if(where.length==0){
+          _fileSystemEntry.deleteSync(recursive: true);
+          await PayDeskImageDAO().setDeleteByPath(_fileSystemEntry.path);
         }
       }
     } else {
@@ -1444,7 +1370,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
 
     List<File> _newFiles = [];
 
-    for (var _file in _files) {
+    for (File _file in _files) {
       if (_file.path.contains(_dir.path)) {
         _newFiles.add(_file);
       } else {
@@ -1465,31 +1391,19 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
 
         File _newFile = _file.copySync('${_dir.path}/$_fileHash$_extension');
         _newFiles.add(_newFile);
+
+        PayDeskImage pdi = PayDeskImage(mobID: _payDesk.mobID, path: _newFile.path);
+        await PayDeskImageDAO().insert(pdi);
       }
     }
-
-    List<String> _filesPaths = [];
-    _newFiles.forEach((value) {
-      _filesPaths.add(value.path);
-    });
-    _payDesk.filePaths = jsonEncode(_filesPaths);
 
     _payDesk.filesQuantity = _newFiles.length;
 
     PayDeskDAO().update(_payDesk, isModified: true, sync: true);
 
-    setState(() {
-      _files = _newFiles;
-      _readOnly = true;
-    });
   }
 
   Future<void> initAsync() async {
-    getApplicationDocumentsDirectory().then((value) {
-      setState(() {
-        _appPath = value.path;
-      });
-    });
 
     Currency _c;
     CostItem _ci;
@@ -1536,15 +1450,18 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     });
 
     _currencyController.text = _currency?.name ?? '';
-//    _costItemController.text = _costItem?.name ?? '';
     _costItemController.text = _setField(_costItem?.name ?? '');
     _incomeItemController.text = _incomeItem?.name ?? '';
     _fromPayOfficeController.text = _fromPayOffice?.name ?? '';
-    _toPayOfficeController.text = _toPayOffice?.name ?? 'Iнформацiя вiдсутня';
+    _toPayOfficeController.text = _toPayOffice?.name ?? '';
+  }
+
+  void _loadImages() async {
+    await PayDesk.downloadImagesByPdi(_payDesk, _scaffoldKey).whenComplete(() => setState(() {}));
   }
 
   Future _getImageCamera() async {
-    var image = await ImagePicker().getImage(source: ImageSource.camera);
+    var image = await ImagePicker().getImage(source: ImageSource.camera, imageQuality: 70);
     setState(() {
       if (_isNotLimitElement(_files.length + 1)) {
         if (image != null) _files.add(File(image.path));

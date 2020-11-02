@@ -10,6 +10,7 @@ import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../main.dart';
 import 'constants.dart';
 
 class PayOffice {
@@ -90,6 +91,9 @@ class PayOffice {
       };
 
   static sync() async {
+    if(!await EnterpriseApp.checkInternet()){
+      return;
+    }
     PayOffice payOffice;
 
     final prefs = await SharedPreferences.getInstance();
@@ -137,30 +141,28 @@ class PayOffice {
 
           PayOffice existPayOffice = await PayOfficeDAO().getByID(payOffice.id);
 
-          if(_currentPayOfficeBalance.length!=0){
-            payOffice.amount = _currentPayOfficeBalance.first.balance;
-            payOffice.updatedAt = _currentPayOfficeBalance.first.updatedAt;
-          }
-
           if(_currentUserGrants.length!=0){
+            if(_currentPayOfficeBalance.length!=0){
+              payOffice.amount = _currentPayOfficeBalance.first.balance;
+              payOffice.updatedAt = _currentPayOfficeBalance.first.updatedAt;
+            }
             payOffice.isVisible = _currentUserGrants.first.isVisible;
             payOffice.isAvailable = _currentUserGrants.first.isAvailable;
             payOffice.isReceiver = _currentUserGrants.first.isReceiver;
-          } else if(existPayOffice != null) {
-            PayOfficeDAO().delete(existPayOffice);
-          }
 
-          if (existPayOffice != null) {
-            payOffice.mobID = existPayOffice.mobID;
-            PayOfficeDAO().update(payOffice);
-          } else {
-            if (!payOffice.isDeleted) {
+            if (existPayOffice != null) {
+              payOffice.mobID = existPayOffice.mobID;
+              PayOfficeDAO().update(payOffice);
+            } else if (!payOffice.isDeleted){
               PayOfficeDAO().insert(payOffice);
             }
-          }
 
-          if(payOffice.isVisible){
-            await PayDesk.downloadByPayOfficeID(payOffice.accID);
+            if(payOffice.isVisible){
+              PayDesk.downloadByPayOfficeID(payOffice.accID);
+            }
+
+          } else if(existPayOffice != null) {
+            PayOfficeDAO().delete(existPayOffice);
           }
 
         }
@@ -174,7 +176,7 @@ class PayOffice {
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
     }

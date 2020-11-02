@@ -97,6 +97,13 @@ class _PagePayDeskState extends State<PagePayDesk> {
   }
 
   @override
+  void setState(fn) {
+    if(mounted){
+      super.setState(fn);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
@@ -177,9 +184,11 @@ class _PagePayDeskState extends State<PagePayDesk> {
       _input.forEach((payDesk) {
         var where = _listPayOffice.where((payOffice) => payOffice.isVisible && payOffice.isShow);
         if(where!=null){
-          if(where.first.accID == payDesk.fromPayOfficeAccID){
-            _toReturn.add(payDesk);
-          }
+          where.forEach((element) {
+            if(element.accID == payDesk.fromPayOfficeAccID){
+              _toReturn.add(payDesk);
+            }
+          });
         }
       });
     } else {
