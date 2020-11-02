@@ -241,7 +241,6 @@ class Profile {
       if (profile != null) {
         prefs.setString(KEY_USER_ID, profile.userID);
 
-        ShowSnackBar.show(_scaffoldKey, 'отримано ваш обліковий запис', Colors.green);
       } else {
         FLog.error(
           exception: Exception("Getting profile error"),
@@ -252,7 +251,7 @@ class Profile {
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
     }
@@ -300,7 +299,7 @@ class Profile {
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
       return false;
@@ -376,7 +375,7 @@ class Profile {
    } catch (e, s){
      FLog.error(
        exception: Exception(e.toString()),
-       text: "try block error",
+       text: "response error",
        stacktrace: s,
      );
    }
@@ -433,7 +432,7 @@ class Profile {
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
     }

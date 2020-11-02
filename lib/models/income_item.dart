@@ -6,6 +6,7 @@ import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../main.dart';
 import 'constants.dart';
 
 class IncomeItem {
@@ -44,6 +45,9 @@ class IncomeItem {
   };
 
   static Future<bool> sync() async {
+    if(!await EnterpriseApp.checkInternet()){
+      return false;
+    }
     IncomeItem incomeItem;
 
     final prefs = await SharedPreferences.getInstance();
@@ -83,10 +87,8 @@ class IncomeItem {
           if (existIncomeItem != null) {
             incomeItem.mobID = existIncomeItem.mobID;
             IncomeItemDAO().update(incomeItem);
-          } else {
-            if (!incomeItem.isDeleted) {
-              IncomeItemDAO().insert(incomeItem);
-            }
+          } else if (!incomeItem.isDeleted){
+            IncomeItemDAO().insert(incomeItem);
           }
         }
         return true;
@@ -100,7 +102,7 @@ class IncomeItem {
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
       return false;

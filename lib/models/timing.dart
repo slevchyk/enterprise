@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../main.dart';
 import 'constants.dart';
 import '../utils.dart';
 
@@ -87,6 +88,9 @@ class Timing {
       };
 
   static upload(String userID) async {
+    if(!await EnterpriseApp.checkInternet()){
+      return;
+    }
     List<Timing> toUpload = await TimingDAO().getToUploadByUserId(userID);
     List<Map<String, dynamic>> requestData = [];
 
@@ -145,13 +149,16 @@ class Timing {
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
     }
   }
 
   static downloadByDate(DateTime date) async {
+    if(!await EnterpriseApp.checkInternet()){
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
 
     final String _userID = prefs.getString(KEY_USER_ID) ?? "";
@@ -218,13 +225,16 @@ class Timing {
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
     }
   }
 
   static syncTurnstile() async {
+    if(!await EnterpriseApp.checkInternet()){
+      return;
+    }
     List<Timing> toUpload = await TimingDAO().getToUploadTurnstile();
 
     Map<String, List<Map<String, dynamic>>> jsonData;
@@ -289,13 +299,16 @@ class Timing {
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
     }
   }
 
   static void closePastTiming() async {
+    if(!await EnterpriseApp.checkInternet()){
+      return;
+    }
     List<Timing> openOperation = await TimingDAO()
         .getOpenPastStatus(Utility.beginningOfDay(DateTime.now()));
 

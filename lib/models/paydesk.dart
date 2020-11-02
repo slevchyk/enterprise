@@ -1,11 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:enterprise/database/pay_desk_dao.dart';
+import 'package:enterprise/database/pay_desk_image_dao.dart';
+import 'package:enterprise/models/paydesk_image.dart';
+import 'package:enterprise/models/sha256_check.dart';
 import 'package:f_logs/f_logs.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../main.dart';
 import 'constants.dart';
 
 class PayDesk {
@@ -22,9 +29,9 @@ class PayDesk {
   String payment;
   String documentNumber;
   DateTime documentDate;
-  String filePaths;
   int filesQuantity;
   bool isChecked = false;
+  bool isReadOnly = false;
   DateTime createdAt;
   DateTime updatedAt;
   bool isDeleted;
@@ -50,9 +57,9 @@ class PayDesk {
     this.payment,
     this.documentNumber,
     this.documentDate,
-    this.filePaths,
     this.filesQuantity,
     this.isChecked,
+    this.isReadOnly,
     this.createdAt,
     this.updatedAt,
     this.isDeleted,
@@ -79,11 +86,13 @@ class PayDesk {
         payment: json["payment"],
         documentNumber: json["document_number"],
         documentDate: json['document_date'] != null ? DateTime.parse(json["document_date"]) : null,
-        filePaths: json['file_paths'],
         filesQuantity: json['files_quantity'],
         isChecked: json["is_checked"] == null
             ? false
             : json["is_checked"] is int ? json["is_checked"] == 1 ? true : false : json["is_checked"],
+        isReadOnly: json["is_read_only"] == null
+            ? false
+            : json["is_read_only"] is int ? json["is_read_only"] == 1 ? true : false : json["is_read_only"],
         createdAt: json['created_at'] != null ? DateTime.parse(json["created_at"]) : json['document_date'] != null ? DateTime.parse(json["document_date"]) : null,
         updatedAt: json['updated_at'] != null ? DateTime.parse(json["updated_at"]) : null,
         isDeleted: json["is_deleted"] == null
@@ -113,18 +122,14 @@ class PayDesk {
         'payment': payment,
         'document_number': documentNumber,
         'document_date': documentDate != null ? documentDate.toIso8601String() : null,
-        'file_paths': filePaths,
         'files_quantity': filesQuantity,
         'is_checked': isChecked == null ? 0 : isChecked ? 1 : 0,
+        'is_read_only' : isReadOnly == null ? 0 : isReadOnly ? 1 : 0,
         'created_at': createdAt != null ? createdAt.toIso8601String() : null,
         'updated_at': updatedAt != null ? updatedAt.toIso8601String() : null,
         "is_deleted": isDeleted == null ? 0 : isDeleted ? 1 : 0,
         "is_modified": isModified == null ? 0 : isModified ? 1 : 0,
       };
-
-  static sync() async {
-    await upload();
-  }
 
   // static Future<bool> downloadAll(String id) async {
   //   PayDesk payDesk;
@@ -183,7 +188,7 @@ class PayDesk {
   //   } catch (e, s){
   //     FLog.error(
   //       exception: Exception(e.toString()),
-  //       text: "try block error",
+  //       text: "response error",
   //       stacktrace: s,
   //     );
   //     return false;
@@ -191,6 +196,9 @@ class PayDesk {
   // }
 
   static upload() async {
+    if(!await EnterpriseApp.checkInternet()){
+      return null;
+    }
     List<PayDesk> _listPayDesks = await PayDeskDAO().getToUpload();
     Map<String, dynamic> requestData;
 
@@ -223,10 +231,17 @@ class PayDesk {
        if (response.statusCode == 200) {
          if (_payDesk.id == null) {
            Map<String, dynamic> jsonData = json.decode(response.body);
-           _payDesk.id = jsonData["id"];
+           int _id = jsonData["id"];
+           _payDesk.id = _id;
+         }
+
+         List<PayDeskImage> _pdi = await PayDeskImageDAO().getByMobID(_payDesk.mobID);
+         if(_pdi!=null){
+           await PayDeskImageDAO().setPidByMobID(_payDesk.id, _pdi.first.mobID);
          }
 
          PayDeskDAO().update(_payDesk, isModified: false);
+         uploadImages(_payDesk);
        } else {
          FLog.error(
            exception: Exception(response.statusCode),
@@ -237,23 +252,160 @@ class PayDesk {
      } catch (e, s){
        FLog.error(
          exception: Exception(e.toString()),
-         text: "try block error",
+         text: "response error",
          stacktrace: s,
        );
      }
     }
   }
 
-  static downloadByPayOfficeID(String id) async {
-    PayDesk payDesk;
+  static uploadImages(PayDesk payDesk) async {
+    List<PayDeskImage> _listPayDeskImages = await PayDeskImageDAO().getByMobID(payDesk.mobID);
+
+    if (payDesk.filesQuantity == null && _listPayDeskImages.isEmpty){
+      return;
+    }
 
     final prefs = await SharedPreferences.getInstance();
     final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
     final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
     final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
 
-    // final String _userID = prefs.getString(KEY_USER_ID) ?? "";
-    // final String url = 'http://$_serverIP/api/paydesk?for=mobile&userid=$_userID';
+    final String url = 'http://$_serverIP/api/upload?type=paydesk';
+
+    final credentials = '$_serverUser:$_serverPassword';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+      HttpHeaders.contentTypeHeader: "application/json",
+    };
+
+    Map<String, dynamic> body;
+
+    for (PayDeskImage _image in _listPayDeskImages){
+      File _fileWrite = File(_image.path);
+      if(_image.isDeleted) {
+        body = {
+          "PID" : _image.pid,
+          "image_name" : basename(_image.path),
+          "is_deleted" : _image.isDeleted,
+        };
+      } else {
+        body = {
+          "PID" : _image.pid,
+          "image_name" : basename(_image.path),
+          "file" : _fileWrite.existsSync() ? base64Encode(_fileWrite.readAsBytesSync()) : null,
+          "sha256" : _fileWrite.existsSync() ? (await sha256.bind(_fileWrite.openRead()).first).toString() : null,
+          "is_deleted" : _image.isDeleted,
+        };
+      }
+
+      try {
+        Response response = await post(
+          url,
+          headers: headers,
+          body: json.encode(body),
+        );
+
+        if (response.statusCode != 200) {
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error",
+          );
+          return;
+        }
+      } catch (e, s){
+        FLog.error(
+          exception: Exception(e.toString()),
+          text: "response error",
+          stacktrace: s,
+        );
+        return;
+      }
+    }
+  }
+
+  static Future<bool> downloadImagesByPdi(PayDesk payDesk, GlobalKey<ScaffoldState> scaffoldKey) async {
+    if(!await EnterpriseApp.checkInternet()){
+      return null;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+
+    final String url = 'http://$_serverIP/api/download?type=paydesk&pid=${payDesk.id}';
+
+    final credentials = '$_serverUser:$_serverPassword';
+    final stringToBase64 = utf8.fuse(base64);
+    final encodedCredentials = stringToBase64.encode(credentials);
+
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
+      HttpHeaders.contentTypeHeader: "application/json",
+    };
+
+    EnterpriseApp.createApplicationFileDir(action: "pay_desk", scaffoldKey: scaffoldKey);
+
+    if(!await _checkImagesAndDir(headers, payDesk.mobID, _serverIP)){
+      try {
+        Response response = await get(
+          url,
+          headers: headers,
+        );
+
+        if (response.statusCode == 200) {
+
+          var jsonData = json.decode(response.body);
+
+          if (jsonData == null) {
+            return false;
+          }
+
+          await PayDeskImageDAO().delete(payDesk.id);
+          for (var data in jsonData){
+            PayDeskImage _payDeskImage = PayDeskImage.fromMap(data);
+            File _writeFile = File("$APPLICATION_FILE_PATH_PAY_DESK_IMAGE/${payDesk.mobID}/${_payDeskImage.imageName}");
+            _payDeskImage.path = _writeFile.path;
+            _payDeskImage.mobID = payDesk.mobID;
+            PayDeskImageDAO().insert(_payDeskImage);
+            _writeFile.writeAsBytes(base64Decode(data["file"]));
+          }
+          return true;
+        } else {
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error",
+          );
+          return false;
+        }
+
+      } catch (e, s) {
+        FLog.error(
+          exception: Exception(e.toString()),
+          text: "response error",
+          stacktrace: s,
+        );
+        return false;
+      }
+    }
+    return true;
+
+  }
+
+  static downloadByPayOfficeID(String id) async {
+    if(!await EnterpriseApp.checkInternet()){
+      return;
+    }
+    PayDesk payDesk;
+
+    final prefs = await SharedPreferences.getInstance();
+    final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
+    final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
+    final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
 
     final String url = 'http://$_serverIP/api/paydesk?pay_office_id=$id';
 
@@ -288,7 +440,6 @@ class PayDesk {
 
           if (existPayDesk != null) {
             payDesk.mobID = existPayDesk.mobID;
-            payDesk.filePaths = existPayDesk.filePaths;
             payDesk.filesQuantity = existPayDesk.filesQuantity;
             ok = await PayDeskDAO().update(payDesk, isModified: false);
           } else {
@@ -314,9 +465,65 @@ class PayDesk {
     } catch (e, s){
       FLog.error(
         exception: Exception(e.toString()),
-        text: "try block error",
+        text: "response error",
         stacktrace: s,
       );
+    }
+  }
+
+  static Future<bool> _checkImagesAndDir(Map<String, String> headers, int pdi, String serverIP) async { //if return true all ok, else delete files and download again
+
+    final String urlCheck = 'http://$serverIP/api/download?type=check&types=paydesk&pid=$pdi';
+
+    Directory _currentPayDeskDir = Directory("$APPLICATION_FILE_PATH_PAY_DESK_IMAGE/$pdi");
+
+    if(_currentPayDeskDir.existsSync()){
+      try {
+        Response response = await get(
+          urlCheck,
+          headers: headers,
+        );
+
+        if(response.statusCode==200){
+          var jsonData = json.decode(response.body);
+          List<FileSystemEntity> _listFileSystemEntity = _currentPayDeskDir.listSync();
+
+          if(_listFileSystemEntity == null || jsonData == null){
+            EnterpriseApp.deleteSelectedDir(_currentPayDeskDir);
+            return false;
+          }
+          if(_listFileSystemEntity.length == jsonData.length){
+            for (var data in jsonData){
+              Sha256Check _sha256check = Sha256Check.fromMap(data);
+              var _where = _listFileSystemEntity.where((element) => basename(element.path) == _sha256check.imageName);
+              if((await sha256.bind(File(_where.first.path).openRead()).first).toString() != _sha256check.sha256){
+                EnterpriseApp.deleteSelectedDir(_currentPayDeskDir);
+                return false;
+              }
+            }
+          } else {
+            EnterpriseApp.deleteSelectedDir(_currentPayDeskDir);
+            return false;
+          }
+          return true;
+        } else {
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error",
+          );
+          return false;
+        }
+      } catch (e, s) {
+          FLog.error(
+            exception: Exception(e.toString()),
+            text: "response error",
+            stacktrace: s,
+          );
+          return false;
+        }
+    } else {
+      EnterpriseApp.deleteSelectedDir(_currentPayDeskDir);
+      return false;
     }
   }
 }

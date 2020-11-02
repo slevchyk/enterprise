@@ -44,10 +44,16 @@ class _PageBalanceState extends State<PageBalance>{
   @override
   void initState() {
     super.initState();
-    _load();
     _profile = widget.profile;
     _scrollController = ScrollController();
     _scrollControllerPayOffice = ScrollController();
+  }
+
+  @override
+  void setState(fn) {
+    if(mounted){
+      super.setState(fn);
+    }
   }
 
   @override

@@ -8,6 +8,7 @@ const String APP_MODE_USER = "user";
 const String APP_MODE_TURNSTILE = "turnstile";
 
 const String SERVER_IP = "95.217.41.66:8811";
+// const String SERVER_IP = "95.217.41.66:7777";
 const String SERVER_USER = "mobile";
 const String SERVER_PASSWORD = "Dq4fS^J&^nqQ(fg4";
 
@@ -31,6 +32,9 @@ const String KEY_CHANNEL_UPDATE_ID = "keyChannelUpdateID";
 
 const String KEY_IS_PROTECTION_ENABLED = "keyIsProtectionEnabled";
 const String KEY_IS_BIOMETRIC_PROTECTION_ENABLED = "keyIsBiometricProtectionEnabled";
+
+const String APPLICATION_FILE_PATH = "/storage/emulated/0/DCIM/My Enterprise";
+const String APPLICATION_FILE_PATH_PAY_DESK_IMAGE = "$APPLICATION_FILE_PATH/Pay Desk Image";
 
 //Civil statuses
 const String CIVIL_STATUS_SINGLE = 'Single';
@@ -208,6 +212,13 @@ const Map<int, String> CURRENCY_SYMBOL = {
   840: '\u0024', //USD
   978: '\u20ac', //EUR
   980: '\u20b4', //UAH
+};
+
+const Map<String, String> CURRENCY_SYMBOL_BY_NAME = {
+  "GBP" : '\u00a3', //GBP
+  "USD" : '\u0024', //USD
+  "EUR" : '\u20ac', //EUR
+  "грн" : '\u20b4', //UAH
 };
 
 const Map<int, String> CURRENCY_NAME = {

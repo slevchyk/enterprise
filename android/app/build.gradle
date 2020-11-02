@@ -32,7 +32,7 @@ if (keystorePropertiesFile.exists()) {
 
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     lintOptions {
         disable 'InvalidPackage'
@@ -40,12 +40,13 @@ android {
 
     defaultConfig {
         applicationId "com.intellectcase.enterprise"
-        minSdkVersion 20
-        targetSdkVersion 29
+        minSdkVersion 21
+        targetSdkVersion 30
         multiDexEnabled true
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
 
     signingConfigs {
@@ -63,6 +64,12 @@ android {
     }
 
     packagingOptions {
+        pickFirst 'META-INF/atomicfu.kotlin_module'
+        pickFirst 'META-INF/proguard/coroutines.pro'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
         exclude 'META-INF/proguard/androidx-annotations.pro'
     }
 }
@@ -75,7 +82,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    implementation 'com.google.firebase:firebase-analytics:17.2.2'
+    implementation 'com.google.firebase:firebase-analytics:17.6.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 

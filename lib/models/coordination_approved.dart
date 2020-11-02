@@ -7,6 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
+import '../main.dart';
+
 class CoordinationApproved{
   String id;
   String comment;
@@ -25,10 +27,12 @@ class CoordinationApproved{
   };
 
   static Future<bool> setResult(CoordinationApproved result, GlobalKey<ScaffoldState> scaffoldKey, String action) async {
+    if(!await EnterpriseApp.checkInternet(showSnackBar: true, scaffoldKey: scaffoldKey)){
+      return false;
+    }
 
     final String _urlConfirmTask = "https://bot.barkom.ua/test/hs/mobileApi/confirmTask/";
     final String _token = await Coordination.token;
-    // final String _token = Coordination.token;
 
     try{
       if(_token==null){
@@ -74,7 +78,7 @@ class CoordinationApproved{
     } catch (e, s) {
       FLog.error(
         exception: Exception(e.toString()),
-        text: "exception in try block",
+        text: "response error",
         stacktrace: s,
       );
       ShowSnackBar.show(scaffoldKey, "Помилка погодження задачi", Colors.orange);

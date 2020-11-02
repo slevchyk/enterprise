@@ -59,7 +59,7 @@ class DBProvider {
           ")");
 
       await db.execute('CREATE TABLE timing ('
-          'mob_id INTEGER PRIMARY KEY,'
+          'mob_id INTEGER,'
           'id INTEGER,'
           'acc_id TEXT,'
           'user_id TEXT,'
@@ -136,7 +136,7 @@ class DBProvider {
           'document_number TEXT,'
           'document_date TEXT,'
           'is_checked BIT,'
-          'file_paths TEXT,'
+          'is_read_only BIT,'
           'files_quantity,'
           'created_at TEXT,'
           'updated_at TEXT,'
@@ -186,6 +186,12 @@ class DBProvider {
           'is_available BIT,'
           'is_receiver BIT'
           ')');
+      await db.execute('CREATE TABLE pay_desk_image ('
+          'mob_id INTEGER,'
+          'pid INT,'
+          'path TEXT PRIMARY KEY,'
+          'is_deleted BIT'
+          ')');
 //      await db.execute('CREATE TRIGGER log_timing_after_update'
 //          'AFTER UPDATE ON timing'
 //          'WHEN old.ext_id <> new.ext_id'
@@ -227,11 +233,12 @@ class DBProvider {
   }
 
   deleteDB() async {
+    _database = null;
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, "main.db");
     FLog.info(
       text: "db deleted",
     );
-    return await deleteDatabase(path);
+    await deleteDatabase(path);
   }
 }

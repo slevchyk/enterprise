@@ -17,9 +17,12 @@ class PayOfficeDAO implements PayOfficeInterface{
         'currency_acc_id,'
         'name,'
         'is_deleted,'
+        'is_visible,'
+        'is_available,'
+        'is_receiver,'
         'updated_at'
         ')'
-        'VALUES (?,?,?,?,?,?,?,?)',
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?)',
         [
           payOffice.mobID,
           payOffice.id,
@@ -28,6 +31,9 @@ class PayOfficeDAO implements PayOfficeInterface{
           payOffice.currencyAccID,
           payOffice.name,
           payOffice.isDeleted,
+          payOffice.isVisible,
+          payOffice.isAvailable,
+          payOffice.isReceiver,
           payOffice.updatedAt != null ? payOffice.updatedAt.toIso8601String() : null,
         ]);
 

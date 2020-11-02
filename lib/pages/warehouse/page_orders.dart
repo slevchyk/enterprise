@@ -13,7 +13,6 @@ import 'package:enterprise/pages/warehouse/page_supply_documents_controller.dart
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import 'page_documents_controller.dart';
@@ -723,18 +722,15 @@ class _PageOrdersState extends State<PageOrders> with SingleTickerProviderStateM
   }
 
   Future<String> _scan() async {
-    try{
-      return await BarcodeScanner.scan();
-    } on PlatformException catch(e){
-      if(e.code == BarcodeScanner.CameraAccessDenied){
-        return "Помилка доступу до камери";
-      } else {
-        return "Помилка $e";
-      }
-    } on FormatException {
-      return "null";
+    var _android = AndroidOptions(
+        useAutoFocus: true,);
+    var _options = ScanOptions(
+      android: _android,
+    );
+    try {
+      return (await BarcodeScanner.scan(options: _options)).rawContent;
     } catch (e){
-      return "$e";
+      return e;
     }
   }
 

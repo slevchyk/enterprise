@@ -92,14 +92,14 @@ class PageMainState extends State<PageMain> {
         items: [
           BottomNavigationBarItem(
               icon: Icon(Icons.home),
-              title: Text('головна'),
+              label: "головна",
               activeIcon: Icon(
                 Icons.home,
                 color: Theme.of(context).accentColor,
               )),
           BottomNavigationBarItem(
               icon: Icon(Icons.rss_feed),
-              title: Text('канал'),
+              label: "канал",
               activeIcon: Icon(
                 Icons.rss_feed,
                 color: Theme.of(context).accentColor,

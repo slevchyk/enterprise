@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:device_info/device_info.dart';
+import 'package:enterprise/models/file_log.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/widgets/snack_bar_show.dart';
@@ -234,8 +236,14 @@ class _PageSettingsState extends State<PageSettings> {
                               methodName: "Device info",
                               text: await _getDeviceInfo(),
                             );
-                            FLog.exportLogs();
+                            await FLog.exportLogs();
                             if(await _sendLogFile("${_dir.path}/FLogs/flog.txt")){
+                              FLog.clearLogs();
+                              final _dir = await getExternalStorageDirectory();
+                              File _logFile = File("${_dir.path}/FLogs/flog.txt");
+                              if(_logFile.existsSync()){
+                                _logFile.deleteSync();
+                              }
                               ShowSnackBar.show(_scaffoldKey, "Лог відправлений", Colors.green);
                             } else {
                               ShowSnackBar.show(_scaffoldKey, "Помилка при вiдправленнi лога", Colors.orange);
@@ -327,8 +335,13 @@ class _PageSettingsState extends State<PageSettings> {
   Future<bool> _sendLogFile(String filePath) async {
     File _logFile = File(filePath);
     if(_logFile.existsSync()){
-      //TODO send file
-      return true;
+      FileLog _fileLogToSend = FileLog(
+        userID: widget.profile.userID,
+        fileName: "LogFile-${widget.profile.userID}.txt",
+        file: base64Encode(_logFile.readAsBytesSync()),
+        date: DateTime.now(),
+      );
+      return await FileLog.uploadLogFile(_fileLogToSend);
     } else {
       FLog.error(
         exception: Exception("File not exist"),

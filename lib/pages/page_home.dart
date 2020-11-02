@@ -8,6 +8,7 @@ import 'package:enterprise/models/income_item.dart';
 import 'package:enterprise/models/menu.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/models/timing.dart';
 import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/pages/page_main.dart';
 import 'package:enterprise/widgets/snack_bar_show.dart';
@@ -129,7 +130,7 @@ class _HomePageState extends State<HomePage>{
                                               ),
                                             ),
                                           ),
-                                          index==0 ? Padding(
+                                          index == 0 ? Padding(
                                             padding: EdgeInsets.only(top: 10),
                                             child: Container(
                                               decoration: BoxDecoration(
@@ -169,7 +170,9 @@ class _HomePageState extends State<HomePage>{
   }
 
   Future<void> _load() async {
-    await CostItem.sync() && await IncomeItem.sync() && await Currency.sync() && await UserGrants.sync()
+    Timing.closePastTiming();
+    Timing.downloadByDate(DateTime.now());
+    ((await CostItem.sync()) && (await IncomeItem.sync()) && (await Currency.sync()) && (await UserGrants.sync()))
         ? ShowSnackBar.show(_scaffoldKey, "Дані оновлено", Colors.green)
         : ShowSnackBar.show(_scaffoldKey, "Помилка оновлення даних", Colors.orange);
   }

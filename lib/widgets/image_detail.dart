@@ -32,7 +32,7 @@ class ImageDetail extends StatelessWidget {
                  } catch (e, s){
                    FLog.error(
                      exception: Exception(e.toString()),
-                     text: "try block error",
+                     text: "response error",
                      stacktrace: s,
                    );
                    return null;
