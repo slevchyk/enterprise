@@ -109,7 +109,7 @@ class DBProvider {
           'user_id TEXT,'
           'date TEXT,'
           'title TEXT,'
-          'description TEXT,'
+          'body TEXT,'
           'status TEXT,'
           'answered_at TEXT,'
           'answered_by TEXT,'

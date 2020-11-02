@@ -12,7 +12,7 @@ class HelpDesk {
   int id;
   String userID;
   String title;
-  String description;
+  String body;
   DateTime date;
   String status;
   String answer;
@@ -30,7 +30,7 @@ class HelpDesk {
     this.id,
     this.userID,
     this.title,
-    this.description,
+    this.body,
     this.date,
     this.status,
     this.answer,
@@ -50,7 +50,7 @@ class HelpDesk {
         userID: json["user_id"],
         date: json["date"] != null ? DateTime.parse(json["date"]) : null,
         title: json["title"],
-        description: json["description"],
+        body: json["body"],
         status: json["status"],
         answer: json["answer"],
         answeredAt: json["answered_at"] != null
@@ -84,7 +84,7 @@ class HelpDesk {
         "status": status,
         "date": date != null ? date.toIso8601String() : null,
         "title": title,
-        "description": description,
+        "body": body,
         "answer": answer,
         "answered_at": answeredAt,
         "answered_by": answeredBy,
