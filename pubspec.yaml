@@ -1,10 +1,10 @@
 name: enterprise
 description: Corporate Application
 
-version: 0.9.9+29
+version: 0.9.9+30
 
 environment:
-  sdk: ">=2.6.0 <3.0.0"
+  sdk: ">=2.10.3 <3.0.0"
 
 dependencies:
 
