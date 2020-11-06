@@ -8,19 +8,17 @@ class PayDeskImageDAO {
     final db = await dbProvider.database;
 
     var raw = await db.rawInsert(""
-        "INSERT INTO pay_desk_image ("
+        "INSERT OR REPLACE INTO pay_desk_image ("
         "mob_id,"
         "pid,"
         "path,"
         "is_deleted"
         ")"
-        "VALUES (?,?,?,?) "
-        "ON CONFLICT(path) DO UPDATE SET is_deleted = ?",
+        "VALUES (?,?,?,?) ",
         [
           payDeskImage.mobID,
           payDeskImage.pid,
           payDeskImage.path,
-          payDeskImage.isDeleted,
           payDeskImage.isDeleted,
         ]);
 
