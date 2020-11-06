@@ -15,7 +15,11 @@
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
-            android:theme="@style/LaunchTheme">
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
             <meta-data
                 android:name="io.flutter.embedding.android.SplashScreenDrawable"
                 android:resource="@drawable/launch_background" />
@@ -32,11 +36,9 @@
                 <action android:name="FLUTTER_NOTIFICATION_CLICK" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-
         </activity>
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
-
 </manifest>
