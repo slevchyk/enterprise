@@ -1,6 +1,7 @@
 
 import 'dart:io';
 
+import 'package:enterprise/main.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/cost_item.dart';
 import 'package:enterprise/models/currency.dart';
@@ -142,7 +143,7 @@ class _HomePageState extends State<HomePage>{
                                               ),
                                               child: IconButton(
                                                 onPressed: (){
-                                                  RouteArgs _args = RouteArgs(profile: widget.profile, type: _setType(indexItems));
+                                                  RouteArgs _args = RouteArgs(profile: widget.profile, type: _setType(indexItems), callback: _load);
                                                   Navigator.pushNamed(context, "/paydesk/detail", arguments: _args);
                                                 },
                                                 icon: Icon(_setIcon(indexItems), color: Colors.white,),
@@ -170,6 +171,9 @@ class _HomePageState extends State<HomePage>{
   }
 
   Future<void> _load() async {
+    if(!await EnterpriseApp.checkInternet(showSnackBar: true, scaffoldKey: _scaffoldKey)){
+      return;
+    }
     Timing.closePastTiming();
     Timing.downloadByDate(DateTime.now());
     ((await CostItem.sync()) && (await IncomeItem.sync()) && (await Currency.sync()) && (await UserGrants.sync()))

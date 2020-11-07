@@ -89,6 +89,7 @@ class RouteGenerator {
               builder: (_) => PagePayDeskDetail(
                 profile: args.profile,
                 type: args.type,
+                callback: args.callback,
               ));
         }
         return _errorRoute(settings.name);

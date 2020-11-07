@@ -168,8 +168,8 @@ class _PagePayDeskState extends State<PagePayDesk> {
         child: FloatingActionButton(
           backgroundColor: Colors.lightGreen,
           onPressed: () {
-            RouteArgs _args = RouteArgs(profile: _profile, type: PayDeskTypes.costs);
-            Navigator.pushNamed(context, "/paydesk/detail", arguments: _args).whenComplete(() => _load());
+            RouteArgs _args = RouteArgs(profile: _profile, type: PayDeskTypes.costs, callback: _load);
+            Navigator.pushNamed(context, "/paydesk/detail", arguments: _args);
           },
           child: Icon(Icons.add),
         ),
