@@ -350,7 +350,7 @@ class PayDesk {
 
     EnterpriseApp.createApplicationFileDir(action: "pay_desk", scaffoldKey: scaffoldKey);
 
-    if(!await _checkImagesAndDir(headers, payDesk.mobID, _serverIP)){
+    if(!await _checkImagesAndDir(headers, payDesk, _serverIP)){
       try {
         Response response = await get(
           url,
@@ -377,7 +377,7 @@ class PayDesk {
           return true;
         } else {
           FLog.error(
-            exception: Exception(response.statusCode),
+            exception: Exception("${response.statusCode} with body ${response.body}"),
             text: "status code error",
           );
           return false;
@@ -471,11 +471,11 @@ class PayDesk {
     }
   }
 
-  static Future<bool> _checkImagesAndDir(Map<String, String> headers, int pdi, String serverIP) async { //if return true all ok, else delete files and download again
+  static Future<bool> _checkImagesAndDir(Map<String, String> headers, PayDesk pdi, String serverIP) async { //if return true all ok, else delete files and download again
 
-    final String urlCheck = 'http://$serverIP/api/download?type=check&types=paydesk&pid=$pdi';
+    final String urlCheck = 'http://$serverIP/api/download?type=check&types=paydesk&pid=${pdi.id}';
 
-    Directory _currentPayDeskDir = Directory("$APPLICATION_FILE_PATH_PAY_DESK_IMAGE/$pdi");
+    Directory _currentPayDeskDir = Directory("$APPLICATION_FILE_PATH_PAY_DESK_IMAGE/${pdi.mobID}");
 
     if(_currentPayDeskDir.existsSync()){
       try {

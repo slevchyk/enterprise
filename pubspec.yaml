@@ -4,7 +4,7 @@ description: Corporate Application
 version: 0.9.12+34
 
 environment:
-  sdk: ">=2.10.3 <3.0.0"
+  sdk: ">=2.6.0 <3.0.0"
 
 dependencies:
 
