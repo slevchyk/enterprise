@@ -244,6 +244,7 @@ const Map<PayDeskTypes, String> PAY_DESK_TYPES_ALIAS = {
 enum SortControllers {
   reload,
   period,
+  reloadByPeriod,
 }
 
 //coordination

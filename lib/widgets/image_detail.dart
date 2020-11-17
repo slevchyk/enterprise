@@ -1,6 +1,8 @@
 
 import 'package:f_logs/f_logs.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
 class ImageDetail extends StatelessWidget {
@@ -27,6 +29,8 @@ class ImageDetail extends StatelessWidget {
                 builder: (BuildContext context, int index){
                  try{
                    return PhotoViewGalleryPageOptions(
+                     maxScale: PhotoViewComputedScale.covered,
+                     minScale: PhotoViewComputedScale.contained,
                      imageProvider: listImages.elementAt(index),
                    );
                  } catch (e, s){

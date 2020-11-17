@@ -57,7 +57,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
   void initState() {
     super.initState();
     WidgetsBinding.instance
-        .addPostFrameCallback((_) => UserGrants.sync(scaffoldKey: _scaffoldKey).whenComplete(() => _load(action: false)));
+        .addPostFrameCallback((_) => UserGrants.sync(scaffoldKey: _scaffoldKey, isForceUpdate: false).whenComplete(() => _load(action: false)));
     _now = DateTime.now();
     _firstDayOfMonth = DateTime(_now.year, _now.month, 1);
     _dateFrom.text = formatDate(_firstDayOfMonth, [dd, '.', mm, '.', yyyy]);
@@ -157,6 +157,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
             dateTo: DateFormat('dd.MM.yyyy').parse(_dateTo.text),
             isReload: _controllersMap[SortControllers.reload],
             isPeriod: _controllersMap[SortControllers.period],
+            isSortByPeriod: _controllersMap[SortControllers.reloadByPeriod],
             isSort: true,
             textIfEmpty: "Iнформацiя за ${_controllersMap[SortControllers.period] ? "перiод \n${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"} \nвiдсутня",
             callback: _load,
