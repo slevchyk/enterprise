@@ -131,10 +131,13 @@ class AttachmentsCarousel extends StatelessWidget {
         ),
       );
     }
-    return Image(
-      height: 220.0,
-      width: 180.0,
-      image: _image,
+    return Hero(
+        tag: "imageHero",
+        child: Image(
+          height: 220.0,
+          width: 180.0,
+          image: _image,
+        )
     );
   }
 }
