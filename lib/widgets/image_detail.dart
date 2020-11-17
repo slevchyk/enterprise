@@ -8,10 +8,12 @@ import 'package:photo_view/photo_view_gallery.dart';
 class ImageDetail extends StatelessWidget {
   final List<ImageProvider> listImages;
   final int initialPage;
+  final String path;
 
   ImageDetail({
     @required this.listImages,
     this.initialPage = 0,
+    this.path,
   });
 
 
@@ -22,7 +24,7 @@ class ImageDetail extends StatelessWidget {
       body: GestureDetector(
         child: Center(
           child: Hero(
-            tag: 'imageHero',
+            tag: path,
             child: PhotoViewGallery.builder(
                 itemCount: listImages.length,
                 pageController: _pageController,

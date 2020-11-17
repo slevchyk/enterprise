@@ -41,6 +41,7 @@ class RouteArgs {
   PayDeskTypes type;
   List<Coordination> coordinationList;
   Function callback;
+  String path;
 
   RouteArgs({
     this.profile,
@@ -55,5 +56,6 @@ class RouteArgs {
     this.type,
     this.coordinationList,
     this.callback,
+    this.path,
   });
 }
