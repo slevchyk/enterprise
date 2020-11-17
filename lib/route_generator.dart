@@ -72,6 +72,7 @@ class RouteGenerator {
               builder: (_) => ImageDetail(
                 listImages: args.listImage,
                 initialPage: args.initialPage,
+                path: args.path,
               ));
         }
         return _errorRoute(settings.name);
