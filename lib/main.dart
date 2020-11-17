@@ -30,7 +30,7 @@ class EnterpriseApp extends StatefulWidget {
     }
   }
 
-  static void deleteApplicationFileDir() async {
+  static deleteApplicationFileDir() async {
     Directory _externalFileDir = Directory(APPLICATION_FILE_PATH);
     if(_externalFileDir.existsSync()){
       var status = await Permission.storage.status;
@@ -41,7 +41,7 @@ class EnterpriseApp extends StatefulWidget {
     }
   }
 
-  static void deleteSelectedDir(Directory dir) async {
+  static deleteSelectedDir(Directory dir) async {
     var status = await Permission.storage.status;
     if (!status.isGranted) {
       await Permission.storage.request();
@@ -52,7 +52,7 @@ class EnterpriseApp extends StatefulWidget {
     dir.createSync(recursive: true);
   }
 
-  static void createApplicationFileDir({String action, GlobalKey<ScaffoldState> scaffoldKey}) async {
+  static createApplicationFileDir({String action, GlobalKey<ScaffoldState> scaffoldKey}) async {
     Directory _externalFileDir = Directory(APPLICATION_FILE_PATH);
     if(!_externalFileDir.existsSync()){
       var status = await Permission.storage.status;
@@ -78,18 +78,21 @@ class EnterpriseApp extends StatefulWidget {
                 if(scaffoldKey==null){
                   return;
                 }
+                await Permission.storage.request();
                 ShowSnackBar.show(scaffoldKey, "Надайте доступ на запис файлів в дозволах додатку ", Colors.red, duration: Duration(seconds: 2));
                 break;
               case PermissionStatus.restricted:
                 if(scaffoldKey==null){
                   return;
                 }
+                await Permission.storage.request();
                 ShowSnackBar.show(scaffoldKey, "Надайте доступ на запис файлів в дозволах додатку ", Colors.red, duration: Duration(seconds: 2));
                 break;
               case PermissionStatus.permanentlyDenied:
                 if(scaffoldKey==null){
                   return;
                 }
+                await Permission.storage.request();
                 ShowSnackBar.show(scaffoldKey, "Надайте доступ на запис файлів в дозволах додатку ", Colors.red, duration: Duration(seconds: 2));
                 break;
             }
