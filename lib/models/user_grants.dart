@@ -59,13 +59,21 @@ class UserGrants{
     "is_receiver" : isReceiver == null ? 0 : isReceiver ? 1 : 0,
   };
 
-  static Future<bool> sync({GlobalKey<ScaffoldState> scaffoldKey}) async {
+  static Future<bool> sync({GlobalKey<ScaffoldState> scaffoldKey, bool isForceUpdate = true}) async {
     if(!await EnterpriseApp.checkInternet(showSnackBar: true, scaffoldKey: scaffoldKey)){
       return false;
     }
-    UserGrants userGrants;
 
     final prefs = await SharedPreferences.getInstance();
+
+    if(!isForceUpdate){
+      DateTime _lastUpdateTime = DateTime.parse(prefs.getString("update_time") == null ? DateTime.now().toString() : prefs.getString("update_time"));
+      if(DateTime.now().difference(_lastUpdateTime).inMinutes<10){
+        return false;
+      }
+    }
+    UserGrants userGrants;
+
     final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
     final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
     final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
@@ -108,6 +116,7 @@ class UserGrants{
         }
         await PayOffice.sync();
         ShowSnackBar.show(scaffoldKey, "Дані оновлено", Colors.green);
+        prefs.setString("update_time", DateTime.now().toString());
         return true;
       }  else {
         FLog.error(

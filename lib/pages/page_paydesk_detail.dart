@@ -82,7 +82,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
 
   PayDeskTypes _currentType;
 
-  bool _readOnly = false;
+  bool _readOnly = false, _isNotErrorLoad = true;
 
   List<File> _files = [];
   List<bool> _isError = [false];
@@ -561,15 +561,19 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                           'Прикріплені файли',
                           style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
                         ),
-                        AttachmentsCarousel(
-                          files: _files,
-                          readOnly: _readOnly,
-                          onDelete: (deletedFile) {
-                            _files.remove(deletedFile);
-                            setState(() {});
+                        StatefulBuilder(
+                          builder: (BuildContext context, StateSetter setState){
+                            return AttachmentsCarousel(
+                              files: _files,
+                              readOnly: _readOnly,
+                              onDelete: (deletedFile) {
+                                _files.remove(deletedFile);
+                                setState(() {});
+                              },
+                              isError: _isError,
+                              onError: _loadImages,
+                            );
                           },
-                          isError: _isError,
-                          onError: _loadImages,
                         ),
                       ],
                     ),
@@ -1087,12 +1091,15 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                 }
                 break;
               case PermissionStatus.denied:
+                await Permission.storage.request();
                 ShowSnackBar.show(_scaffoldKey, "Надайте доступ на запис файлів в дозволах додатку ", Colors.red, duration: Duration(seconds: 2));
                 break;
               case PermissionStatus.restricted:
+                await Permission.storage.request();
                 ShowSnackBar.show(_scaffoldKey, "Надайте доступ на запис файлів в дозволах додатку ", Colors.red, duration: Duration(seconds: 2));
                 break;
               case PermissionStatus.permanentlyDenied:
+                await Permission.storage.request();
                 ShowSnackBar.show(_scaffoldKey, "Надайте доступ на запис файлів в дозволах додатку ", Colors.red, duration: Duration(seconds: 2));
                 break;
             }
@@ -1166,7 +1173,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     return false;
   }
 
-  void _setControllers() async {
+  Future<void> _setControllers() async {
     _files.clear();
     if (_payDesk != null) {
       if(_payDesk.filesQuantity != null && _payDesk.filesQuantity>0){
@@ -1206,61 +1213,62 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
       context: _scaffoldKey.currentContext,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
-        insetPadding: MediaQuery.of(context).orientation == Orientation.landscape
-            ? EdgeInsets.only(top: 55, bottom: 55)
-            : EdgeInsets.only(top: 260, bottom: 260),
-        content: ListTile(
-          title: Container(
-            height: 45,
-            child: Column(
+        content: Container(
+          width: MediaQuery.of(context).orientation == Orientation.landscape ?  MediaQuery.of(context).size.width/2.5 : MediaQuery.of(context).size.width/1.5,
+          height: MediaQuery.of(context).size.height/4,
+          child: ListTile(
+            title: Container(
+              height: 45,
+              child: Column(
+                children: <Widget>[
+                  Text(
+                    "Інформація про операцiю",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(
+                    height: 2,
+                  ),
+                  Text(
+                    "${PAY_DESK_TYPES_ALIAS.values.elementAt(_payDesk.payDeskType)}",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            subtitle: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  "Інформація про операцiю",
+                  'Дата документа: ',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 SizedBox(
-                  height: 2,
+                  height: 5,
                 ),
                 Text(
-                  "${PAY_DESK_TYPES_ALIAS.values.elementAt(_payDesk.payDeskType)}",
+                  _payDesk.documentDate == null ? "Iнформацiя вiдсутня" : formatDate(_payDesk.documentDate, [
+                    dd, '.', mm, '.', yyyy,
+                    ' ', HH, ':', nn,
+                  ]),
+                ),
+                SizedBox(
+                  height: 15,
+                ),
+                Text(
+                  'Документ створено: ',
                   style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Text(
+                  _payDesk.createdAt == null ? "Iнформацiя вiдсутня" : formatDate(_payDesk.createdAt, [
+                    dd, '.', mm, '.', yyyy,
+                    ' ', HH, ':', nn, ':', ss,
+                  ]),
                 ),
               ],
             ),
-          ),
-          subtitle: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                'Дата документа: ',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              Text(
-                _payDesk.documentDate == null ? "Iнформацiя вiдсутня" : formatDate(_payDesk.documentDate, [
-                  dd, '.', mm, '.', yyyy,
-                  ' ', HH, ':', nn,
-                ]),
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              Text(
-                'Документ створено: ',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              Text(
-                _payDesk.createdAt == null ? "Iнформацiя вiдсутня" : formatDate(_payDesk.createdAt, [
-                  dd, '.', mm, '.', yyyy,
-                  ' ', HH, ':', nn, ':', ss,
-                ]),
-              ),
-            ],
           ),
         ),
         actions: <Widget>[
@@ -1347,7 +1355,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
 
   Future<void> _saveAttachments() async {
 
-    EnterpriseApp.createApplicationFileDir(action: "pay_desk", scaffoldKey: _scaffoldKey);
+    await EnterpriseApp.createApplicationFileDir(action: "pay_desk", scaffoldKey: _scaffoldKey);
 
     var status = await Permission.storage.status;
     if (!status.isGranted) {
@@ -1457,7 +1465,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
   }
 
   void _loadImages() async {
-    await PayDesk.downloadImagesByPdi(_payDesk, _scaffoldKey).whenComplete(() => setState(() {}));
+    if(!_isNotErrorLoad){
+      ShowSnackBar.show(_scaffoldKey, "Не вдалося отримати файл", Colors.red, duration: Duration(seconds: 1));
+      return;
+    }
+    _isNotErrorLoad = await PayDesk.downloadImagesByPdi(_payDesk, _scaffoldKey).whenComplete(() => {
+      _setControllers().whenComplete(() => setState(() { })),
+    });
   }
 
   Future _getImageCamera() async {

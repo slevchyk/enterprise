@@ -7,7 +7,7 @@ class PeriodDialog{
 
   /// To update window, use: "PeriodDialog.showPeriodDialog().whenComplete(() => setState((){}));"
   /// If TextEditingController is empty, controllers will set automatically
-  /// Firs date to choose is 01.01.2000 and last date current year + 1
+  /// Firs date to choose is 01.01.2000 and last date current year
   /// Last date to choose is current day, month, year
   /// You can use setControllersMap to set [Map]<[SortControllers], [bool]>
 
@@ -89,6 +89,7 @@ class PeriodDialog{
                                   onPressed: () {
                                     controllersMap.update(SortControllers.reload, (value) => false);
                                     controllersMap.update(SortControllers.period, (value) => true);
+                                    controllersMap.update(SortControllers.reloadByPeriod, (value) => true);
                                     Navigator.pop(context);
                                   },
                                 ),
@@ -118,6 +119,7 @@ class PeriodDialog{
                                     dateTo.text = DateFormat('dd.MM.yyyy').format(_now);
                                     controllersMap.update(SortControllers.reload, (value) => false);
                                     controllersMap.update(SortControllers.period, (value) => true);
+                                    controllersMap.update(SortControllers.reloadByPeriod, (value) => true);
                                     Navigator.pop(context);
                                   },
                                 ),
@@ -130,6 +132,7 @@ class PeriodDialog{
                                     dateTo.text = DateFormat('dd.MM.yyyy').format(_lastDayOfPreviousMonth);
                                     controllersMap.update(SortControllers.reload, (value) => false);
                                     controllersMap.update(SortControllers.period, (value) => true);
+                                    controllersMap.update(SortControllers.reloadByPeriod, (value) => true);
                                     Navigator.pop(context);
                                   },
                                 ),
@@ -139,7 +142,9 @@ class PeriodDialog{
                                     final _lastDate = DateTime(2000, 1, 1);
                                     dateFrom.text = formatDate(_lastDate, [dd, '.', mm, '.', yyyy]);
                                     dateTo.text = formatDate(_now, [dd, '.', mm, '.', yyyy]);
-                                    controllersMap.updateAll((key, value) => true);
+                                    controllersMap.update(SortControllers.reload, (value) => true);
+                                    controllersMap.update(SortControllers.period, (value) => true);
+                                    controllersMap.update(SortControllers.reloadByPeriod, (value) => false);
                                     Navigator.pop(context);
                                   },
                                 ),
@@ -164,7 +169,7 @@ class PeriodDialog{
   }
 
   static Map<SortControllers, bool> setControllersMap(){
-    return {SortControllers.reload : true, SortControllers.period : true};
+    return {SortControllers.reload : true, SortControllers.period : true, SortControllers.reloadByPeriod: false};
   }
 
 }

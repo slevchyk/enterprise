@@ -329,7 +329,7 @@ class PayDesk {
 
   static Future<bool> downloadImagesByPdi(PayDesk payDesk, GlobalKey<ScaffoldState> scaffoldKey) async {
     if(!await EnterpriseApp.checkInternet()){
-      return null;
+      return false;
     }
 
     final prefs = await SharedPreferences.getInstance();
@@ -348,7 +348,7 @@ class PayDesk {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    EnterpriseApp.createApplicationFileDir(action: "pay_desk", scaffoldKey: scaffoldKey);
+    await EnterpriseApp.createApplicationFileDir(action: "pay_desk", scaffoldKey: scaffoldKey);
 
     if(!await _checkImagesAndDir(headers, payDesk, _serverIP)){
       try {
@@ -489,7 +489,7 @@ class PayDesk {
           List<FileSystemEntity> _listFileSystemEntity = _currentPayDeskDir.listSync();
 
           if(_listFileSystemEntity == null || jsonData == null){
-            EnterpriseApp.deleteSelectedDir(_currentPayDeskDir);
+            await EnterpriseApp.deleteSelectedDir(_currentPayDeskDir);
             return false;
           }
           if(_listFileSystemEntity.length == jsonData.length){
@@ -497,12 +497,12 @@ class PayDesk {
               Sha256Check _sha256check = Sha256Check.fromMap(data);
               var _where = _listFileSystemEntity.where((element) => basename(element.path) == _sha256check.imageName);
               if((await sha256.bind(File(_where.first.path).openRead()).first).toString() != _sha256check.sha256){
-                EnterpriseApp.deleteSelectedDir(_currentPayDeskDir);
+                await EnterpriseApp.deleteSelectedDir(_currentPayDeskDir);
                 return false;
               }
             }
           } else {
-            EnterpriseApp.deleteSelectedDir(_currentPayDeskDir);
+            await EnterpriseApp.deleteSelectedDir(_currentPayDeskDir);
             return false;
           }
           return true;
@@ -522,7 +522,7 @@ class PayDesk {
           return false;
         }
     } else {
-      EnterpriseApp.deleteSelectedDir(_currentPayDeskDir);
+      await EnterpriseApp.deleteSelectedDir(_currentPayDeskDir);
       return false;
     }
   }

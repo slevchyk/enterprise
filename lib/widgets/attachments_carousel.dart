@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:enterprise/models/models.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 
 class AttachmentsCarousel extends StatelessWidget {
   final List<File> files;
@@ -39,6 +40,7 @@ class AttachmentsCarousel extends StatelessWidget {
               RouteArgs routeArgs = RouteArgs(
                 listImage: toReturn,
                 initialPage: index,
+                path: basename(files[index].path),
               );
               Navigator.pushNamed(context, "/image/detail", arguments: routeArgs);
             },
@@ -131,10 +133,13 @@ class AttachmentsCarousel extends StatelessWidget {
         ),
       );
     }
-    return Image(
-      height: 220.0,
-      width: 180.0,
-      image: _image,
+    return Hero(
+        tag: basename(path),
+        child: Image(
+          height: 220.0,
+          width: 180.0,
+          image: _image,
+        )
     );
   }
 }

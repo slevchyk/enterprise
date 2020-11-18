@@ -16,6 +16,7 @@ class PayDeskList extends StatelessWidget {
   final bool isReload;
   final bool isPeriod;
   final bool isSort;
+  final bool isSortByPeriod;
   final Profile profile;
   final ScrollController scrollController;
   final String textIfEmpty;
@@ -36,6 +37,7 @@ class PayDeskList extends StatelessWidget {
     this.isReload = false,
     this.isPeriod = false,
     this.isSort = false,
+    this.isSortByPeriod = false,
     this.scrollController,
     this.textIfEmpty,
     this.showStatus = true,
@@ -80,6 +82,9 @@ class PayDeskList extends StatelessWidget {
             if(_payList!=null){
               _payList.sort((first, second) =>
                   second.documentDate.compareTo(first.documentDate));
+            }
+            if(dateTo.isAfter(dateFrom) && isSortByPeriod){
+              _payList = _payList.reversed.toList();
             }
             return _setEmptyText(_payList) ?
             Container(
