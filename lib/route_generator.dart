@@ -98,6 +98,7 @@ class RouteGenerator {
         if (args is RouteArgs) {
           return MaterialPageRoute(
               builder: (_) => PagePayDeskConfirm(
+                callBack: args.callback,
                 profile: args.profile,
               ));
         }

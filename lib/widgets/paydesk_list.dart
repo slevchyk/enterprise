@@ -83,8 +83,10 @@ class PayDeskList extends StatelessWidget {
               _payList.sort((first, second) =>
                   second.documentDate.compareTo(first.documentDate));
             }
-            if(dateTo.isAfter(dateFrom) && isSortByPeriod){
-              _payList = _payList.reversed.toList();
+            if(dateTo != null && dateFrom != null){
+              if(dateTo.isAfter(dateFrom) && isSortByPeriod){
+                _payList = _payList.reversed.toList();
+              }
             }
             return _setEmptyText(_payList) ?
             Container(
@@ -225,7 +227,7 @@ class PayDeskList extends StatelessWidget {
 
     _payDeskType = PayDeskTypes.values[payDesk.payDeskType];
     if(_payDeskType==PayDeskTypes.transfer){
-      _details = "${payDesk.fromPayOfficeName}";
+      _details = "${payDesk.fromPayOfficeName == null ? "Iнформацiя вiдсутня" : payDesk.fromPayOfficeName}";
       return Text(
         _details,
         overflow: TextOverflow.ellipsis,

@@ -7,9 +7,11 @@ import 'package:flutter/material.dart';
 
 class PagePayDeskConfirm extends StatefulWidget {
   final Profile profile;
+  final Function callBack;
 
   PagePayDeskConfirm({
     @required this.profile,
+    this.callBack,
   });
 
   @override
@@ -26,7 +28,7 @@ class _PagePayDeskConfirmState extends State<PagePayDeskConfirm>{
   void initState() {
     super.initState();
     _profile = widget.profile;
-    _load();
+    _load(isCallBack: false);
   }
 
   @override
@@ -50,10 +52,13 @@ class _PagePayDeskConfirmState extends State<PagePayDeskConfirm>{
     );
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool isCallBack = true}) async {
     setState(() {
       payList = PayDeskDAO().getTransfer();
     });
 
+    if(isCallBack && widget.callBack != null){
+      widget.callBack();
+    }
   }
 }

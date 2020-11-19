@@ -81,10 +81,6 @@ class _PageHelpDeskState extends State<PageHelpDesk> {
             )
           ],
         ),
-        // Enable menu
-        // drawer: AppDrawer(
-        //   profile: _profile,
-        // ),
         body: TabBarView(
           children: [
             RefreshIndicator(
