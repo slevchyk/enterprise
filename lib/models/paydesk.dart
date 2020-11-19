@@ -8,6 +8,7 @@ import 'package:enterprise/models/paydesk_image.dart';
 import 'package:enterprise/models/sha256_check.dart';
 import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -236,7 +237,7 @@ class PayDesk {
          }
 
          List<PayDeskImage> _pdi = await PayDeskImageDAO().getByMobID(_payDesk.mobID);
-         if(_pdi!=null){
+         if(_pdi!=null && _pdi.length!=0){
            await PayDeskImageDAO().setPidByMobID(_payDesk.id, _pdi.first.mobID);
          }
 
@@ -270,6 +271,21 @@ class PayDesk {
     final String _serverIP = prefs.getString(KEY_SERVER_IP) ?? "";
     final String _serverUser = prefs.getString(KEY_SERVER_USER) ?? "";
     final String _serverPassword = prefs.getString(KEY_SERVER_PASSWORD) ?? "";
+
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+    final InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid,);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings,);
+
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+      '0', 'Каса', 'Завантаження',
+      importance: Importance.max,
+      priority: Priority.high,
+      onlyAlertOnce: true,);
+    const NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
+
 
     final String url = 'http://$_serverIP/api/upload?type=paydesk';
 
@@ -309,7 +325,14 @@ class PayDesk {
           body: json.encode(body),
         );
 
-        if (response.statusCode != 200) {
+        if (response.statusCode == 200) {
+          if(!_image.isDeleted){
+            flutterLocalNotificationsPlugin.show(1, 'Файл завантажено', 'Завантаження успiшне', platformChannelSpecifics,);
+          } else {
+            flutterLocalNotificationsPlugin.show(1, 'Файл видалено', 'Видалено', platformChannelSpecifics,);
+          }
+        } else {
+          await flutterLocalNotificationsPlugin.show(1, 'Помилка завантаження файла', 'Файл не завантажено', platformChannelSpecifics,);
           FLog.error(
             exception: Exception(response.statusCode),
             text: "status code error",
@@ -317,6 +340,7 @@ class PayDesk {
           return;
         }
       } catch (e, s){
+        flutterLocalNotificationsPlugin.show(1, 'Помилка завантаження файла', 'Файл не завантажено', platformChannelSpecifics,);
         FLog.error(
           exception: Exception(e.toString()),
           text: "response error",

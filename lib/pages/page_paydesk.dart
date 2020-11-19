@@ -116,9 +116,9 @@ class _PagePayDeskState extends State<PagePayDesk> {
             onTap: (){
               RouteArgs args = RouteArgs(
                 profile: _profile,
+                callback: _load,
               );
-              Navigator.pushNamed(context, "/paydesk/confirm", arguments: args)
-                  .whenComplete(() => _load());
+              Navigator.pushNamed(context, "/paydesk/confirm", arguments: args);
             },
           ),
           IconButton(
