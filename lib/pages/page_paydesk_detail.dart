@@ -1178,14 +1178,14 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     if (_payDesk != null) {
       if(_payDesk.filesQuantity != null && _payDesk.filesQuantity>0){
         List<PayDeskImage> _pdiList = await PayDeskImageDAO().getUnDeletedByMobID(_payDesk.mobID);
+        if(_pdiList.length<=0){
+          _loadImages();
+        }
         _pdiList.forEach((element) {
           if(!element.isDeleted){
             _files.add(File(element.path));
           }
         });
-        if(_pdiList.length<=0){
-          _loadImages();
-        }
       }
 
       _currencyController.text = _currency?.name ?? '';
@@ -1464,14 +1464,15 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     _toPayOfficeController.text = _toPayOffice?.name ?? '';
   }
 
-  void _loadImages() async {
-    if(!_isNotErrorLoad){
-      ShowSnackBar.show(_scaffoldKey, "Не вдалося отримати файл", Colors.red, duration: Duration(seconds: 1));
+  Future<void> _loadImages() async {
+    ShowSnackBar.show(_scaffoldKey, "Розпочато завантаження файл${_files.length == 1 ? "у" : "iв"}", Colors.blue,);
+    _isNotErrorLoad = await PayDesk.downloadImagesByPdi(_payDesk, _scaffoldKey);
+    if(_isNotErrorLoad){
+      _setControllers().whenComplete(() => setState(() { }));
+    } else {
+      ShowSnackBar.show(_scaffoldKey, "Не вдалося завантажити файли", Colors.red, duration: Duration(seconds: 1));
       return;
     }
-    _isNotErrorLoad = await PayDesk.downloadImagesByPdi(_payDesk, _scaffoldKey).whenComplete(() => {
-      _setControllers().whenComplete(() => setState(() { })),
-    });
   }
 
   Future _getImageCamera() async {

@@ -53,6 +53,7 @@ dependencies:
   f_logs: ^1.2.2
   device_info: ^1.0.0
   permission_handler: ^5.0.1+1
+  flutter_local_notifications: ^3.0.1+4
 
 dev_dependenfcies:
   flutter_test:

@@ -120,7 +120,7 @@ class AttachmentsCarousel extends StatelessWidget {
   }
 
   Widget _showImage(String path, ImageProvider _image){
-    if(!File(path).existsSync()){
+    if(!File(path).existsSync() || File(path).lengthSync()==0){
       if(!isError.first){
         isError.first = true;
         this.onError();
