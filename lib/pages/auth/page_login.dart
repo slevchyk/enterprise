@@ -10,6 +10,7 @@ import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
+// import 'package:imei_plugin/imei_plugin.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -143,9 +144,13 @@ class _PageSignInOutState extends State<PageSignInOut> {
     if(!await EnterpriseApp.checkInternet(showSnackBar: true, scaffoldKey: _scaffoldKey)){
       return;
     }
+
+    // final String _imei = await ImeiPlugin.getImei();
+
     Map<String, String> requestMap = {
-      "phone": "+380${maskTextInputFormatter.getUnmaskedText()}",
-      "pin": _userPinController.text
+      "phone" : "+380${maskTextInputFormatter.getUnmaskedText()}",
+      "pin" : _userPinController.text,
+      // "imei" : _imei,
     };
 
     String requestJSON = json.encode(requestMap);
