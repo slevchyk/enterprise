@@ -105,12 +105,12 @@ class PayDeskList extends StatelessWidget {
                 if(index==0){
                   return Column(
                     children: <Widget>[
-                      isSort ? isReload ? Container() : Container(
+                      isSort ? isReload ? Container(height: 0,) : Container(
                         alignment: Alignment.center,
                         padding: EdgeInsets.only(top: 10),
                         child: Text("За ${isPeriod ? "перiод ${formatDate(dateFrom, [dd, '.', mm, '.', yyyy])} - ${formatDate(dateTo, [dd, '.', mm, '.', yyyy])}" : "${formatDate(dateTo, [dd, '.', mm, '.', yyyy])}"}",
                           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
-                      ) : Container(),
+                      ) : Container(height: 0,),
                       _setSeparatorWithDate(_payList[index].documentDate),
                       _listBuilder(_payList, index, context)
                     ],
@@ -119,7 +119,7 @@ class PayDeskList extends StatelessWidget {
                     || !_payList[index].isChecked || _payList[index].isChecked){
                   return _listBuilder(_payList, index, context);
                 } else {
-                  return Container();
+                  return Container(height: 0,);
                 }
               },
               separatorBuilder: (BuildContext context, int index) {
@@ -128,7 +128,7 @@ class PayDeskList extends StatelessWidget {
                 ){
                   return _setSeparatorWithDate(_payList[index+1].documentDate);
                 } else {
-                  return Container();
+                  return Container(height: 0,);
                 }
               },
             );
@@ -153,52 +153,62 @@ class PayDeskList extends StatelessWidget {
         }));
       },
       child: Card(
-        child: ListTile(
-          isThreeLine: true,
-          title: _payList[index].payDeskType == 2
-              ? _getPayDeskDetailsTransfer(_payList[index], context)
-              : _getPayDeskDetailsLine2(_payList[index], context),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              isThreeLine: true,
+              title: _payList[index].payDeskType == 2
+                  ? _getPayDeskDetailsTransfer(_payList[index], context)
+                  : _getPayDeskDetailsLine2(_payList[index], context),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  _setIcon(_payList[index].payDeskType),
-                  _getPayDeskDetailsLine1(_payList[index], context),
+                  Row(
+                    children: <Widget>[
+                      _setIcon(_payList[index].payDeskType),
+                      _getPayDeskDetailsLine1(_payList[index], context),
+                    ],
+                  ),
+                  Text('${formatDate(
+                    _payList[index].documentDate,
+                    [dd, '.', mm, '.', yy, ' ', HH, ':', nn],
+                  )}'),
                 ],
               ),
-              Text('${formatDate(
-                _payList[index].documentDate,
-                [dd, '.', mm, '.', yy, ' ', HH, ':', nn],
-              )}'),
-            ],
-          ),
-          trailing: Container(
-            width: MediaQuery.of(context).size.width/2.9,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: <Widget>[
-                _getAmount(_payList[index]),
-                showPercent ?
-                Text("${_payList[index].percentage.toStringAsFixed(2)} %",
-                  style: TextStyle(fontSize: 15, color: _setColor(_payList[index].payDeskType)),) :
-                Container() ,
-                _payList[index].filesQuantity != null && _payList[index].filesQuantity != 0 && showFileAttach ?
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+              trailing: Container(
+                width: MediaQuery.of(context).size.width/2.9,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
-                    Text(_payList[index].filesQuantity.toString()),
-                    Icon(Icons.attach_file, size: 20,),
-                  ],) :
-                showStatus || !showPercent && _payList[index].payDeskType==2 ?
-                SizedBox(height: 20,) :
-                Container(),
-                showStatus || !showPercent && _payList[index].payDeskType==2 ?
-                _getStatus(_payList[index].isChecked) :
-                Container(),
-              ],
+                    _getAmount(_payList[index]),
+                    showPercent ?
+                    Text("${_payList[index].percentage.toStringAsFixed(2)} %",
+                      style: TextStyle(fontSize: 15, color: _setColor(_payList[index].payDeskType)),) :
+                    Container(height: 0,),
+                    _payList[index].filesQuantity != null && _payList[index].filesQuantity != 0 && showFileAttach ?
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        Text(_payList[index].filesQuantity.toString()),
+                        Icon(Icons.attach_file, size: 20,),
+                      ],) :
+                    showStatus || !showPercent && _payList[index].payDeskType==2 ?
+                    SizedBox(height: 20,) :
+                    Container(height: 0,),
+                    showStatus || !showPercent && _payList[index].payDeskType==2 ?
+                    _getStatus(_payList[index].isChecked) :
+                    Container(height: 0,),
+                  ],
+                ),
+              ),
             ),
-          ),
+            _payList[index].payment.isNotEmpty ? Container(
+              width: MediaQuery.of(context).size.width,
+              padding: const EdgeInsets.only(top: 0, left: 15, bottom: 5, right: 9),
+              child: Text(_payList[index].payment, maxLines: 1, overflow: TextOverflow.ellipsis,),
+            ) : Container(height: 0,),
+          ],
         ),
       ),
     );
@@ -234,7 +244,7 @@ class PayDeskList extends StatelessWidget {
         maxLines: 2,
       );
     }
-    return Container();
+    return Container(height: 0,);
   }
 
   Widget _getPayDeskDetailsLine1(PayDesk _payDesk, BuildContext context) {

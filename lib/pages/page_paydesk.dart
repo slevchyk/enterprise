@@ -186,7 +186,7 @@ class _PagePayDeskState extends State<PagePayDesk> {
         var where = _listPayOffice.where((payOffice) => payOffice.isVisible && payOffice.isShow);
         if(where!=null){
           where.forEach((element) {
-            if(element.accID == payDesk.fromPayOfficeAccID){
+            if(element.accID == payDesk.fromPayOfficeAccID || element.accID == payDesk.toPayOfficeAccID){
               _toReturn.add(payDesk);
             }
           });
