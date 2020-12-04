@@ -183,14 +183,9 @@ class _PageBalanceState extends State<PageBalance>{
                                 ],
                               ),
                             ),
-                            Container(
-                              width: orientation == Orientation.landscape ? MediaQuery.of(context).size.height/2.5 : MediaQuery.of(context).size.width/4,
-                              alignment: Alignment.centerRight,
-                              child: Wrap(
-                                children: <Widget>[
-                                  Text("${listToShow.values.elementAt(index).isNegative ? "-" : ""}${amountFormatter.text}${CURRENCY_SYMBOL[_currencyCode]}", style: TextStyle(fontSize: 18), textAlign: TextAlign.end,),
-                                ],
-                              ),
+                            Flexible(
+                              flex: 1,
+                              child: Text("${listToShow.values.elementAt(index).isNegative ? "-" : ""}${amountFormatter.text}${CURRENCY_SYMBOL[_currencyCode]}", style: TextStyle(fontSize: 18), textAlign: TextAlign.end,),
                             ),
                           ],
                         ),
