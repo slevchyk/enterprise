@@ -221,7 +221,7 @@ class PayDeskDAO implements PayDeskInterface{
         ' ON '
         '   pd.to_pay_office_acc_id = tpo.acc_id '
         'WHERE '
-        ' pay_desk_type=2 AND is_checked=0 '
+        ' pay_desk_type=2 AND is_checked=0 AND pd.is_deleted=0 '
         'ORDER BY '
         ' pd.id DESC');
 
