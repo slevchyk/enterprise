@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:device_info/device_info.dart';
 import 'package:enterprise/database/core.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/models.dart';
@@ -10,7 +11,7 @@ import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
-// import 'package:imei_plugin/imei_plugin.dart';
+import 'package:imei_plugin/imei_plugin.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -139,19 +140,55 @@ class _PageSignInOutState extends State<PageSignInOut> {
     );
   }
 
+  Future<Map<String, String>> _mapDeviceNameAndModel() async {
+    DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
+    Map<String, String> _deviceData;
+    try {
+      if (Platform.isAndroid) {
+        _deviceData = _readAndroidBuildData(await _deviceInfoPlugin.androidInfo);
+      } else if (Platform.isIOS) {
+        _deviceData = _readIosDeviceInfo(await _deviceInfoPlugin.iosInfo);
+      }
+    } on PlatformException {
+      _deviceData = <String, String>{
+        'Error:': 'Failed to get platform version.'
+      };
+    }
+    return _deviceData;
+  }
+
+  Map<String, String> _readAndroidBuildData(AndroidDeviceInfo build) {
+    return <String, String>{
+      'name': build.brand,
+      'model': build.model,
+    };
+  }
+
+  Map<String, String> _readIosDeviceInfo(IosDeviceInfo data) {
+    return <String, String>{
+      'name': data.name,
+      'model': data.model,
+    };
+  }
+
   void _getLocalServerSettingsProfile(
       GlobalKey<ScaffoldState> _scaffoldKey) async {
     if(!await EnterpriseApp.checkInternet(showSnackBar: true, scaffoldKey: _scaffoldKey)){
       return;
     }
 
-    // final String _imei = await ImeiPlugin.getImei();
+    Map<String, String> _phoneInfo = await _mapDeviceNameAndModel();
+
+    final String _imei = await ImeiPlugin.getImei();
 
     Map<String, String> requestMap = {
       "phone" : "+380${maskTextInputFormatter.getUnmaskedText()}",
       "pin" : _userPinController.text,
-      // "imei" : _imei,
+      "name" : _phoneInfo["name"] != null ? _phoneInfo["name"] : " ",
+      "model" : _phoneInfo["model"] != null ? _phoneInfo["model"] : " ",
+      "imei" : _imei,
     };
+
 
     String requestJSON = json.encode(requestMap);
 
@@ -232,6 +269,13 @@ class _PageSignInOutState extends State<PageSignInOut> {
             text: "status code error, not found user on licence server with this parameters",
           );
           ShowSnackBar.show(_scaffoldKey, 'Не знайдено обілковий запис сервера ліцензування з такими параметрами', Colors.redAccent);
+          return;
+        case 406:
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error, not found user on licence server with this parameters",
+          );
+          ShowSnackBar.show(_scaffoldKey, 'Невірні параметри сервера ліцензування, доступ вiдхилено', Colors.redAccent);
           return;
         case 500:
           FLog.error(

@@ -54,7 +54,7 @@ dependencies:
   device_info: ^1.0.0
   permission_handler: ^5.0.1+1
   flutter_local_notifications: ^3.0.1+4
-#  imei_plugin: ^1.2.0
+  imei_plugin: ^1.2.0
 
 dev_dependenfcies:
   flutter_test:
