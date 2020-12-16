@@ -11,7 +11,6 @@ import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
-import 'package:imei_plugin/imei_plugin.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -161,6 +160,7 @@ class _PageSignInOutState extends State<PageSignInOut> {
     return <String, String>{
       'name': build.brand,
       'model': build.model,
+      'id' : build.id,
     };
   }
 
@@ -168,6 +168,7 @@ class _PageSignInOutState extends State<PageSignInOut> {
     return <String, String>{
       'name': data.name,
       'model': data.model,
+      'id' : data.identifierForVendor,
     };
   }
 
@@ -179,16 +180,14 @@ class _PageSignInOutState extends State<PageSignInOut> {
 
     Map<String, String> _phoneInfo = await _mapDeviceNameAndModel();
 
-    final String _imei = await ImeiPlugin.getImei();
 
     Map<String, String> requestMap = {
       "phone" : "+380${maskTextInputFormatter.getUnmaskedText()}",
       "pin" : _userPinController.text,
       "name" : _phoneInfo["name"] != null ? _phoneInfo["name"] : " ",
       "model" : _phoneInfo["model"] != null ? _phoneInfo["model"] : " ",
-      "imei" : _imei,
+      "imei" : _phoneInfo["id"]!= null ? _phoneInfo["id"] : " ",
     };
-
 
     String requestJSON = json.encode(requestMap);
 
