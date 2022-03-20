@@ -3,10 +3,11 @@ import 'dart:io';
 
 import 'package:date_format/date_format.dart';
 import 'package:enterprise/database/timing_dao.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import '../main.dart';
 import '../utils.dart';
 import 'constants.dart';
 
@@ -76,6 +77,9 @@ class Timing {
       };
 
   static upload(String userID) async {
+    if(!await EnterpriseApp.checkInternet()){
+      return;
+    }
     List<Timing> toUpload = await TimingDAO().getToUploadByUserId(userID);
     List<Map<String, dynamic>> requestData = [];
 
@@ -99,34 +103,51 @@ class Timing {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    Response response = await post(
-      url,
-      headers: headers,
-      body: json.encode(requestData),
-    );
+    try{
+      Response response = await post(
+        url,
+        headers: headers,
+        body: json.encode(requestData),
+      );
 
-    if (response.statusCode == 200) {
-      Map<String, dynamic> jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        Map<String, dynamic> jsonData = json.decode(response.body);
 
-      for (var _timingMap in jsonData["timing"]) {
-        var _timing = Timing.fromMap(_timingMap);
+        for (var _timingMap in jsonData["timing"]) {
+          var _timing = Timing.fromMap(_timingMap);
 
-        if (_timing.mobID == null || _timing.mobID == 0) {
-          TimingDAO().insert(_timing, isModified: false);
-        } else {
-          Timing _existingTiming = await TimingDAO().getByMobId(_timing.mobID);
-
-          if (_existingTiming == null) {
+          if (_timing.mobID == null || _timing.mobID == 0) {
             TimingDAO().insert(_timing, isModified: false);
           } else {
-            TimingDAO().updateByMobID(_timing, isModified: false);
+            Timing _existingTiming = await TimingDAO().getByMobId(_timing.mobID);
+
+            if (_existingTiming == null) {
+              TimingDAO().insert(_timing, isModified: false);
+            } else {
+              TimingDAO().updateByMobID(_timing, isModified: false);
+            }
           }
         }
+      } else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        return false;
       }
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "response error",
+        stacktrace: s,
+      );
     }
   }
 
   static downloadByDate(DateTime date) async {
+    if(!await EnterpriseApp.checkInternet()){
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
 
     final String _userID = prefs.getString(KEY_USER_ID) ?? "";
@@ -148,44 +169,68 @@ class Timing {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    Response response = await get(
-      url,
-      headers: headers,
-    );
+    try{
+      Response response = await get(
+        url,
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      Map<String, dynamic> jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        Map<String, dynamic> jsonData = json.decode(response.body);
 
-      if (jsonData["timing"] == null) {
-        return;
-      }
+        if (jsonData["timing"] == null) {
+          return;
+        }
 
-      for (var _timingMap in jsonData["timing"]) {
-        var _timing = Timing.fromMap(_timingMap);
+        for (var _timingMap in jsonData["timing"]) {
+          var _timing = Timing.fromMap(_timingMap);
 
-        if (_timing.mobID == null || _timing.mobID == 0) {
-          Timing _existingTiming = await TimingDAO().getById(_timing.id);
+          if (_timing.mobID == null || _timing.mobID == 0) {
+            Timing _existingTiming = await TimingDAO().getById(_timing.id);
 
-          if (_existingTiming == null) {
-            TimingDAO().insert(_timing);
+            if (_existingTiming == null) {
+              TimingDAO().insert(_timing);
+            } else {
+              TimingDAO().updateByID(_timing);
+            }
           } else {
-            _timing.mobID = _existingTiming.mobID;
-            TimingDAO().updateByID(_timing);
-          }
-        } else {
-          Timing _existingTiming = await TimingDAO().getByMobId(_timing.mobID);
+// <<<<<<< beta
+            Timing _existingTiming = await TimingDAO().getByMobId(_timing.mobID);
+// =======
+//             _timing.mobID = _existingTiming.mobID;
+//             TimingDAO().updateByID(_timing);
+//           }
+//         } else {
+//           Timing _existingTiming = await TimingDAO().getByMobId(_timing.mobID);
+// >>>>>>> master
 
-          if (_existingTiming == null) {
-            TimingDAO().insert(_timing, isModified: false);
-          } else {
-            TimingDAO().updateByMobID(_timing, isModified: false);
+            if (_existingTiming == null) {
+              TimingDAO().insert(_timing, isModified: false);
+            } else {
+              TimingDAO().updateByMobID(_timing, isModified: false);
+            }
           }
         }
+      } else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        return false;
       }
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "response error",
+        stacktrace: s,
+      );
     }
   }
 
   static syncTurnstile() async {
+    if(!await EnterpriseApp.checkInternet()){
+      return;
+    }
     List<Timing> toUpload = await TimingDAO().getToUploadTurnstile();
 
     Map<String, List<Map<String, dynamic>>> jsonData;
@@ -215,35 +260,55 @@ class Timing {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    Response response = await post(
-      url,
-      headers: headers,
-      body: json.encode(jsonData),
-    );
+    try{
+      Response response = await post(
+        url,
+        headers: headers,
+        body: json.encode(jsonData),
+      );
 
-    if (response.statusCode == 200) {
-      Map<String, dynamic> jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        Map<String, dynamic> jsonData = json.decode(response.body);
 
-      for (var _timingMap in jsonData['processed']) {
-        var _timing = Timing.fromMap(_timingMap);
+        for (var _timingMap in jsonData['processed']) {
+          var _timing = Timing.fromMap(_timingMap);
 
-        if (_timing.mobID == null || _timing.mobID == 0) {
-          TimingDAO().insert(_timing, isModified: false);
-        } else {
-          Timing _existingTiming = await TimingDAO().getByMobId(_timing.mobID);
-
-          if (_existingTiming == null) {
+          if (_timing.mobID == null || _timing.mobID == 0) {
             TimingDAO().insert(_timing, isModified: false);
           } else {
-            TimingDAO().updateByMobID(_timing, isModified: false);
+            Timing _existingTiming = await TimingDAO().getByMobId(_timing.mobID);
+
+            if (_existingTiming == null) {
+              TimingDAO().insert(_timing, isModified: false);
+            } else {
+              TimingDAO().updateByMobID(_timing, isModified: false);
+            }
           }
         }
+      } else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        return false;
       }
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "response error",
+        stacktrace: s,
+      );
     }
   }
 
   static void closePastTiming() async {
-    List<Timing> openOperation = await TimingDAO().getOpenPastStatus(Utility.beginningOfDay(DateTime.now()));
+
+    if(!await EnterpriseApp.checkInternet()){
+      return;
+    }
+    List<Timing> openOperation = await TimingDAO()
+        .getOpenPastStatus(Utility.beginningOfDay(DateTime.now()));
+
 
     for (var _timing in openOperation) {
       DateTime endDate =

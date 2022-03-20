@@ -8,35 +8,44 @@ class AttachmentsCarousel extends StatelessWidget {
   final List<File> files;
   final bool readOnly;
   final Function(File deletedFile) onDelete;
+  final List<bool> isError;
+  final Function onError;
 
   AttachmentsCarousel({
     this.files,
     this.readOnly,
     this.onDelete,
+    @required this.isError,
+    @required this.onError,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 330.0,
-//      color: Colors.blue,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: files.length,
         itemBuilder: (BuildContext context, int index) {
-          ImageProvider _image = extension(files[index].path) == '.pdf'
-              ? AssetImage('assets/pdf.png')
-              : FileImage(File(files[index].path));
+          ImageProvider _image = FileImage(File(files[index].path));
           return GestureDetector(
             onTap: (){
+              if(!File(files[index].path).existsSync()){
+                return;
+              }
+              List<ImageProvider> toReturn = [];
+              files.forEach((element) {
+                toReturn.add(FileImage(File(element.path)));
+              });
               RouteArgs routeArgs = RouteArgs(
-                image: _image,
+                listImage: toReturn,
+                initialPage: index,
+                path: basename(files[index].path),
               );
               Navigator.pushNamed(context, "/image/detail", arguments: routeArgs);
             },
             child: Container(
               margin: EdgeInsets.all(10.0),
-//            color: Colors.red,
               width: 210.0,
               child: Stack(
                 alignment: Alignment.topCenter,
@@ -77,17 +86,7 @@ class AttachmentsCarousel extends StatelessWidget {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20.0),
-                        child: Image(
-                          height: 220.0,
-                          width: 180.0,
-//                          image: extension(files[index].path) == '.pdf'
-//                              ? AssetImage('assets/pdf.png')
-//                              : FileImage(File(files[index].path)),
-                          image: _image,
-//                        AssetImage(extension(files[index].path) == '.pdf'
-//                            ? 'assets/pdf.png'
-//                            : files[index].path),
-                        ),
+                        child: _showImage(files[index].path, _image),
                       ),
                     ),
                   ),
@@ -117,6 +116,30 @@ class AttachmentsCarousel extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  Widget _showImage(String path, ImageProvider _image){
+    if(!File(path).existsSync() || File(path).lengthSync()==0){
+      if(!isError.first){
+        isError.first = true;
+        this.onError();
+      }
+      return Container(
+        height: 220,
+        width: 180,
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    return Hero(
+        tag: basename(path),
+        child: Image(
+          height: 220.0,
+          width: 180.0,
+          image: _image,
+        )
     );
   }
 }

@@ -1,6 +1,8 @@
+import 'dart:io';
+
 import 'package:date_format/date_format.dart';
-import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/database/profile_dao.dart';
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/profile.dart';
 import 'package:enterprise/pages/auth/page_login.dart';
 import 'package:enterprise/widgets/user_photo.dart';
@@ -8,9 +10,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 
 class PageProfile extends StatefulWidget {
   final Profile profile;
@@ -89,10 +90,9 @@ class PageProfileState extends State<PageProfile> {
         padding: EdgeInsets.all(8.0),
         children: <Widget>[
           Container(
-            height: _isLoadingProfile ? 50 : 0,
+            height: _isLoadingProfile ? 50 : 1,
             child: Center(
-              child:
-              _isLoadingProfile ? CircularProgressIndicator() : SizedBox(),
+              child: _isLoadingProfile ? CircularProgressIndicator() : SizedBox(),
             ),
           ),
           FlatButton(
@@ -162,36 +162,28 @@ class PageProfileState extends State<PageProfile> {
                             labelText: 'По-батькові *',
                           ),
                           validator: (value) {
-                            if (value.isEmpty)
-                              return 'ви не вказали по-батькові';
+                            if (value.isEmpty) return 'ви не вказали по-батькові';
                             return null;
                           },
                         ),
-                        FormField<String>(
-                            builder: (FormFieldState<String> state) {
-                              return InputDecorator(
-                                decoration: InputDecoration(
-                                  icon: Icon(FontAwesomeIcons.venusMars),
-                                  border: InputBorder.none,
-                                  labelText: 'Стать',
+                        FormField<String>(builder: (FormFieldState<String> state) {
+                          return InputDecorator(
+                            decoration: InputDecoration(
+                              icon: Icon(FontAwesomeIcons.venusMars),
+                              border: InputBorder.none,
+                              labelText: 'Стать',
+                            ),
+                            child: Row(
+                              children: <Widget>[
+                                _genderChoiceChip(GENDER_FEMALE, Colors.pinkAccent.shade100, FontAwesomeIcons.female),
+                                SizedBox(
+                                  width: 10.0,
                                 ),
-                                child: Row(
-                                  children: <Widget>[
-                                    _genderChoiceChip(
-                                        GENDER_FEMALE,
-                                        Colors.pinkAccent.shade100,
-                                        FontAwesomeIcons.female),
-                                    SizedBox(
-                                      width: 10.0,
-                                    ),
-                                    _genderChoiceChip(
-                                        GENDER_MALE,
-                                        Colors.blueAccent.shade100,
-                                        FontAwesomeIcons.male)
-                                  ],
-                                ),
-                              );
-                            }),
+                                _genderChoiceChip(GENDER_MALE, Colors.blueAccent.shade100, FontAwesomeIcons.male)
+                              ],
+                            ),
+                          );
+                        }),
                         TextFormField(
                           controller: _phoneController,
                           readOnly: _readOnly,
@@ -201,12 +193,9 @@ class PageProfileState extends State<PageProfile> {
                             hintText: 'номер вашого мобільного телефону',
                             labelText: 'Телефон *',
                           ),
-                          inputFormatters: [
-                            WhitelistingTextInputFormatter(RegExp("[+0-9]"))
-                          ],
+                          inputFormatters: [FilteringTextInputFormatter.allow(RegExp("[+0-9]"))],
                           validator: (value) {
-                            if (value.isEmpty)
-                              return 'ви не вказали номер телефону';
+                            if (value.isEmpty) return 'ви не вказали номер телефону';
                             return null;
                           },
                           keyboardType: TextInputType.phone,
@@ -220,16 +209,13 @@ class PageProfileState extends State<PageProfile> {
                             DateTime picked = await showDatePicker(
                                 context: context,
                                 firstDate: DateTime(DateTime.now().year - 80),
-                                initialDate: profile.birthday != null
-                                    ? profile.birthday
-                                    : DateTime.now(),
+                                initialDate: profile.birthday != null ? profile.birthday : DateTime.now(),
                                 lastDate: DateTime(DateTime.now().year + 1));
 
                             if (picked != null)
                               setState(() {
                                 profile.birthday = picked;
-                                _birthdayController.text = formatDate(
-                                    picked, [dd, '-', mm, '-', yyyy]);
+                                _birthdayController.text = formatDate(picked, [dd, '-', mm, '-', yyyy]);
                               });
                           },
                           child: IgnorePointer(
@@ -238,13 +224,11 @@ class PageProfileState extends State<PageProfile> {
                               readOnly: _readOnly,
                               decoration: new InputDecoration(
                                 icon: Icon(FontAwesomeIcons.birthdayCake),
-                                suffixIcon:
-                                _clearIconButton(_birthdayController),
+                                suffixIcon: _clearIconButton(_birthdayController),
                                 labelText: 'Дата народження',
                               ),
                               validator: (value) {
-                                if (value.isEmpty)
-                                  return 'ви не вказали дату свого народження';
+                                if (value.isEmpty) return 'ви не вказали дату свого народження';
                                 return null;
                               },
                               // maxLength: 10,
@@ -308,21 +292,17 @@ class PageProfileState extends State<PageProfile> {
                         ),
                         Row(
                           children: <Widget>[
-                            _passportTypeChoiceChip(
-                                PASSPORT_TYPE_ID, FontAwesomeIcons.idCard),
+                            _passportTypeChoiceChip(PASSPORT_TYPE_ID, FontAwesomeIcons.idCard),
                             SizedBox(
                               width: 10.0,
                             ),
-                            _passportTypeChoiceChip(PASSPORT_TYPE_ORIGINAL,
-                                FontAwesomeIcons.passport)
+                            _passportTypeChoiceChip(PASSPORT_TYPE_ORIGINAL, FontAwesomeIcons.passport)
                           ],
                         ),
                         AnimatedCrossFade(
                           firstChild: _passportID(_formKeyPassportID),
-                          secondChild:
-                          _passportOriginal(_formKeyPassportOriginal),
-                          crossFadeState:
-                          _passportTypeController.text == PASSPORT_TYPE_ID
+                          secondChild: _passportOriginal(_formKeyPassportOriginal),
+                          crossFadeState: _passportTypeController.text == PASSPORT_TYPE_ID
                               ? CrossFadeState.showFirst
                               : CrossFadeState.showSecond,
                           duration: Duration(milliseconds: 500),
@@ -409,8 +389,7 @@ class PageProfileState extends State<PageProfile> {
                                 isDense: true,
                                 onChanged: (int newValue) {
                                   setState(() {
-                                    _educationController.text =
-                                        newValue.toString();
+                                    _educationController.text = newValue.toString();
                                   });
                                 },
                                 items: _educationsList,
@@ -438,8 +417,7 @@ class PageProfileState extends State<PageProfile> {
                           icon: SizedBox(
                             width: 24.0,
                           ),
-                          suffixIcon:
-                          _clearIconButton(_additionalEducationController),
+                          suffixIcon: _clearIconButton(_additionalEducationController),
                           labelText: 'Додаткова освіта',
                         ),
                       ),
@@ -492,8 +470,7 @@ class PageProfileState extends State<PageProfile> {
                         readOnly: _readOnly,
                         decoration: InputDecoration(
                             icon: Icon(FontAwesomeIcons.building),
-                            suffixIcon:
-                            _clearIconButton(_lastWorkPlaceController),
+                            suffixIcon: _clearIconButton(_lastWorkPlaceController),
                             labelText: 'Останнє місце роботи',
                             hintText: 'місто, компанія, посада'),
                       ),
@@ -505,9 +482,7 @@ class PageProfileState extends State<PageProfile> {
                             ),
                             child: SwitchListTile(
                                 title: Text('Відомість про інвалідність'),
-                                value: _isDisability == null
-                                    ? false
-                                    : _isDisability,
+                                value: _isDisability == null ? false : _isDisability,
                                 onChanged: (bool value) {
                                   setState(() {
                                     _isDisability = value;
@@ -524,8 +499,7 @@ class PageProfileState extends State<PageProfile> {
                             ),
                             child: SwitchListTile(
                                 title: Text('Пенсіонер'),
-                                value:
-                                _isPensioner == null ? false : _isPensioner,
+                                value: _isPensioner == null ? false : _isPensioner,
                                 onChanged: (bool value) {
                                   setState(() {
                                     _isPensioner = value;
@@ -590,20 +564,16 @@ class PageProfileState extends State<PageProfile> {
     _genderController.text = profile?.gender;
     _itnController.text = profile?.itn;
     _phoneController.text = profile?.phone;
-    _birthdayController.text = profile?.birthday != null
-        ? formatDate(profile.birthday, [dd, '-', mm, '-', yyyy])
-        : "";
+    _birthdayController.text = profile?.birthday != null ? formatDate(profile.birthday, [dd, '-', mm, '-', yyyy]) : "";
     _emailController.text = profile?.email;
     _passportTypeController.text = profile?.passportType;
     _passportNumberController.text = profile?.passportNumber;
     _passportSeriesController.text = profile?.passportSeries;
     _passportIssuedController.text = profile?.passportIssued;
-    _passportDateController.text = profile?.passportDate != null
-        ? formatDate(profile.passportDate, [dd, '-', mm, '-', yyyy])
-        : "";
-    _passportExpiryController.text = profile?.passportExpiry != null
-        ? formatDate(profile.passportExpiry, [dd, '-', mm, '-', yyyy])
-        : "";
+    _passportDateController.text =
+        profile?.passportDate != null ? formatDate(profile.passportDate, [dd, '-', mm, '-', yyyy]) : "";
+    _passportExpiryController.text =
+        profile?.passportExpiry != null ? formatDate(profile.passportExpiry, [dd, '-', mm, '-', yyyy]) : "";
     _civilStatusController.text = profile?.civilStatus;
     _childrenController.text = profile?.children;
     _jobPositionController.text = profile?.jobPosition;
@@ -712,9 +682,12 @@ class PageProfileState extends State<PageProfile> {
       return;
     }
 
-    File file = await FilePicker.getFile(
-      type: FileType.IMAGE,
-    );
+    File file;
+    FilePickerResult result = await FilePicker.platform.pickFiles();
+
+    if(result != null) {
+      file = File(result.files.single.path);
+    }
 
     final documentDirectory = await getApplicationDocumentsDirectory();
     file.copy(documentDirectory.path);
@@ -746,9 +719,7 @@ class PageProfileState extends State<PageProfile> {
         children: <Widget>[
           Icon(
             _icon,
-            color: _genderController.text == _gender
-                ? Colors.white
-                : Theme.of(context).iconTheme.color,
+            color: _genderController.text == _gender ? Colors.white : Theme.of(context).iconTheme.color,
           ),
           SizedBox(
             width: 5.0,
@@ -756,15 +727,13 @@ class PageProfileState extends State<PageProfile> {
           Text(
             genderAlias[_gender],
             style: TextStyle(
-              color: _genderController.text == _gender
-                  ? Colors.white
-                  : Theme.of(context).textTheme.title.color,
+              color: _genderController.text == _gender ? Colors.white : Theme.of(context).iconTheme.color,
+//              color: _genderController.text == _gender ? Colors.white : Theme.of(context).textTheme.title.color,
             ),
           ),
         ],
       ),
-      backgroundColor:
-      _genderController.text == "" ? _color : Colors.grey.shade100,
+      backgroundColor: _genderController.text == "" ? _color : Colors.grey.shade100,
       selectedColor: Colors.green,
       selected: _genderController.text == _gender,
       onSelected: (bool value) {
@@ -786,9 +755,7 @@ class PageProfileState extends State<PageProfile> {
         children: <Widget>[
           Icon(
             _icon,
-            color: _passportTypeController.text == _type
-                ? Colors.white
-                : Theme.of(context).iconTheme.color,
+            color: _passportTypeController.text == _type ? Colors.white : Theme.of(context).iconTheme.color,
           ),
           SizedBox(
             width: 10.0,
@@ -796,9 +763,8 @@ class PageProfileState extends State<PageProfile> {
           Text(
             passportTypesAlias[_type],
             style: TextStyle(
-              color: _passportTypeController.text == _type
-                  ? Colors.white
-                  : Theme.of(context).textTheme.title.color,
+              color: _passportTypeController.text == _type ? Colors.white : Theme.of(context).iconTheme.color,
+//              color: _passportTypeController.text == _type ? Colors.white : Theme.of(context).textTheme.title.color,
             ),
           ),
         ],
@@ -835,8 +801,7 @@ class PageProfileState extends State<PageProfile> {
               labelText: "Документ №",
             ),
             validator: (value) {
-              if (_passportTypeController.text == PASSPORT_TYPE_ID &&
-                  value.isEmpty) return 'ви не вказали № документа';
+              if (_passportTypeController.text == PASSPORT_TYPE_ID && value.isEmpty) return 'ви не вказали № документа';
 
               return null;
             },
@@ -853,8 +818,7 @@ class PageProfileState extends State<PageProfile> {
               labelText: "Орган що видає",
             ),
             validator: (value) {
-              if (_passportTypeController.text == PASSPORT_TYPE_ID &&
-                  value.isEmpty)
+              if (_passportTypeController.text == PASSPORT_TYPE_ID && value.isEmpty)
                 return 'ви не вказали орган, що видав ID картку';
               return null;
             },
@@ -868,16 +832,13 @@ class PageProfileState extends State<PageProfile> {
               DateTime picked = await showDatePicker(
                   context: context,
                   firstDate: DateTime(DateTime.now().year - 10),
-                  initialDate: profile.passportDate != null
-                      ? profile.passportExpiry
-                      : DateTime.now(),
+                  initialDate: profile.passportDate != null ? profile.passportExpiry : DateTime.now(),
                   lastDate: DateTime(DateTime.now().year + 10));
 
               if (picked != null)
                 setState(() {
                   profile.passportExpiry = picked;
-                  _passportExpiryController.text =
-                      formatDate(picked, [dd, '-', mm, '-', yyyy]);
+                  _passportExpiryController.text = formatDate(picked, [dd, '-', mm, '-', yyyy]);
                 });
             },
             child: IgnorePointer(
@@ -892,8 +853,7 @@ class PageProfileState extends State<PageProfile> {
                   labelText: 'Дійсний до',
                 ),
                 validator: (value) {
-                  if (_passportTypeController.text == PASSPORT_TYPE_ID &&
-                      value.isEmpty)
+                  if (_passportTypeController.text == PASSPORT_TYPE_ID && value.isEmpty)
                     return 'ви не вказали дату до якої дійсна ID картка';
                   return null;
                 },
@@ -923,8 +883,8 @@ class PageProfileState extends State<PageProfile> {
               labelText: "Серія",
             ),
             validator: (value) {
-              if (_passportTypeController.text == PASSPORT_TYPE_ORIGINAL &&
-                  value.isEmpty) return 'ви не вказали серію паспорта';
+              if (_passportTypeController.text == PASSPORT_TYPE_ORIGINAL && value.isEmpty)
+                return 'ви не вказали серію паспорта';
               return null;
             },
           ),
@@ -940,8 +900,8 @@ class PageProfileState extends State<PageProfile> {
               labelText: "Номер",
             ),
             validator: (value) {
-              if (_passportTypeController.text == PASSPORT_TYPE_ORIGINAL &&
-                  value.isEmpty) return 'ви не вказали номер паспорта';
+              if (_passportTypeController.text == PASSPORT_TYPE_ORIGINAL && value.isEmpty)
+                return 'ви не вказали номер паспорта';
               return null;
             },
           ),
@@ -957,8 +917,8 @@ class PageProfileState extends State<PageProfile> {
               labelText: "Ким виданий",
             ),
             validator: (value) {
-              if (_passportTypeController.text == PASSPORT_TYPE_ORIGINAL &&
-                  value.isEmpty) return 'ви не вказали ким виданий паспорт';
+              if (_passportTypeController.text == PASSPORT_TYPE_ORIGINAL && value.isEmpty)
+                return 'ви не вказали ким виданий паспорт';
               return null;
             },
           ),
@@ -971,16 +931,13 @@ class PageProfileState extends State<PageProfile> {
               DateTime picked = await showDatePicker(
                   context: context,
                   firstDate: new DateTime(1991),
-                  initialDate: profile.passportDate != null
-                      ? profile.passportDate
-                      : DateTime.now(),
+                  initialDate: profile.passportDate != null ? profile.passportDate : DateTime.now(),
                   lastDate: new DateTime(DateTime.now().year + 1));
 
               if (picked != null)
                 setState(() {
                   profile.passportDate = picked;
-                  _passportDateController.text =
-                      formatDate(picked, [dd, '-', mm, '-', yyyy]);
+                  _passportDateController.text = formatDate(picked, [dd, '-', mm, '-', yyyy]);
                 });
             },
             child: IgnorePointer(
@@ -995,8 +952,8 @@ class PageProfileState extends State<PageProfile> {
                   labelText: 'Коли виданий',
                 ),
                 validator: (value) {
-                  if (_passportTypeController.text == PASSPORT_TYPE_ORIGINAL &&
-                      value.isEmpty) return 'ви не вказали ким виданий паспорт';
+                  if (_passportTypeController.text == PASSPORT_TYPE_ORIGINAL && value.isEmpty)
+                    return 'ви не вказали ким виданий паспорт';
                   return null;
                 },
                 // maxLength: 10,
@@ -1102,23 +1059,18 @@ class ProfileTitle extends SliverPersistentHeaderDelegate {
   });
 
   @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    // TODO: implement build
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return child;
   }
 
   @override
-  // TODO: implement maxExtent
   double get maxExtent => maxSize;
 
   @override
-  // TODO: implement minExtent
   double get minExtent => minSize;
 
   @override
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
-    // TODO: implement shouldRebuild
     return false;
   }
 }

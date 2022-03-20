@@ -1,6 +1,6 @@
-import 'dart:async';
 import 'dart:io';
 
+import 'package:f_logs/f_logs.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -58,7 +58,7 @@ class DBProvider {
           ")");
 
       await db.execute('CREATE TABLE timing ('
-          'mob_id INTEGER PRIMARY KEY,'
+          'mob_id INTEGER,'
           'id INTEGER,'
           'acc_id TEXT,'
           'user_id TEXT,'
@@ -108,7 +108,7 @@ class DBProvider {
           'user_id TEXT,'
           'date TEXT,'
           'title TEXT,'
-          'description TEXT,'
+          'body TEXT,'
           'status TEXT,'
           'answered_at TEXT,'
           'answered_by TEXT,'
@@ -135,7 +135,7 @@ class DBProvider {
           'document_number TEXT,'
           'document_date TEXT,'
           'is_checked BIT,'
-          'file_paths TEXT,'
+          'is_read_only BIT,'
           'files_quantity,'
           'created_at TEXT,'
           'updated_at TEXT,'
@@ -160,9 +160,14 @@ class DBProvider {
           'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
           'id INTEGER,'
           'acc_id TEXT,'
+          'amount INTEGER,'
           'currency_acc_id TEXT,'
           'name TEXT,'
-          'is_deleted BIT'
+          'is_deleted BIT,'
+          'is_visible BIT,'
+          'is_available BIT,'
+          'is_receiver BIT,'
+          'updated_at TEXT'
           ')');
       await db.execute('CREATE TABLE currency ('
           'mob_id INTEGER PRIMARY KEY AUTOINCREMENT,'
@@ -170,6 +175,20 @@ class DBProvider {
           'acc_id TEXT,'
           'code INTEGER,'
           'name TEXT,'
+          'is_deleted BIT'
+          ')');
+      await db.execute('CREATE TABLE user_grants ('
+          'user_id TEXT,'
+          'odject_type INT,'
+          'odject_acc_id TEXT,'
+          'is_visible BIT,'
+          'is_available BIT,'
+          'is_receiver BIT'
+          ')');
+      await db.execute('CREATE TABLE pay_desk_image ('
+          'mob_id INTEGER,'
+          'pid INT,'
+          'path TEXT PRIMARY KEY,'
           'is_deleted BIT'
           ')');
 //      await db.execute('CREATE TRIGGER log_timing_after_update'
@@ -206,12 +225,19 @@ class DBProvider {
 //          'DATETIME(\'NOW\')'
 //          ');'
 //          'END;');
+      FLog.info(
+        text: "initDB complete",
+      );
     });
   }
 
   deleteDB() async {
+    _database = null;
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, "main.db");
-    return await deleteDatabase(path);
+    FLog.info(
+      text: "db deleted",
+    );
+    await deleteDatabase(path);
   }
 }

@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:enterprise/database/income_item_dao.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../main.dart';
 import 'constants.dart';
 
 class IncomeItem {
@@ -42,7 +44,10 @@ class IncomeItem {
     "is_deleted": isDeleted == null ? 0 : isDeleted ? 1 : 0,
   };
 
-  static sync() async {
+  static Future<bool> sync() async {
+    if(!await EnterpriseApp.checkInternet()){
+      return false;
+    }
     IncomeItem incomeItem;
 
     final prefs = await SharedPreferences.getInstance();
@@ -61,32 +66,46 @@ class IncomeItem {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    Response response = await get(
-      url,
-      headers: headers,
-    );
+    try {
+      Response response = await get(
+        url,
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      var jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        var jsonData = json.decode(response.body);
 
-      if (jsonData == null) {
-        return;
-      }
+        if (jsonData == null) {
+          return true;
+        }
 
-      for (var jsonIncomeItem in jsonData) {
-        incomeItem = IncomeItem.fromMap(jsonIncomeItem);
+        for (var jsonIncomeItem in jsonData) {
+          incomeItem = IncomeItem.fromMap(jsonIncomeItem);
 
-        IncomeItem existIncomeItem = await IncomeItemDAO().getByID(incomeItem.id);
+          IncomeItem existIncomeItem = await IncomeItemDAO().getByID(incomeItem.id);
 
-        if (existIncomeItem != null) {
-          incomeItem.mobID = existIncomeItem.mobID;
-          IncomeItemDAO().update(incomeItem);
-        } else {
-          if (!incomeItem.isDeleted) {
+          if (existIncomeItem != null) {
+            incomeItem.mobID = existIncomeItem.mobID;
+            IncomeItemDAO().update(incomeItem);
+          } else if (!incomeItem.isDeleted){
             IncomeItemDAO().insert(incomeItem);
           }
         }
+        return true;
+      } else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        return false;
       }
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "response error",
+        stacktrace: s,
+      );
+      return false;
     }
   }
 }

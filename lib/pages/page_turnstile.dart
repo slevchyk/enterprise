@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_nfc_reader/flutter_nfc_reader.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:nfc_manager/nfc_manager.dart';
 
 class PageTurnstile extends StatefulWidget {
   @override
@@ -20,10 +21,11 @@ class PageTurnstile extends StatefulWidget {
 }
 
 class _PageTurnstileState extends State<PageTurnstile> {
-  NFCAvailability _nfcAvailability;
+  // NFCAvailability _nfcAvailability;
   String _nfcTag = "";
   Profile _profile;
   List<Timing> _timingTurnstile = [];
+  bool _nfcAvailability = false;
 
   @override
   void initState() {
@@ -31,11 +33,18 @@ class _PageTurnstileState extends State<PageTurnstile> {
 
     SystemChrome.setEnabledSystemUIOverlays([]);
 
-    FlutterNfcReader.checkNFCAvailability().then((value) {
-      setState(() {
-        _nfcAvailability = value;
-      });
-    });
+    NfcManager.instance.isAvailable().then((value) =>
+    _nfcAvailability = value).whenComplete(() => setState(() {
+
+    }));
+
+
+
+    // FlutterNfcReader.checkNFCAvailability().then((value) {
+    //   setState(() {
+    //     _nfcAvailability = value;
+    //   });
+    // });
 
     FlutterNfcReader.onTagDiscovered().listen((NfcData _nfcData) {
       _getDataByInfoCard(_nfcData.id);
@@ -48,17 +57,18 @@ class _PageTurnstileState extends State<PageTurnstile> {
   }
 
   Widget _pageTurnstile() {
-    if (_nfcAvailability == NFCAvailability.available) {
+    if (_nfcAvailability) {
       if (_nfcTag == "") {
         return _pageNfcScan();
       } else {
         return _pageNfcProfile();
       }
-    } else if(_nfcAvailability == NFCAvailability.disabled) {
-      return _pageNfcDisabled();
     } else {
-      return _pageNfcNotSupported();
+      return _pageNfcDisabled();
     }
+    // else {
+    //   return _pageNfcNotSupported();
+    // }
   }
 
   Widget _pageNfcDisabled() {
@@ -69,13 +79,16 @@ class _PageTurnstileState extends State<PageTurnstile> {
     );
   }
 
-  Widget _pageNfcNotSupported() {
-    return Material(
-      child: Center(
-        child: Text('Ваш телефон не підтримує NFC'),
-      ),
-    );
-  }
+  // Widget _pageNfcNotSupported() {
+  //   FLog.info(
+  //     text: "nfc don't support",
+  //   );
+  //   return Material(
+  //     child: Center(
+  //       child: Text('Ваш телефон не підтримує NFC'),
+  //     ),
+  //   );
+  // }
 
   Widget _pageNfcScan() {
     return Material(

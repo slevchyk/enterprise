@@ -70,7 +70,7 @@ class DigitalKeyboard extends StatelessWidget {
         ),
       ),
       onPressed: () {
-        symbol.isNotEmpty ? onPressed(symbol) : null;
+        symbol.isNotEmpty ? onPressed(symbol) : Container();
       },
       elevation: symbol.isNotEmpty ? 5.0 : 0.0,
       fillColor: symbol.isNotEmpty ? Colors.white : null,

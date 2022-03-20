@@ -1,14 +1,20 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:device_info/device_info.dart';
+import 'package:enterprise/database/core.dart';
 import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/models.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/widgets/snack_bar_show.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../main.dart';
 
 class PageSignInOut extends StatefulWidget {
   @override
@@ -20,13 +26,12 @@ class _PageSignInOutState extends State<PageSignInOut> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _userPhoneController = TextEditingController();
   final _userPinController = TextEditingController();
-  MaskTextInputFormatter maskTextInputFormatter;
+  final MaskTextInputFormatter maskTextInputFormatter =
+  MaskTextInputFormatter(mask: '## ### ####', filter: { "#": RegExp(r'[0-9]') });
 
   @override
   void initState() {
     super.initState();
-    maskTextInputFormatter = MaskTextInputFormatter(mask: '+38 0## ### ####', filter: { "#": RegExp(r'[0-9]') });
-//    _userPhoneController.text = "+38 0";
   }
 
   bool get isInDebugMode {
@@ -39,7 +44,8 @@ class _PageSignInOutState extends State<PageSignInOut> {
     if (this.isInDebugMode) {
       return FlatButton(
         onPressed: () {
-          Navigator.of(context).pushNamed("/main");
+          RouteArgs _args = RouteArgs();
+          Navigator.of(context).pushNamed("/home", arguments: _args);
         },
         child: Text('Продовжити. debug'),
         shape: RoundedRectangleBorder(
@@ -75,6 +81,8 @@ class _PageSignInOutState extends State<PageSignInOut> {
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
                     labelText: "Номер телефону",
+                    prefixStyle: TextStyle(color: Colors.black, fontSize: 16),
+                    prefixText: "+38 0",
                     icon: Icon(Icons.phone)),
                 inputFormatters: [
                   maskTextInputFormatter,
@@ -85,30 +93,9 @@ class _PageSignInOutState extends State<PageSignInOut> {
                   } else if (!maskTextInputFormatter.isFill()) {
                     return "невірний формат";
                   }
-                  _userPhoneController.text="+380${maskTextInputFormatter.getUnmaskedText()}";
                   return null;
                 },
               ),
-//              TextFormField(
-//                controller: _userPhoneController,
-//                keyboardType: TextInputType.phone,
-//                decoration: InputDecoration(
-//                    labelText: "Номер телефону",
-//                    hintText: "+380...",
-//                    icon: Icon(Icons.phone)),
-//                inputFormatters: [
-//                  WhitelistingTextInputFormatter(RegExp("[+0-9]"))
-//                ],
-//                validator: (value) {
-//                  if (value.isEmpty) {
-//                    return "ви не вказали номер телефону";
-//                  } else if (value.length != 13) {
-//                    return "невірний формат";
-//                  }
-//
-//                  return null;
-//                },
-//              ),
               TextFormField(
                   controller: _userPinController,
                   obscureText: true,
@@ -152,11 +139,54 @@ class _PageSignInOutState extends State<PageSignInOut> {
     );
   }
 
+  Future<Map<String, String>> _mapDeviceNameAndModel() async {
+    DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
+    Map<String, String> _deviceData;
+    try {
+      if (Platform.isAndroid) {
+        _deviceData = _readAndroidBuildData(await _deviceInfoPlugin.androidInfo);
+      } else if (Platform.isIOS) {
+        _deviceData = _readIosDeviceInfo(await _deviceInfoPlugin.iosInfo);
+      }
+    } on PlatformException {
+      _deviceData = <String, String>{
+        'Error:': 'Failed to get platform version.'
+      };
+    }
+    return _deviceData;
+  }
+
+  Map<String, String> _readAndroidBuildData(AndroidDeviceInfo build) {
+    return <String, String>{
+      'name': build.brand,
+      'model': build.model,
+      'id' : build.androidId,
+    };
+  }
+
+  Map<String, String> _readIosDeviceInfo(IosDeviceInfo data) {
+    return <String, String>{
+      'name': data.name,
+      'model': data.model,
+      'id' : data.identifierForVendor,
+    };
+  }
+
   void _getLocalServerSettingsProfile(
       GlobalKey<ScaffoldState> _scaffoldKey) async {
+    if(!await EnterpriseApp.checkInternet(showSnackBar: true, scaffoldKey: _scaffoldKey)){
+      return;
+    }
+
+    Map<String, String> _phoneInfo = await _mapDeviceNameAndModel();
+
+
     Map<String, String> requestMap = {
-      "phone": _userPhoneController.text,
-      "pin": _userPinController.text
+      "phone" : "+380${maskTextInputFormatter.getUnmaskedText()}",
+      "pin" : _userPinController.text,
+      "name" : _phoneInfo["name"] != null ? _phoneInfo["name"] : " ",
+      "model" : _phoneInfo["model"] != null ? _phoneInfo["model"] : " ",
+      "imei" : _phoneInfo["id"]!= null ? _phoneInfo["id"] : " ",
     };
 
     String requestJSON = json.encode(requestMap);
@@ -175,80 +205,99 @@ class _PageSignInOutState extends State<PageSignInOut> {
     };
 
     String url = 'http://$mainSrvIP/api/getdbsettings';
-    Response response = await post(url, headers: headers, body: requestJSON);
 
-    String body = response.body;
+    try{
+      Response response = await post(url, headers: headers, body: requestJSON);
 
-    if (response.statusCode == 200) {
-      Map<String, dynamic> responseJSON = json.decode(body);
+      String body = response.body;
 
-      final String localSrvIP = responseJSON["srv_ip"];
-      final String localSrvUser = responseJSON["srv_user"];
-      final String localSrvPassword = responseJSON["srv_password"];
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseJSON = json.decode(body);
 
-      final prefs = await SharedPreferences.getInstance();
+        final String localSrvIP = responseJSON["srv_ip"];
+        final String localSrvUser = responseJSON["srv_user"];
+        final String localSrvPassword = responseJSON["srv_password"];
 
-      prefs.setString(KEY_USER_PHONE, _userPhoneController.text);
-      prefs.setString(KEY_USER_PIN, _userPinController.text);
+        final prefs = await SharedPreferences.getInstance();
 
-      prefs.setString(KEY_SERVER_IP, localSrvIP);
-      prefs.setString(KEY_SERVER_USER, localSrvUser);
-      prefs.setString(KEY_SERVER_PASSWORD, localSrvPassword);
+        prefs.setString(KEY_USER_PHONE, "+380${maskTextInputFormatter.getUnmaskedText()}");
+        prefs.setString(KEY_USER_PIN, _userPinController.text);
 
-      Profile _profile = await Profile.downloadByPhonePin(_scaffoldKey);
+        prefs.setString(KEY_SERVER_IP, localSrvIP);
+        prefs.setString(KEY_SERVER_USER, localSrvUser);
+        prefs.setString(KEY_SERVER_PASSWORD, localSrvPassword);
 
-      if (_profile != null) {
-        if (_profile.userID != "") {
-          RouteArgs args = RouteArgs(profile: _profile);
+        Profile _profile = await Profile.downloadByPhonePin(_scaffoldKey);
 
-          prefs.setString(KEY_USER_ID, _profile.userID);
-          Navigator.of(context).pushNamed(
-            '/',
-            arguments: args,
-          );
+        if (_profile != null) {
+          if (_profile.userID != "") {
+            RouteArgs args = RouteArgs(profile: _profile);
+
+            prefs.setString(KEY_USER_ID, _profile.userID);
+            FLog.info(
+                text: "login user ${_profile.userID}"
+            );
+            Navigator.of(context).pushReplacementNamed(
+              '/',
+              arguments: args,
+            );
+          }
         }
+
+        return;
       }
 
-      return;
-    }
+      switch (response.statusCode){
+        case 400:
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error, incorrect parameters licence server $body",
+          );
+          ShowSnackBar.show(_scaffoldKey, 'Невірні параметри сервера ліцензування\n$body', Colors.redAccent);
+          return;
+        case 401:
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error, error licence server $body",
+          );
+          ShowSnackBar.show(_scaffoldKey, 'Помилка сервера сервера ліцензування:\n$body', Colors.redAccent);
+          return;
+        case 404:
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error, not found user on licence server with this parameters",
+          );
+          ShowSnackBar.show(_scaffoldKey, 'Не знайдено обілковий запис сервера ліцензування з такими параметрами', Colors.redAccent);
+          return;
+        case 406:
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error, not found user on licence server with this parameters",
+          );
+          ShowSnackBar.show(_scaffoldKey, 'Невірні параметри сервера ліцензування, доступ вiдхилено', Colors.redAccent);
+          return;
+        case 500:
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error, error licence server $body",
+          );
+          ShowSnackBar.show(_scaffoldKey, 'Помилка сервера ліцензування:\n$body', Colors.redAccent);
+          return;
+        default:
+          FLog.error(
+            exception: Exception(response.statusCode),
+            text: "status code error, can't get settings from licence server",
+          );
+          ShowSnackBar.show(_scaffoldKey, 'Не вдалось отримати налаштування сервера ліцензування', Colors.redAccent);
+      }
 
-    if (response.statusCode == 400) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Невірні параметри сервера ліцензування\n$body'),
-        backgroundColor: Colors.redAccent,
-      ));
-      return;
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "response error",
+        stacktrace: s,
+      );
     }
-
-    if (response.statusCode == 401) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Помилка сервера сервера ліцензування:\n$body'),
-        backgroundColor: Colors.redAccent,
-      ));
-      return;
-    }
-
-    if (response.statusCode == 404) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text(
-            'Не знайдено обілковий запис сервера ліцензування з такими параметрами'),
-        backgroundColor: Colors.redAccent,
-      ));
-      return;
-    }
-
-    if (response.statusCode == 500) {
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text('Помилка сервера ліцензування:\n$body'),
-        backgroundColor: Colors.redAccent,
-      ));
-      return;
-    }
-
-    _scaffoldKey.currentState.showSnackBar(SnackBar(
-      content: Text('Не вдалось отримати налаштування сервера ліцензування'),
-      backgroundColor: Colors.redAccent,
-    ));
   }
 }
 
@@ -269,8 +318,14 @@ singInOutDialog(BuildContext context) {
               child: Text("Так"),
               onPressed: () async {
                 final prefs = await SharedPreferences.getInstance();
+                FLog.info(
+                    text: "logout user ${prefs.getString(KEY_USER_ID)}"
+                );
                 prefs.setString(KEY_USER_ID, "");
-                Navigator.of(context).pushNamed("/sign_in_out");
+                DBProvider.db.deleteDB();
+                EnterpriseApp.deleteApplicationFileDir();
+
+                Navigator.of(context).pushNamedAndRemoveUntil("/sign_in_out", (Route<dynamic> route) => false);
               },
             )
           ],

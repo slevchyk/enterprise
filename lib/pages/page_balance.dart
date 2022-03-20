@@ -1,205 +1,154 @@
 
+import 'package:enterprise/database/impl/pay_office_dao.dart';
+import 'package:enterprise/database/pay_desk_dao.dart';
 import 'package:enterprise/models/constants.dart';
+import 'package:enterprise/models/models.dart';
+import 'package:enterprise/models/pay_office.dart';
+import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/widgets/custom_expansion_title.dart';
+import 'package:enterprise/widgets/sort_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 
 class PageBalance extends StatefulWidget{
+  final Profile profile;
+
+  PageBalance({
+    this.profile,
+  });
+
   @override
   _PageBalanceState createState() => _PageBalanceState();
 }
 
 class _PageBalanceState extends State<PageBalance>{
+  Profile _profile;
+
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final amountFormatter =
   MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: ' ');
-  List<Test> listTest = [];
-  List<Test> _listToShow = [];
-  Map<int, double> _mapToShow;
+
+  List<PayOffice> _listPayOfficeToShow;
+
+  Map<String, double> _mapToShow;
 
   ScrollController _scrollController;
-  ScrollController _dialogScrollController;
+  ScrollController _scrollControllerPayOffice;
 
-  bool _isSwitched;
+  int _currencyCode;
 
   @override
   void initState() {
     super.initState();
+    _profile = widget.profile;
     _scrollController = ScrollController();
-    _dialogScrollController = ScrollController();
-    _isSwitched = true;
+    _scrollControllerPayOffice = ScrollController();
+  }
 
-    for(int i = 1; i <= 20; i++){
-      if(i%2==0){
-        listTest.add(Test(name: "Гаманець $i", amount: double.parse((2000+i).toString()),isUsed: false, isViewed: true, currency: "UAH", code: 980 ));
-      } else {
-        listTest.add(Test(name: "Гаманець $i", amount: double.parse((2000+i).toString()),isUsed: true, isViewed: false, currency: "UAH", code: 980));
-      }
+  @override
+  void setState(fn) {
+    if(mounted){
+      super.setState(fn);
     }
-    listTest.add(Test(name: "Гаманець 21", amount: double.parse((2000+6).toString()),isUsed: false, isViewed: true, currency: "USD", code: 840 ));
-    listTest.add(Test(name: "Гаманець 22", amount: double.parse((2000+7).toString()),isUsed: true, isViewed: false, currency: "USD", code: 840 ));
-    listTest.add(Test(name: "Гаманець 23", amount: double.parse((2000+8).toString()),isUsed: false, isViewed: true, currency: "EUR", code: 978 ));
-    listTest.add(Test(name: "Гаманець 24", amount: double.parse((2000+9).toString()),isUsed: true, isViewed: false, currency: "EUR", code: 978 ));
-    listTest = listTest.reversed.toList();
-    _listToShow = listTest;
-
-    _mapToShow = _setMapMap(listTest);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        title: Text("Баланс"),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.sort),
-            onPressed: (){
-              _sortDialog();
-            },
+    return OrientationBuilder (
+      builder: (context, orientation) {
+        return Scaffold(
+          key: _scaffoldKey,
+          appBar: AppBar(
+            title: Text("Баланс"),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.sort),
+                onPressed: () {
+                  SortWidget.sortPayOffice(_listPayOfficeToShow, _scrollControllerPayOffice, _callBack ,context);
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.sync),
+                onPressed: (){
+                  _load();
+                },
+              ),
+            ],
           ),
-        ],
-      ),
-      backgroundColor: Colors.white60,
-      body: _sceneToShow(_mapToShow),
-    );
-  }
+          body: FutureBuilder(
+              future: ImplPayOfficeDAO().getUnDeleted(),
+              builder: (BuildContext context, AsyncSnapshot snapshot){
+                switch(snapshot.connectionState) {
+                  case ConnectionState.none:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  case ConnectionState.waiting:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  case ConnectionState.active:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  case ConnectionState.done:
+                    var where;
+                    if(_listPayOfficeToShow!=null){
+                      where = _listPayOfficeToShow?.where((payOffice) => payOffice.isShow==false);
+                    }
 
-  _sortDialog(){
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      _dialogScrollController
-          .jumpTo(_dialogScrollController.position.maxScrollExtent+listTest.length);
-    });
-    showDialog(
-        context: context,
-        builder: (context) {
-          return StatefulBuilder(
-            builder: (BuildContext context, void Function(void Function()) setState) {
-              return AlertDialog(
-                contentPadding: EdgeInsets.all(0.0),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(20.0))
-                ),
-                content: Container(
-                  height: listTest.length == 1 ? 115 : listTest.length >3 ? 300 : 160,
-                  width: 500,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    reverse: true,
-                    controller: _dialogScrollController,
-                    itemCount: listTest.length+1,
-                    itemBuilder: (BuildContext context, int index){
-                      if(listTest.length==index){
-                        return Column(
-                          children: <Widget>[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Container(
-                                  height: 60,
-                                  padding: EdgeInsets.only(left: 35),
-                                  alignment: Alignment.center,
-                                  child: Text("Обрати всi",textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.lightGreen),),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(right: 25),
-                                  child: Switch(
-                                    value: _isSwitched,
-                                    onChanged: (value) {
-                                      List<Test> list = [];
-                                      setState(() {
-                                        _isSwitched = value;
-                                        list = listTest.where((element) => element.isShow?
-                                        element.isShow:
-                                        element.isShow=true)
-                                            .toList();
-                                        _mapToShow = _setMapMap(list);
-                                        _listToShow = list;
-                                        this.setState(() {});
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20),
-                              child: Container(
-                                height: 1.5,
-                                color: Colors.lightGreen,
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              Container(
-                                alignment: Alignment.center,
-                                padding: EdgeInsets.symmetric(horizontal: 40),
-                                child: Column(
-                                  children: <Widget>[
-                                    Text(listTest[index].name),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                alignment: Alignment.center,
-                                padding: EdgeInsets.symmetric(horizontal: 25),
-                                child: Column(
-                                  children: <Widget>[
-                                    Switch(
-                                      value: listTest[index].isShow,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          if(_isSwitched){
-                                            _isSwitched = false;
-                                          }
-                                          listTest[index].isShow = !listTest[index].isShow;
-                                          _mapToShow = _setMapMap(listTest);
-                                          this.setState(() { });
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                    if(where==null){
+                      _listPayOfficeToShow = snapshot.data;
+                    }
+
+                    _mapToShow = _setMapMap(_listPayOfficeToShow);
+                    int _emptyLength = _mapToShow.values.where((element) => element!=0).toList().length;
+                    if(_emptyLength==0){
+                      return Container(
+                        child: Center(
+                          child: Text("Нема інформації по гаманцях",
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        ),
                       );
-                    },
-                  ),
-                ),
-              );},
-          );
-        }
+                    }
+                    return _sceneToShow(_mapToShow, orientation);
+                    break;
+                  default:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                }
+              }
+          ),
+        );
+      },
     );
   }
 
-  Map<int, double> _setMapMap(List<Test> list){
-    Map<int, double> toReturn = {
-      980 : 0,
-      840 : 0,
-      978 : 0,
-    };
+  Map<String, double> _setMapMap(List<PayOffice> list){
+    Map<String, double> toReturn = {} ;
+    CURRENCY_NAME.values.forEach((element) {
+      toReturn.addAll({element : 0});
+    });
     list.forEach((pay) {
+      if(!pay.isVisible){
+        return;
+      }
       if(pay.isShow){
-        toReturn.update(pay.code, (value) =>  value + pay.amount);
+        if(pay.amount==null){
+          pay.amount = 0;
+        }
+        toReturn.update(pay.currencyName, (value) =>  value + pay.amount);
       }
     });
     return toReturn;
   }
 
-  Widget _sceneToShow(Map<int, double> listToShow) {
+  Widget _sceneToShow(Map<String, double> listToShow, Orientation orientation) {
     return ListView.builder(
         controller: _scrollController,
         itemCount: listToShow.keys.length,
@@ -208,13 +157,19 @@ class _PageBalanceState extends State<PageBalance>{
             return Container();
           }
           amountFormatter.text = listToShow.values.elementAt(index).toStringAsFixed(2);
+          _currencyCode = CURRENCY_NAME.keys
+              .firstWhere((element) => CURRENCY_NAME[element] == listToShow.keys.elementAt(index),
+              orElse: () => null);
           return Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
+            shape: RoundedRectangleBorder(
+              side: BorderSide(color: Colors.lightGreen, width: 1.5),
+                borderRadius: BorderRadius.all(Radius.circular(20.0))),
             child: Padding(
               padding: EdgeInsets.all(10),
               child: Column(
                 children: <Widget>[
                   CustomExpansionTile(
+                    initiallyExpanded: true,
                     title: Column(
                       children: <Widget>[
                         Row(
@@ -224,17 +179,13 @@ class _PageBalanceState extends State<PageBalance>{
                               width: MediaQuery.of(context).size.width/3,
                               child: Wrap(
                                 children: <Widget>[
-                                  Text("Всього, ${CURRENCY_NAME[listToShow.keys.elementAt(index)]}", style: TextStyle(fontSize: 18),),
+                                  Text("Всього, ${listToShow.keys.elementAt(index)}", style: TextStyle(fontSize: 18),),
                                 ],
                               ),
                             ),
-                            Container(
-                              width: MediaQuery.of(context).size.width/4,
-                              child: Wrap(
-                                children: <Widget>[
-                                  Text("${amountFormatter.text} ${CURRENCY_SYMBOL[listToShow.keys.elementAt(index)]}", style: TextStyle(fontSize: 18),),
-                                ],
-                              ),
+                            Flexible(
+                              flex: 1,
+                              child: Text("${listToShow.values.elementAt(index).isNegative ? "-" : ""}${amountFormatter.text}${CURRENCY_SYMBOL[_currencyCode]}", style: TextStyle(fontSize: 18), textAlign: TextAlign.end,),
                             ),
                           ],
                         ),
@@ -245,9 +196,9 @@ class _PageBalanceState extends State<PageBalance>{
                           shrinkWrap: true,
                           reverse: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _listToShow.length+1,
+                          itemCount: _listPayOfficeToShow.length+1,
                           itemBuilder: (BuildContext context, int listIndex) {
-                            if(_listToShow.length==listIndex){
+                            if(_listPayOfficeToShow.length==listIndex){
                               return Padding(
                                 padding: EdgeInsets.only(bottom: 10),
                                 child: Container(
@@ -256,18 +207,37 @@ class _PageBalanceState extends State<PageBalance>{
                                 ),
                               );
                             }
-                            if(!_listToShow[listIndex].isShow){
+                            if(!_listPayOfficeToShow[listIndex].isShow){
                               return Container();
                             }
-                            amountFormatter.text = _listToShow[listIndex].amount.toStringAsFixed(2);
-                            if(_listToShow[listIndex].code==listToShow.keys.elementAt(index)){
-                              return Padding(
-                                padding: EdgeInsets.only(left: 17, top: 5, right: 25),
+                            if(!_listPayOfficeToShow[listIndex].isVisible){
+                              return Container();
+                            }
+                            if(_listPayOfficeToShow[listIndex].currencyName==listToShow.keys.elementAt(index)){
+                              amountFormatter.text = _listPayOfficeToShow[listIndex].amount.toStringAsFixed(2);
+                              _currencyCode = CURRENCY_NAME.keys
+                                  .firstWhere((element) => CURRENCY_NAME[element] == listToShow.keys.elementAt(index),
+                                  orElse: () => null);
+                              return FlatButton(
+                                onPressed: () async {
+                                  RouteArgs args = RouteArgs(
+                                      profile: _profile,
+                                      currencyCode: _currencyCode,
+                                      payOffice: _listPayOfficeToShow[listIndex],
+                                      listDynamic: await PayDeskDAO().getByPayOfficeID(_listPayOfficeToShow[listIndex].accID));
+                                  Navigator.pushNamed(context, "/balance/details", arguments: args);
+                                },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: <Widget>[
-                                    Text(_listToShow[listIndex].name),
-                                    Text("${amountFormatter.text} ${CURRENCY_SYMBOL[listToShow.keys.elementAt(index)]}"),
+                                    Container(
+                                      width: MediaQuery.of(context).size.width/2,
+                                      child: Text(_listPayOfficeToShow[listIndex].name, overflow: TextOverflow.ellipsis, maxLines: 2,),
+                                    ),
+                                    Container(
+                                      width: orientation == Orientation.landscape ? MediaQuery.of(context).size.height/2.5 : MediaQuery.of(context).size.width/3,
+                                      child: Text("${ _listPayOfficeToShow[listIndex].amount.isNegative ? "-" : ""}${amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}", overflow: TextOverflow.ellipsis, maxLines: 2, textAlign: TextAlign.end,),
+                                    ),
                                   ],
                                 ),
                               );
@@ -285,24 +255,14 @@ class _PageBalanceState extends State<PageBalance>{
         );
   }
 
-}
-///For testing
-class Test{
-  String name;
-  String currency;
-  double amount;
-  int code;
-  bool isShow;
-  bool isUsed;
-  bool isViewed;
+  void _load() async {
+    if((await UserGrants.sync(scaffoldKey: _scaffoldKey))){
+      setState(() {});
+    }
+  }
 
-  Test({
-    this.name,
-    this.currency,
-    this.amount,
-    this.code,
-    this.isShow = true,
-    this.isUsed,
-    this.isViewed
-  });
+  void _callBack(){
+    setState(() {});
+  }
+
 }

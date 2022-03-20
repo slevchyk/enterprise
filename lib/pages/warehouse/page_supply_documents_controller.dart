@@ -10,6 +10,7 @@ import 'package:enterprise/models/warehouse/goods.dart';
 import 'package:enterprise/models/warehouse/partners.dart';
 import 'package:enterprise/models/warehouse/relation_supply_documents_goods.dart';
 import 'package:enterprise/models/warehouse/supply_documnets.dart';
+import 'package:enterprise/widgets/snack_bar_show.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -276,10 +277,10 @@ class _SupplyDocumentsState extends State<SupplyDocumentsView>{
     if (_ok) {
       setState(() {
         _readOnly = false;
-        _displaySnackBar(context, "Замовлення постачальника збережно", Colors.green);
+        ShowSnackBar.show(_scaffoldKey, "Замовлення постачальника збережно", Colors.green);
       });
     } else {
-      _displaySnackBar(context, "Помилка збереження", Colors.red);
+      ShowSnackBar.show(_scaffoldKey, "Помилка збереження", Colors.red);
     }
 
     return _ok;
@@ -861,27 +862,16 @@ class _SupplyDocumentsState extends State<SupplyDocumentsView>{
     }
   }
 
-  void _displaySnackBar(BuildContext context, String title, Color color) {
-    final snackBar = SnackBar(
-      content: Text(title),
-      backgroundColor: color,
-    );
-    _scaffoldKey.currentState.showSnackBar(snackBar);
-  }
-
   Future<String> _scan() async {
-    try{
-      return await BarcodeScanner.scan();
-    } on PlatformException catch(e){
-      if(e.code == BarcodeScanner.CameraAccessDenied){
-        return "Помилка доступу до камери";
-      } else {
-        return "Помилка $e";
-      }
-    } on FormatException {
-      return "null";
+    var _android = AndroidOptions(
+      useAutoFocus: true,);
+    var _options = ScanOptions(
+      android: _android,
+    );
+    try {
+      return (await BarcodeScanner.scan(options: _options)).rawContent;
     } catch (e){
-      return "$e";
+      return e;
     }
   }
 
@@ -892,7 +882,7 @@ class _SupplyDocumentsState extends State<SupplyDocumentsView>{
         _currentSupplyDocument.goods.contains(good) ?
             null : _currentSupplyDocument.goods.contains(good) ?
             null : _currentSupplyDocument.goods.add(_setGoods([good]).first) :
-    _displaySnackBar(context, 'Номенклатуру не знайдено', Colors.red));
+    ShowSnackBar.show(_scaffoldKey, 'Номенклатуру не знайдено', Colors.red));
   }
 
   int _getID(String input) {

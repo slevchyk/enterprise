@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:enterprise/database/currency_dao.dart';
-import 'package:enterprise/database/pay_office_dao.dart';
+import 'package:f_logs/f_logs.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../main.dart';
 import 'constants.dart';
 
 class Currency {
@@ -47,7 +48,10 @@ class Currency {
         "is_deleted": isDeleted == null ? 0 : isDeleted ? 1 : 0,
       };
 
-  static sync() async {
+  static Future<bool> sync() async {
+    if(!await EnterpriseApp.checkInternet()){
+      return false;
+    }
     Currency currency;
 
     final prefs = await SharedPreferences.getInstance();
@@ -66,32 +70,46 @@ class Currency {
       HttpHeaders.contentTypeHeader: "application/json",
     };
 
-    Response response = await get(
-      url,
-      headers: headers,
-    );
+    try {
+      Response response = await get(
+        url,
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      var jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        var jsonData = json.decode(response.body);
 
-      if (jsonData == null) {
-        return;
-      }
+        if (jsonData == null) {
+          return true;
+        }
 
-      for (var jsonCurrency in jsonData) {
-        currency = Currency.fromMap(jsonCurrency);
+        for (var jsonCurrency in jsonData) {
+          currency = Currency.fromMap(jsonCurrency);
 
-        Currency existCurrency = await CurrencyDAO().getByID(currency.id);
+          Currency existCurrency = await CurrencyDAO().getByID(currency.id);
 
-        if (existCurrency != null) {
-          currency.mobID = existCurrency.mobID;
-          CurrencyDAO().update(currency);
-        } else {
-          if (!currency.isDeleted) {
+          if (existCurrency != null) {
+            currency.mobID = existCurrency.mobID;
+            CurrencyDAO().update(currency);
+          } else if (!currency.isDeleted) {
             CurrencyDAO().insert(currency);
           }
         }
+        return true;
+      } else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error",
+        );
+        return false;
       }
+    } catch (e, s){
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "response error",
+        stacktrace: s,
+      );
+      return false;
     }
   }
 }

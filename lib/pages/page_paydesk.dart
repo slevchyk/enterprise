@@ -1,14 +1,22 @@
 import 'dart:async';
 
+import 'package:date_format/date_format.dart';
+import 'package:enterprise/database/impl/pay_office_dao.dart';
 import 'package:enterprise/database/pay_desk_dao.dart';
+import 'package:enterprise/models/constants.dart';
 import 'package:enterprise/models/models.dart';
+import 'package:enterprise/models/pay_office.dart';
 import 'package:enterprise/models/paydesk.dart';
 import 'package:enterprise/models/profile.dart';
+import 'package:enterprise/models/user_grants.dart';
 import 'package:enterprise/widgets/notification_icon.dart';
 import 'package:enterprise/widgets/paydesk_list.dart';
+import 'package:enterprise/widgets/period_dialog.dart';
+import 'package:enterprise/widgets/sort_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:intl/intl.dart';
 
 class PagePayDesk extends StatefulWidget {
   final Profile profile;
@@ -22,20 +30,45 @@ class PagePayDesk extends StatefulWidget {
 }
 
 class _PagePayDeskState extends State<PagePayDesk> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   Profile _profile;
-  Future<List<PayDesk>> payList;
+
+  final TextEditingController _dateFrom = TextEditingController();
+  final TextEditingController _dateTo = TextEditingController();
+
+  Map<SortControllers, bool> _controllersMap;
+
+  List<PayOffice> _listPayOffice;
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  Future<List<PayDesk>> _payList;
+  Future<List<PayDesk>> _payListToShow;
+
   ScrollController _scrollController;
+  ScrollController _scrollControllerPayOffice;
+
+  DateTime _now;
+  DateTime _firstDayOfMonth;
+
   bool _isVisible;
   int _statusCount;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => UserGrants.sync(scaffoldKey: _scaffoldKey, isForceUpdate: false).whenComplete(() => _load(action: false)));
+    _now = DateTime.now();
+    _firstDayOfMonth = DateTime(_now.year, _now.month, 1);
+    _dateFrom.text = formatDate(_firstDayOfMonth, [dd, '.', mm, '.', yyyy]);
+    _dateTo.text = formatDate(_now, [dd, '.', mm, '.', yyyy]);
     _profile = widget.profile;
-    _load();
+    _payList = PayDeskDAO().getUnDeleted();
+    _load(action: false);
+    _controllersMap = PeriodDialog.setControllersMap();
     _isVisible = true;
     _scrollController = ScrollController();
+    _scrollControllerPayOffice = ScrollController();
     _scrollController.addListener(() {
       switch (_scrollController.position.userScrollDirection) {
         case ScrollDirection.forward:
@@ -53,10 +86,21 @@ class _PagePayDeskState extends State<PagePayDesk> {
           }
           break;
         case ScrollDirection.idle:
-          print(_isVisible);
+          if(!_isVisible){
+            setState(() {
+              _isVisible = true;
+            });
+          }
           break;
       }
     });
+  }
+
+  @override
+  void setState(fn) {
+    if(mounted){
+      super.setState(fn);
+    }
   }
 
   @override
@@ -66,46 +110,35 @@ class _PagePayDeskState extends State<PagePayDesk> {
       appBar: AppBar(
         title: Text('Каса'),
         actions: <Widget>[
-          IconButton(
-            onPressed: () async {
-              FocusScope.of(this.context).unfocus();
-              DateTime picked = await showDatePicker(
-                  context: context,
-                  firstDate: DateTime(DateTime.now().year - 1),
-                  initialDate: DateTime.now(),
-                  lastDate: DateTime(DateTime.now().year + 1));
-              if (picked != null){
-                RouteArgs args = RouteArgs(
-                  profile: _profile,
-                  dateSort: picked,
-                );
-                Navigator.pushNamed(context, "/paydesk/sort", arguments: args);
-              }
-            },
-            icon: Icon(
-              Icons.calendar_today,
-              size: 23,
-              color: Colors.white,
-            ),
-          ),
           IconWithNotification(
             iconData: Icons.assignment_turned_in,
             notificationCount: _statusCount,
             onTap: (){
               RouteArgs args = RouteArgs(
                 profile: _profile,
+                callback: _load,
               );
-              Navigator.pushNamed(context, "/paydesk/confirm", arguments: args)
-                  .whenComplete(() => _load());
+              Navigator.pushNamed(context, "/paydesk/confirm", arguments: args);
             },
           ),
           IconButton(
-            onPressed: () async {
-              await PayDesk.sync();
+            icon: Icon(Icons.sort),
+            onPressed: () {
+              SortWidget.sortPayOffice(_listPayOffice, _scrollControllerPayOffice, _callBack ,context);
+            },
+          ),
+          IconButton(
+              icon: Icon(Icons.calendar_today),
+              onPressed: (){
+                PeriodDialog.showPeriodDialog(context, _dateFrom, _dateTo, _controllersMap).whenComplete(() => setState((){}));
+              }
+          ),
+          IconButton(
+            onPressed: () {
               _load();
             },
             icon: Icon(
-              Icons.update,
+              Icons.sync,
               size: 28,
               color: Colors.white,
             ),
@@ -114,19 +147,30 @@ class _PagePayDeskState extends State<PagePayDesk> {
       ),
       body: RefreshIndicator(
         onRefresh: _load,
-        child: PayDeskList(
-          payList: payList,
-          profile: _profile,
-          scrollController: _scrollController,
-          showStatus: false,
-        ),
+        child: OrientationBuilder(builder: (BuildContext context, Orientation orientation) {
+          return PayDeskList(
+            payList: _payListToShow,
+            profile: _profile,
+            scrollController: _scrollController,
+            showStatus: false,
+            dateFrom: DateFormat('dd.MM.yyyy').parse(_dateFrom.text),
+            dateTo: DateFormat('dd.MM.yyyy').parse(_dateTo.text),
+            isReload: _controllersMap[SortControllers.reload],
+            isPeriod: _controllersMap[SortControllers.period],
+            isSortByPeriod: _controllersMap[SortControllers.reloadByPeriod],
+            isSort: true,
+            textIfEmpty: "Iнформацiя за ${_controllersMap[SortControllers.period] ? "перiод \n${_dateFrom.text} - ${_dateTo.text}" : "${_dateTo.text}"} \nвiдсутня",
+            callback: _load,
+          );
+        },),
       ),
       floatingActionButton: Visibility(
         visible: _isVisible,
         child: FloatingActionButton(
+          backgroundColor: Colors.lightGreen,
           onPressed: () {
-            RouteArgs _args = RouteArgs(profile: _profile);
-            Navigator.pushNamed(context, "/paydesk/detail", arguments: _args).whenComplete(() => _load());
+            RouteArgs _args = RouteArgs(profile: _profile, type: PayDeskTypes.costs, callback: _load);
+            Navigator.pushNamed(context, "/paydesk/detail", arguments: _args);
           },
           child: Icon(Icons.add),
         ),
@@ -134,19 +178,42 @@ class _PagePayDeskState extends State<PagePayDesk> {
     );
   }
 
-  _setCount(Future<List<PayDesk>> input){
-    input.then((list) => list.forEach((payDesk) {
-      if(payDesk.payDeskType == 2 && !payDesk.isChecked){
-        _statusCount++;
-      }
-    })).then((value) => setState(() {}));
+  Future<List<PayDesk>> _sort() async {
+    List<PayDesk> _input = await _payList;
+    List<PayDesk> _toReturn = [];
+    if(_listPayOffice.where((payOffice) => payOffice.isVisible && payOffice.isShow).length!=0){
+      _input.forEach((payDesk) {
+        var where = _listPayOffice.where((payOffice) => payOffice.isVisible && payOffice.isShow);
+        if(where!=null){
+          where.forEach((element) {
+            if(element.accID == payDesk.fromPayOfficeAccID || element.accID == payDesk.toPayOfficeAccID){
+              _toReturn.add(payDesk);
+            }
+          });
+        }
+      });
+    } else {
+      _toReturn = [];
+    }
+    return _toReturn;
   }
 
-  Future<void> _load() async {
-    _statusCount = 0;
-    setState(() {
-      payList = PayDeskDAO().getUnDeleted();
-    });
-    _setCount(payList);
+  Future<void> _load({bool action}) async {
+    _statusCount = (await PayDeskDAO().getTransfer()).length;
+    _listPayOffice = await ImplPayOfficeDAO().getUnDeleted();
+    if(action==null){
+      await UserGrants.sync(scaffoldKey: _scaffoldKey);
+      _payList = PayDeskDAO().getUnDeleted();
+    } else {
+      _payList = PayDeskDAO().getUnDeleted();
+    }
+    _payListToShow = _payList;
+    setState(() {});
   }
+
+  void _callBack(){
+    _payListToShow = _sort();
+    setState(() {});
+  }
+
 }
