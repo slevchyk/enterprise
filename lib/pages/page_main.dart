@@ -234,6 +234,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 profile: widget.profile,
               ),
             ),
+
             for (var menuElement in menuList.keys)
               Column(
                 children: <Widget>[
@@ -261,6 +262,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   menuElement.isDivider ? Divider() : SizedBox(),
                 ],
               ),
+
           ],
         ),
       ),

@@ -111,6 +111,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     }
   }
 
+  _setField(String input){
+    if(input.length>=35 && MediaQuery.of(this.context).orientation == Orientation.portrait){
+      return "${input.substring(0,35)}...";
+    }
+    return input;
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -199,6 +206,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                   setState(() {});
                                 },
                               ),
+
                             ),
                           ),
                         ),
@@ -327,6 +335,7 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                     ? _clearIconButton(_amountController)
                                     : Container(),
                               ],
+
                             ),
                             hintText: 'Вкажiть суму',
                             labelText: 'Сума*',
@@ -951,7 +960,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                   _incomeItem = _data;
                                   break;
                                 case payDeskVariablesTypes.fromPayOffice:
+
                                   if (_toPayOfficeController.text.isNotEmpty) {
+
                                     _toPayOffice = null;
                                     _toPayOfficeController.text = "";
                                   }

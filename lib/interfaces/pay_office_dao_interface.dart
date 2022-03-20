@@ -1,4 +1,3 @@
-
 abstract class PayOfficeInterface {
   getByID(int id) async {}
   getAllExceptId(String name, String accID) async {}

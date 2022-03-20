@@ -75,6 +75,7 @@ class PayOfficeDAO implements PayOfficeInterface{
     );
 
     List<PayOffice> toReturn = res.isNotEmpty ? res.map((ci) => PayOffice.fromMap(ci)).toList() : [];
+    
     return toReturn.reversed.toList();
   }
 
@@ -86,6 +87,7 @@ class PayOfficeDAO implements PayOfficeInterface{
 
     List<PayOffice> toReturn = res.isNotEmpty ? res.map((ci) => PayOffice.fromMap(ci)).toList() : [];
     return toReturn.reversed.toList();
+
   }
 
   Future<List<PayOffice>> getUnDeleted() async {

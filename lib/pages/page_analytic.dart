@@ -145,6 +145,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                   color: Colors.white,
                 ),
               ),
+
             ],
           ),
           body: FutureBuilder(
@@ -237,6 +238,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                                   children: <Widget>[
                                     _currentIndex == 2 ? AnalyticChartsList().toShowChartsSimple(_seriesList) :
                                     AnalyticChartsList().toShowCharts(_seriesList),
+
                                     _currentIndex == 2 ? Container() : Container(
                                       child: Center(
                                         child: Text("${_amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}"
@@ -264,8 +266,10 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
                                   ),
                                   Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 5),
+
                                     child: Text("${_currentIndex == 2 ? _preparedMap.values.first.amount >= _preparedMap.values.last.amount && _preparedMap.keys.first.name!="Видаток" ? "" : "-" : ""} "
                                         "${_amountFormatter.text} ${CURRENCY_SYMBOL[_currencyCode]}"
+
                                       , style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
                                   ),
                                 ],
@@ -432,6 +436,7 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
         domainFn: (AnalyticData analyticData, _) {
           _amountFormatter.text = analyticData.amount.toStringAsFixed(2);
           return "${analyticData.name}\n ${(_amountFormatter.text)} ${CURRENCY_SYMBOL[currency]}";
+
         },
         measureFn: (AnalyticData analyticData, _) => _currentIndex == 2 ? analyticData.amount : analyticData.percent,
         labelAccessorFn: (AnalyticData analyticData, _) => "${analyticData.percent.toStringAsFixed(2).replaceAll(".", ",")} %",
@@ -542,4 +547,5 @@ class _PageResultsState extends State<PageResults> with SingleTickerProviderStat
       _incomeItemsList = IncomeItemDAO().getUnDeleted();
     });
   }
+
 }

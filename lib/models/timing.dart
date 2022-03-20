@@ -7,10 +7,9 @@ import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../main.dart';
-import 'constants.dart';
 import '../utils.dart';
+import 'constants.dart';
 
 class Timing {
   int mobID;
@@ -52,21 +51,11 @@ class Timing {
         userID: json["user_id"],
         date: json["date"] != null ? DateTime.parse(json["date"]) : null,
         status: json["status"],
-        startedAt: json["started_at"] != null
-            ? DateTime.parse(json["started_at"])
-            : null,
-        endedAt: json["ended_at"] != null && json["ended_at"] != ""
-            ? DateTime.parse(json["ended_at"])
-            : null,
-        createdAt: json["created_at"] != null && json["created_at"] != ""
-            ? DateTime.parse(json["created_at"])
-            : null,
-        updatedAt: json["updated_at"] != null && json["updated_at"] != ""
-            ? DateTime.parse(json["updated_at"])
-            : null,
-        deletedAt: json["deleted_at"] != null && json["deleted_at"] != ""
-            ? DateTime.parse(json["deleted_at"])
-            : null,
+        startedAt: json["started_at"] != null ? DateTime.parse(json["started_at"]) : null,
+        endedAt: json["ended_at"] != null && json["ended_at"] != "" ? DateTime.parse(json["ended_at"]) : null,
+        createdAt: json["created_at"] != null && json["created_at"] != "" ? DateTime.parse(json["created_at"]) : null,
+        updatedAt: json["updated_at"] != null && json["updated_at"] != "" ? DateTime.parse(json["updated_at"]) : null,
+        deletedAt: json["deleted_at"] != null && json["deleted_at"] != "" ? DateTime.parse(json["deleted_at"]) : null,
         isModified: json["is_modified"] == 1 ? true : false,
         isTurnstile: json["is_turnstile"] == 1 ? true : false,
       );
@@ -169,8 +158,7 @@ class Timing {
 
     String strDate = formatDate(date, [yyyy, mm, dd]);
 
-    final String url =
-        'http://$_srvIP/api/timing?type=dateuser&userid=$_userID&date=$strDate';
+    final String url = 'http://$_srvIP/api/timing?type=dateuser&userid=$_userID&date=$strDate';
 
     final credentials = '$_srvUser:$_srvPassword';
     final stringToBase64 = utf8.fuse(base64);
@@ -206,7 +194,15 @@ class Timing {
               TimingDAO().updateByID(_timing);
             }
           } else {
+// <<<<<<< beta
             Timing _existingTiming = await TimingDAO().getByMobId(_timing.mobID);
+// =======
+//             _timing.mobID = _existingTiming.mobID;
+//             TimingDAO().updateByID(_timing);
+//           }
+//         } else {
+//           Timing _existingTiming = await TimingDAO().getByMobId(_timing.mobID);
+// >>>>>>> master
 
             if (_existingTiming == null) {
               TimingDAO().insert(_timing, isModified: false);
@@ -306,18 +302,19 @@ class Timing {
   }
 
   static void closePastTiming() async {
+
     if(!await EnterpriseApp.checkInternet()){
       return;
     }
     List<Timing> openOperation = await TimingDAO()
         .getOpenPastStatus(Utility.beginningOfDay(DateTime.now()));
 
-    for (var _timing in openOperation) {
-      DateTime endDate = new DateTime(_timing.startedAt.year,
-          _timing.startedAt.month, _timing.startedAt.day, 18, 00, 00);
 
-      if (endDate.millisecondsSinceEpoch >
-          _timing.startedAt.millisecondsSinceEpoch) {
+    for (var _timing in openOperation) {
+      DateTime endDate =
+          new DateTime(_timing.startedAt.year, _timing.startedAt.month, _timing.startedAt.day, 18, 00, 00);
+
+      if (endDate.millisecondsSinceEpoch > _timing.startedAt.millisecondsSinceEpoch) {
         endDate = _timing.startedAt;
       }
 
