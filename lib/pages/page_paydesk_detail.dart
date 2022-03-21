@@ -50,11 +50,12 @@ class PagePayDeskDetail extends StatefulWidget {
   createState() => _PagePayDeskDetailState();
 }
 
-class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTickerProviderStateMixin {
+class _PagePayDeskDetailState extends State<PagePayDeskDetail>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _amountFormatter =
-  MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: ' ');
+      MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: ' ');
   final _amountController = TextEditingController();
   final _currencyController = TextEditingController();
   final _paymentController = TextEditingController();
@@ -106,22 +107,22 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
 
   @override
   void setState(fn) {
-    if(mounted){
+    if (mounted) {
       super.setState(fn);
     }
   }
 
-  _setField(String input){
-    if(input.length>=35 && MediaQuery.of(this.context).orientation == Orientation.portrait){
-      return "${input.substring(0,35)}...";
-    }
-    return input;
-  }
+  // _setField(String input){
+  //   if(input.length>=35 && MediaQuery.of(this.context).orientation == Orientation.portrait){
+  //     return "${input.substring(0,35)}...";
+  //   }
+  //   return input;
+  // }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: (){
+      onTap: () {
         FocusScope.of(this.context).unfocus();
       },
       child: Scaffold(
@@ -137,7 +138,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                 children: <Widget>[
                   Text(
                     'Операція',
-                    style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                    style:
+                        TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -158,7 +160,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                   ),
                   Text(
                     'Основне',
-                    style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                    style:
+                        TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
                   ),
                   Container(
                     margin: EdgeInsets.only(left: 20.0),
@@ -172,7 +175,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                   barrierLabel: "fromPayOffices",
                                   barrierDismissible: true,
                                   barrierColor: Colors.black.withOpacity(0.5),
-                                  transitionDuration: Duration(milliseconds: 250),
+                                  transitionDuration:
+                                      Duration(milliseconds: 250),
                                   context: context,
                                   pageBuilder: (context, anim1, anim2) {
                                     return _selectionDialog(
@@ -182,9 +186,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                       _scaffoldKey,
                                     );
                                   },
-                                  transitionBuilder: (context, anim1, anim2, child) {
+                                  transitionBuilder:
+                                      (context, anim1, anim2, child) {
                                     return SlideTransition(
-                                      position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
+                                      position: Tween(
+                                              begin: Offset(0, 1),
+                                              end: Offset(0, 0))
+                                          .animate(anim1),
                                       child: child,
                                     );
                                   },
@@ -199,14 +207,14 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                     labelText: 'Гаманець *',
                                     hintText: 'Оберiть гаманець'),
                                 validator: (value) {
-                                  if (value.trim().isEmpty) return 'Ви не обрали гаманець';
+                                  if (value.trim().isEmpty)
+                                    return 'Ви не обрали гаманець';
                                   return null;
                                 },
                                 onChanged: (_) {
                                   setState(() {});
                                 },
                               ),
-
                             ),
                           ),
                         ),
@@ -219,20 +227,26 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                   barrierLabel: "toPayOffices",
                                   barrierDismissible: true,
                                   barrierColor: Colors.black.withOpacity(0.5),
-                                  transitionDuration: Duration(milliseconds: 250),
+                                  transitionDuration:
+                                      Duration(milliseconds: 250),
                                   context: this.context,
                                   pageBuilder: (context, anim1, anim2) {
                                     return _selectionDialog(
                                       _toPayOfficeController,
-                                      ImplPayOfficeDAO()
-                                          .getAllExceptId(_fromPayOffice.name, _fromPayOffice.currencyAccID),
+                                      ImplPayOfficeDAO().getAllExceptId(
+                                          _fromPayOffice.name,
+                                          _fromPayOffice.currencyAccID),
                                       payDeskVariablesTypes.toPayOffice,
                                       _scaffoldKey,
                                     );
                                   },
-                                  transitionBuilder: (context, anim1, anim2, child) {
+                                  transitionBuilder:
+                                      (context, anim1, anim2, child) {
                                     return SlideTransition(
-                                      position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
+                                      position: Tween(
+                                              begin: Offset(0, 1),
+                                              end: Offset(0, 0))
+                                          .animate(anim1),
                                       child: child,
                                     );
                                   },
@@ -247,7 +261,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                     labelText: 'Гаманець отримувач*',
                                     hintText: 'Оберiть гаманець отримувача'),
                                 validator: (value) {
-                                  if (value.trim().isEmpty) return 'Ви не гаманець отримувач';
+                                  if (value.trim().isEmpty)
+                                    return 'Ви не гаманець отримувач';
                                   return null;
                                 },
                                 onChanged: (_) {
@@ -267,9 +282,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                               width: 24.0,
                               height: 24.0,
                               child: Text(
-                                CURRENCY_SYMBOL[_currency?.code] == null ? '' : CURRENCY_SYMBOL[_currency.code],
+                                CURRENCY_SYMBOL[_currency?.code] == null
+                                    ? ''
+                                    : CURRENCY_SYMBOL[_currency.code],
                                 style: TextStyle(
-                                    fontSize: 24.0, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
+                                    fontSize: 24.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColor),
                               ),
                             ),
                             suffixIcon: Row(
@@ -290,37 +309,65 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                               return Wrap(
                                                 children: <Widget>[
                                                   SizedBox(
-                                                    height: MediaQuery.of(context).size.height * 0.5,
+                                                    height:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.5,
                                                     child: _calc(context),
                                                   ),
                                                   Row(
-                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
                                                     children: <Widget>[
                                                       Container(
-                                                        width: MediaQuery.of(context).size.width / 2,
+                                                        width: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width /
+                                                            2,
                                                         child: RaisedButton(
                                                           onPressed: () {
-                                                            Navigator.of(context).pop();
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop();
                                                             _currentValue = 0;
                                                           },
-                                                          child: Text("Вiдмiнити"),
+                                                          child:
+                                                              Text("Вiдмiнити"),
                                                         ),
                                                       ),
                                                       Container(
-                                                        width: MediaQuery.of(context).size.width / 2,
+                                                        width: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width /
+                                                            2,
                                                         child: RaisedButton(
-                                                          color: Colors.lightGreen,
+                                                          color:
+                                                              Colors.lightGreen,
                                                           onPressed: () {
-                                                            Navigator.of(context).pop();
-                                                            if (_currentValue != 0) {
-                                                              _amount = _currentValue;
-                                                              _amountController.text = _currentValue.toStringAsFixed(2);
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop();
+                                                            if (_currentValue !=
+                                                                0) {
+                                                              _amount =
+                                                                  _currentValue;
+                                                              _amountController
+                                                                      .text =
+                                                                  _currentValue
+                                                                      .toStringAsFixed(
+                                                                          2);
                                                               _currentValue = 0;
                                                             }
                                                           },
                                                           child: Text(
                                                             "Додати",
-                                                            style: TextStyle(color: Colors.white),
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white),
                                                           ),
                                                         ),
                                                       ),
@@ -335,7 +382,6 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                     ? _clearIconButton(_amountController)
                                     : Container(),
                               ],
-
                             ),
                             hintText: 'Вкажiть суму',
                             labelText: 'Сума*',
@@ -346,8 +392,10 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                           validator: (value) {
                             String _input = value.trim().replaceAll(',', '.');
                             if (_input.isEmpty) return 'Ви не вказали суму';
-                            if (_isNotNumber(_input)) return 'Ви ввели не число';
-                            if (_isNotCorrectAmount(_input)) return 'Некоректно введена сума';
+                            if (_isNotNumber(_input))
+                              return 'Ви ввели не число';
+                            if (_isNotCorrectAmount(_input))
+                              return 'Некоректно введена сума';
                             _amount = double.parse(_input);
                             return null;
                           },
@@ -361,7 +409,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                   barrierLabel: "costItems",
                                   barrierDismissible: true,
                                   barrierColor: Colors.black.withOpacity(0.5),
-                                  transitionDuration: Duration(milliseconds: 250),
+                                  transitionDuration:
+                                      Duration(milliseconds: 250),
                                   context: this.context,
                                   pageBuilder: (context, anim1, anim2) {
                                     return _selectionDialog(
@@ -371,9 +420,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                       _scaffoldKey,
                                     );
                                   },
-                                  transitionBuilder: (context, anim1, anim2, child) {
+                                  transitionBuilder:
+                                      (context, anim1, anim2, child) {
                                     return SlideTransition(
-                                      position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
+                                      position: Tween(
+                                              begin: Offset(0, 1),
+                                              end: Offset(0, 0))
+                                          .animate(anim1),
                                       child: child,
                                     );
                                   },
@@ -388,7 +441,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                     labelText: 'Стаття витрат*',
                                     hintText: 'Оберiть статтю витрат'),
                                 validator: (value) {
-                                  if (value.trim().isEmpty) return 'Ви не обрали статтю витрат';
+                                  if (value.trim().isEmpty)
+                                    return 'Ви не обрали статтю витрат';
                                   return null;
                                 },
                                 onChanged: (_) {
@@ -407,7 +461,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                   barrierLabel: "incomeItems",
                                   barrierDismissible: true,
                                   barrierColor: Colors.black.withOpacity(0.5),
-                                  transitionDuration: Duration(milliseconds: 250),
+                                  transitionDuration:
+                                      Duration(milliseconds: 250),
                                   context: this.context,
                                   pageBuilder: (context, anim1, anim2) {
                                     return _selectionDialog(
@@ -417,9 +472,13 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                       _scaffoldKey,
                                     );
                                   },
-                                  transitionBuilder: (context, anim1, anim2, child) {
+                                  transitionBuilder:
+                                      (context, anim1, anim2, child) {
                                     return SlideTransition(
-                                      position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
+                                      position: Tween(
+                                              begin: Offset(0, 1),
+                                              end: Offset(0, 0))
+                                          .animate(anim1),
                                       child: child,
                                     );
                                   },
@@ -434,7 +493,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                     labelText: 'Стаття доходів*',
                                     hintText: 'Оберiть статтю доходів'),
                                 validator: (value) {
-                                  if (value.trim().isEmpty) return 'Ви не обрали статтю доходів';
+                                  if (value.trim().isEmpty)
+                                    return 'Ви не обрали статтю доходів';
                                   return null;
                                 },
                                 onChanged: (_) {
@@ -469,12 +529,17 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                     padding: EdgeInsets.only(top: 24),
                     child: Text(
                       "Дата операції",
-                      style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 24.0, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Container(
                     padding: EdgeInsets.only(
-                        left: 25, right: MediaQuery.of(context).orientation == Orientation.portrait ? 50 : 100),
+                        left: 25,
+                        right: MediaQuery.of(context).orientation ==
+                                Orientation.portrait
+                            ? 50
+                            : 100),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
@@ -489,15 +554,22 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                               DateTime picked = await showDatePicker(
                                   context: context,
                                   firstDate: DateTime(_now.year - 1),
-                                  initialDate: _payDesk?.documentDate != null ? _payDesk.documentDate : DateFormat('dd.MM.yyyy').parse(_documentDateController.text),
-                                  lastDate: DateTime(_now.year, _now.month, _now.day));
+                                  initialDate: _payDesk?.documentDate != null
+                                      ? _payDesk.documentDate
+                                      : DateFormat('dd.MM.yyyy')
+                                          .parse(_documentDateController.text),
+                                  lastDate: DateTime(
+                                      _now.year, _now.month, _now.day));
 
                               if (picked != null) {
                                 setState(() {
-                                  MaterialLocalizations localizations = MaterialLocalizations.of(context);
-                                  String formattedTime =
-                                  localizations.formatTimeOfDay(TimeOfDay.now(), alwaysUse24HourFormat: true);
-                                  _documentDateController.text = formatDate(picked, [dd, '.', mm, '.', yyyy]);
+                                  MaterialLocalizations localizations =
+                                      MaterialLocalizations.of(context);
+                                  String formattedTime = localizations
+                                      .formatTimeOfDay(TimeOfDay.now(),
+                                          alwaysUse24HourFormat: true);
+                                  _documentDateController.text = formatDate(
+                                      picked, [dd, '.', mm, '.', yyyy]);
                                   _documentTimeController.text = formattedTime;
                                 });
                               }
@@ -506,7 +578,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                               child: TextFormField(
                                 controller: _documentDateController,
                                 enabled: !_readOnly,
-                                decoration: InputDecoration(icon: Icon(FontAwesomeIcons.calendar), labelText: "Дата"),
+                                decoration: InputDecoration(
+                                    icon: Icon(FontAwesomeIcons.calendar),
+                                    labelText: "Дата"),
                               ),
                             ),
                           ),
@@ -527,23 +601,34 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                   return;
                                 }
 
-                                MaterialLocalizations localizations = MaterialLocalizations.of(context);
+                                MaterialLocalizations localizations =
+                                    MaterialLocalizations.of(context);
                                 String formattedTime =
-                                localizations.formatTimeOfDay(selectedTime, alwaysUse24HourFormat: true);
+                                    localizations.formatTimeOfDay(selectedTime,
+                                        alwaysUse24HourFormat: true);
 
                                 if (DateFormat("dd.MM.yyyy")
-                                    .parse("${_documentDateController.text}")
-                                    .isAtSameMomentAs(DateFormat("yyyy-MM-dd").parse(_now.toString())) &&
-                                    (selectedTime.hour * 60 + selectedTime.minute) >
-                                        (TimeOfDay.now().hour * 60 + TimeOfDay.now().minute)) {
-                                  ShowSnackBar.show(_scaffoldKey,
-                                      "Час операції не повинен перевищувати поточний час", Colors.amber.shade700, duration: Duration(milliseconds: 1500));
+                                        .parse(
+                                            "${_documentDateController.text}")
+                                        .isAtSameMomentAs(
+                                            DateFormat("yyyy-MM-dd")
+                                                .parse(_now.toString())) &&
+                                    (selectedTime.hour * 60 +
+                                            selectedTime.minute) >
+                                        (TimeOfDay.now().hour * 60 +
+                                            TimeOfDay.now().minute)) {
+                                  ShowSnackBar.show(
+                                      _scaffoldKey,
+                                      "Час операції не повинен перевищувати поточний час",
+                                      Colors.amber.shade700,
+                                      duration: Duration(milliseconds: 1500));
                                   return;
                                 }
 
                                 if (formattedTime != null) {
                                   setState(() {
-                                    _documentTimeController.text = formattedTime;
+                                    _documentTimeController.text =
+                                        formattedTime;
                                   });
                                 }
                               },
@@ -551,7 +636,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                 child: TextFormField(
                                   controller: _documentTimeController,
                                   enabled: !_readOnly,
-                                  decoration: InputDecoration(icon: Icon(Icons.timer), labelText: "Час"),
+                                  decoration: InputDecoration(
+                                      icon: Icon(Icons.timer),
+                                      labelText: "Час"),
                                 ),
                               ),
                             )),
@@ -568,10 +655,12 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                         ),
                         Text(
                           'Прикріплені файли',
-                          style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 24.0, fontWeight: FontWeight.bold),
                         ),
                         StatefulBuilder(
-                          builder: (BuildContext context, StateSetter setState){
+                          builder:
+                              (BuildContext context, StateSetter setState) {
                             return AttachmentsCarousel(
                               files: _files,
                               readOnly: _readOnly,
@@ -593,7 +682,14 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
           ),
         ),
         floatingActionButton: _floatingButton(context),
-        bottomSheet: _payDesk.payDeskType == 2 && !_payDesk.isChecked && _readOnly && _toPayOffice != null && _toPayOffice.isAvailable != null && _toPayOffice.isAvailable ? _confirmButton() : SizedBox(),
+        bottomSheet: _payDesk.payDeskType == 2 &&
+                !_payDesk.isChecked &&
+                _readOnly &&
+                _toPayOffice != null &&
+                _toPayOffice.isAvailable != null &&
+                _toPayOffice.isAvailable
+            ? _confirmButton()
+            : SizedBox(),
       ),
     );
   }
@@ -601,9 +697,11 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
   void _setPayOfficeAndCurrency(PayOffice input) {
     _fromPayOfficeController.text = input.name;
     _fromPayOffice = input;
-    CurrencyDAO().getByAccId(input.currencyAccID).then((currency) => setState(() {
-          _currency = currency;
-        }));
+    CurrencyDAO()
+        .getByAccId(input.currencyAccID)
+        .then((currency) => setState(() {
+              _currency = currency;
+            }));
   }
 
   void _setDefaultPayOffice() {
@@ -629,13 +727,15 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
       context: _scaffoldKey.currentContext,
       transitionBuilder: (context, anim1, anim2, child) {
         return SlideTransition(
-          position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
+          position:
+              Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(anim1),
           child: child,
         );
       },
       pageBuilder: (context, anim1, anim2) => AlertDialog(
         contentPadding: EdgeInsets.all(0.0),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20.0))),
         content: ListTile(
           title: Container(
             height: 60,
@@ -660,10 +760,22 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                 Text(
                   '${formatDate(
                     _payDesk.documentDate,
-                    [dd, '.', mm, '.', yyyy, ' ',
-                      HH, ':', nn, ':', ss,],
+                    [
+                      dd,
+                      '.',
+                      mm,
+                      '.',
+                      yyyy,
+                      ' ',
+                      HH,
+                      ':',
+                      nn,
+                      ':',
+                      ss,
+                    ],
                   )}\n',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.black),
                 ),
                 Row(
                   children: <Widget>[],
@@ -677,7 +789,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                 ),
                 Text(
                   "${_amountController.text} ${String.fromCharCode(0x000020B4)}\n",
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.black),
                 ),
                 Row(
                   children: <Widget>[],
@@ -692,7 +805,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                 Text(
                   "${_fromPayOfficeController.text}\n",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.black),
                 ),
                 Text(
                   "На гаменець ",
@@ -704,7 +818,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                 Text(
                   "${_toPayOfficeController.text}",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.black),
                 ),
                 SizedBox(
                   height: 30,
@@ -721,10 +836,14 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12.0))),
+                      shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(12.0))),
                     ),
                     RaisedButton(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12.0))),
+                      shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(12.0))),
                       color: Colors.lightGreen,
                       child: Text(
                         'Так',
@@ -784,12 +903,15 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
           Text(
             PAY_DESK_TYPES_ALIAS[_type],
             style: TextStyle(
-              color: _currentType == _type ? Colors.white : Theme.of(this.context).textTheme.caption.color,
+              color: _currentType == _type
+                  ? Colors.white
+                  : Theme.of(this.context).textTheme.caption.color,
             ),
           ),
         ],
       ),
-      backgroundColor: _currentType == _type ? Colors.lightGreen : Colors.grey.shade100,
+      backgroundColor:
+          _currentType == _type ? Colors.lightGreen : Colors.grey.shade100,
       selectedColor: Colors.lightGreen,
       selected: _currentType == _type,
       onSelected: (bool value) {
@@ -884,7 +1006,10 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     );
   }
 
-  Widget _selectionDialog(TextEditingController _inputController, Future<List> _input, payDeskVariablesTypes _varType,
+  Widget _selectionDialog(
+      TextEditingController _inputController,
+      Future<List> _input,
+      payDeskVariablesTypes _varType,
       GlobalKey<ScaffoldState> _scaffoldKey) {
     FocusScope.of(this.context).unfocus();
     return Align(
@@ -899,7 +1024,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                 if (snapshot.hasData) {
                   if (snapshot.data.length == 0) {
                     return Container(
-                      margin: EdgeInsets.only(top: 20, bottom: 20, left: 20, right: 20.0),
+                      margin: EdgeInsets.only(
+                          top: 20, bottom: 20, left: 20, right: 20.0),
                       child: FractionallySizedBox(
                         widthFactor: 1.0,
                         child: Text(
@@ -919,9 +1045,10 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                       itemCount: snapshot == null ? 0 : snapshot.data.length,
                       itemBuilder: (context, int index) {
                         var _data = snapshot.data[index];
-                        if(_data.runtimeType == PayOffice){
-                          if(_data.amount!=null){
-                            _amountFormatter.text = _data.amount.toStringAsFixed(2);
+                        if (_data.runtimeType == PayOffice) {
+                          if (_data.amount != null) {
+                            _amountFormatter.text =
+                                _data.amount.toStringAsFixed(2);
                           } else {
                             _amountFormatter.text = "0.00";
                           }
@@ -935,21 +1062,27 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                   _currency = _data;
 
                                   if (_fromPayOffice?.currencyAccID != null &&
-                                      _fromPayOffice.currencyAccID != _data.accID) {
+                                      _fromPayOffice.currencyAccID !=
+                                          _data.accID) {
                                     _fromPayOfficeController.text = "";
                                     _fromPayOffice = PayOffice();
 
-                                    ShowSnackBar.show(_scaffoldKey,
-                                        'Валюта гаманця не відповідає валюті документа. Гаманець очищено', Colors.amber.shade700);
+                                    ShowSnackBar.show(
+                                        _scaffoldKey,
+                                        'Валюта гаманця не відповідає валюті документа. Гаманець очищено',
+                                        Colors.amber.shade700);
                                   }
 
                                   if (_toPayOffice?.currencyAccID != null &&
-                                      _toPayOffice.currencyAccID != _data.accID) {
+                                      _toPayOffice.currencyAccID !=
+                                          _data.accID) {
                                     _toPayOfficeController.text = "";
                                     _toPayOffice = PayOffice();
 
-                                    ShowSnackBar.show(_scaffoldKey,
-                                        'Валюта гаманця отримувача не відповідає валюті документа. Гаманець отримувач очищено', Colors.amber.shade700);
+                                    ShowSnackBar.show(
+                                        _scaffoldKey,
+                                        'Валюта гаманця отримувача не відповідає валюті документа. Гаманець отримувач очищено',
+                                        Colors.amber.shade700);
                                   }
 
                                   break;
@@ -960,14 +1093,14 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                   _incomeItem = _data;
                                   break;
                                 case payDeskVariablesTypes.fromPayOffice:
-
                                   if (_toPayOfficeController.text.isNotEmpty) {
-
                                     _toPayOffice = null;
                                     _toPayOfficeController.text = "";
                                   }
                                   _fromPayOffice = _data;
-                                  CurrencyDAO().getByAccId(_data.currencyAccID).then((value) => _currency = value);
+                                  CurrencyDAO()
+                                      .getByAccId(_data.currencyAccID)
+                                      .then((value) => _currency = value);
                                   break;
                                 case payDeskVariablesTypes.toPayOffice:
                                   _toPayOffice = _data;
@@ -978,15 +1111,23 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                           },
                           child: Card(
                             shape: RoundedRectangleBorder(
-                                side: BorderSide(color: Colors.lightGreen, width: 1),
-                                borderRadius: BorderRadius.all(Radius.circular(20.0))),
-                            margin: EdgeInsets.only(left: 20, right: 20, bottom: 10),
+                                side: BorderSide(
+                                    color: Colors.lightGreen, width: 1),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20.0))),
+                            margin: EdgeInsets.only(
+                                left: 20, right: 20, bottom: 10),
                             child: Wrap(
                               children: <Widget>[
                                 Center(
                                   child: ListTile(
                                     leading: CircleAvatar(
-                                      child: _data.runtimeType == PayOffice ? Text(_data.currencyName) : Text(_data.name.toString().substring(0, 1).toUpperCase()),
+                                      child: _data.runtimeType == PayOffice
+                                          ? Text(_data.currencyName)
+                                          : Text(_data.name
+                                              .toString()
+                                              .substring(0, 1)
+                                              .toUpperCase()),
                                     ),
                                     title: Column(
                                       children: [
@@ -997,20 +1138,26 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                        _data.runtimeType == PayOffice && _data.isAvailable
+                                        _data.runtimeType == PayOffice &&
+                                                _data.isAvailable
                                             ? Container(
-                                          child: Column(
-                                            children: [
-                                              // Divider(),
-                                              Container(height: 1, color: Colors.lightGreen, margin: EdgeInsets.all(5),),
-                                              Text(
-                                                "Баланс: ${_data.amount.isNegative ? "-" : ""}${_amountFormatter.text} ${CURRENCY_SYMBOL_BY_NAME[_data.currencyName]}",
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
+                                                child: Column(
+                                                  children: [
+                                                    // Divider(),
+                                                    Container(
+                                                      height: 1,
+                                                      color: Colors.lightGreen,
+                                                      margin: EdgeInsets.all(5),
+                                                    ),
+                                                    Text(
+                                                      "Баланс: ${_data.amount.isNegative ? "-" : ""}${_amountFormatter.text} ${CURRENCY_SYMBOL_BY_NAME[_data.currencyName]}",
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    )
+                                                  ],
+                                                ),
                                               )
-                                            ],
-                                          ),
-                                        )
                                             : Container()
                                       ],
                                     ),
@@ -1033,16 +1180,24 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     );
   }
 
-  Widget _floatingButton(BuildContext context){
+  Widget _floatingButton(BuildContext context) {
     return FabCircularMenu(
       fabColor: Colors.lightGreen,
       animationDuration: Duration(milliseconds: 400),
       ringDiameter: 280,
-      fabMargin: _readOnly ? EdgeInsets.only(bottom: 50, right: 10) : EdgeInsets.all(16.0),
+      fabMargin: _readOnly
+          ? EdgeInsets.only(bottom: 50, right: 10)
+          : EdgeInsets.all(16.0),
       ringWidth: 70,
       ringColor: Colors.transparent,
-      fabOpenIcon: Icon(Icons.menu, color: Colors.white,),
-      fabCloseIcon: Icon(Icons.close, color: Colors.white,),
+      fabOpenIcon: Icon(
+        Icons.menu,
+        color: Colors.white,
+      ),
+      fabCloseIcon: Icon(
+        Icons.close,
+        color: Colors.white,
+      ),
       children: [
         CircularButton(
           color: Colors.lightGreen,
@@ -1052,72 +1207,107 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
             Icons.undo,
             color: Colors.white,
           ),
-          onClick: (){
+          onClick: () {
             Navigator.of(context).pop();
           },
         ),
-        _readOnly ? SizedBox() : CircularButton(
-          color: Colors.lightGreen,
-          width: 40,
-          height: 40,
-          icon: Icon(
-            Icons.photo_camera,
-            color: Colors.white,
-          ),
-          onClick: () {
-            if (_files.length >= 4) {
-              ShowSnackBar.show(_scaffoldKey, "Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
-              return;
-            }
-            _getImageCamera();
-          },
-        ),
-        _readOnly ? SizedBox() : CircularButton(
-          color: Colors.lightGreen,
-          width: 40,
-          height: 40,
-          icon: Icon(
-            Icons.image,
-            color: Colors.white,
-          ),
-          onClick: () async {
-            if (_files.length >= 4) {
-              ShowSnackBar.show(_scaffoldKey, "Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
-              return;
-            }
-            var status = await Permission.storage.status;
-            switch (status){
-              case PermissionStatus.undetermined:
-                await Permission.storage.request();
-                break;
-              case PermissionStatus.granted:
-                FilePickerResult result = await FilePicker.platform.pickFiles(allowMultiple: true, type: FileType.image, allowCompression: true);
-                if(result != null){
-                  if(_files.length + result.paths.length <=4){
-                    result.paths.map((path) => _files.add(File(path))).toList();
-                    setState(() {});
-                  } else {
-                    ShowSnackBar.show(_scaffoldKey, "Вже досягнута максимальна кількість файлів: 4", Colors.redAccent);
+        _readOnly
+            ? SizedBox()
+            : CircularButton(
+                color: Colors.lightGreen,
+                width: 40,
+                height: 40,
+                icon: Icon(
+                  Icons.photo_camera,
+                  color: Colors.white,
+                ),
+                onClick: () {
+                  if (_files.length >= 4) {
+                    ShowSnackBar.show(
+                        _scaffoldKey,
+                        "Вже досягнута максимальна кількість файлів: 4",
+                        Colors.redAccent);
+                    return;
                   }
-                }
-                break;
-              case PermissionStatus.denied:
-                await Permission.storage.request();
-                ShowSnackBar.show(_scaffoldKey, "Надайте доступ на запис файлів в дозволах додатку ", Colors.red, duration: Duration(seconds: 2));
-                break;
-              case PermissionStatus.restricted:
-                await Permission.storage.request();
-                ShowSnackBar.show(_scaffoldKey, "Надайте доступ на запис файлів в дозволах додатку ", Colors.red, duration: Duration(seconds: 2));
-                break;
-              case PermissionStatus.permanentlyDenied:
-                await Permission.storage.request();
-                ShowSnackBar.show(_scaffoldKey, "Надайте доступ на запис файлів в дозволах додатку ", Colors.red, duration: Duration(seconds: 2));
-                break;
-            }
-          },
-        ),
+                  _getImageCamera();
+                },
+              ),
+        _readOnly
+            ? SizedBox()
+            : CircularButton(
+                color: Colors.lightGreen,
+                width: 40,
+                height: 40,
+                icon: Icon(
+                  Icons.image,
+                  color: Colors.white,
+                ),
+                onClick: () async {
+                  if (_files.length >= 4) {
+                    ShowSnackBar.show(
+                        _scaffoldKey,
+                        "Вже досягнута максимальна кількість файлів: 4",
+                        Colors.redAccent);
+                    return;
+                  }
+                  var status = await Permission.storage.status;
+                  switch (status) {
+                    case PermissionStatus.undetermined:
+                      await Permission.storage.request();
+                      break;
+                    case PermissionStatus.granted:
+                      FilePickerResult result = await FilePicker.platform
+                          .pickFiles(
+                              allowMultiple: true,
+                              type: FileType.image,
+                              allowCompression: true);
+                      if (result != null) {
+                        if (_files.length + result.paths.length <= 4) {
+                          result.paths
+                              .map((path) => _files.add(File(path)))
+                              .toList();
+                          setState(() {});
+                        } else {
+                          ShowSnackBar.show(
+                              _scaffoldKey,
+                              "Вже досягнута максимальна кількість файлів: 4",
+                              Colors.redAccent);
+                        }
+                      }
+                      break;
+                    case PermissionStatus.denied:
+                      await Permission.storage.request();
+                      ShowSnackBar.show(
+                          _scaffoldKey,
+                          "Надайте доступ на запис файлів в дозволах додатку ",
+                          Colors.red,
+                          duration: Duration(seconds: 2));
+                      break;
+                    case PermissionStatus.restricted:
+                      await Permission.storage.request();
+                      ShowSnackBar.show(
+                          _scaffoldKey,
+                          "Надайте доступ на запис файлів в дозволах додатку ",
+                          Colors.red,
+                          duration: Duration(seconds: 2));
+                      break;
+                    case PermissionStatus.permanentlyDenied:
+                      await Permission.storage.request();
+                      ShowSnackBar.show(
+                          _scaffoldKey,
+                          "Надайте доступ на запис файлів в дозволах додатку ",
+                          Colors.red,
+                          duration: Duration(seconds: 2));
+                      break;
+                    default:
+                      ShowSnackBar.show(_scaffoldKey, "Помилка ", Colors.red,
+                          duration: Duration(seconds: 2));
+                      break;
+                  }
+                },
+              ),
         Visibility(
-          visible: _payDesk.mobID==null ? true : !_payDesk.isReadOnly,
+          visible: _payDesk.mobID == null ? true : !_payDesk.isReadOnly,
           child: CircularButton(
             color: Colors.lightGreen,
             width: 55,
@@ -1126,9 +1316,10 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
               _readOnly ? Icons.edit : Icons.save,
               color: Colors.white,
             ),
-            onClick: (){
-              _readOnly ? _handleBottomSheet("edit") :
-              _handleBottomSheet("saveExit");
+            onClick: () {
+              _readOnly
+                  ? _handleBottomSheet("edit")
+                  : _handleBottomSheet("saveExit");
             },
           ),
         ),
@@ -1150,7 +1341,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
   }
 
   String _setField(String input) {
-    if (input.length >= 35 && MediaQuery.of(this.context).orientation == Orientation.portrait) {
+    if (input.length >= 35 &&
+        MediaQuery.of(this.context).orientation == Orientation.portrait) {
       return "${input.substring(0, 35)}...";
     }
     return input;
@@ -1169,7 +1361,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     //Check if the sum is of type *.xx
     // (Two digits after the period)
     List<String> _tmp = value.split('.');
-    if ((_tmp.last.length <= 2 || _tmp.length == 1) && double.parse(_tmp.first) >= 0) {
+    if ((_tmp.last.length <= 2 || _tmp.length == 1) &&
+        double.parse(_tmp.first) >= 0) {
       return false;
     } else {
       return true;
@@ -1180,20 +1373,22 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     if (files <= 4) {
       return true;
     }
-    ShowSnackBar.show(_scaffoldKey, "Досягнуто максимальну кількість файлів - 4", Colors.red) ;
+    ShowSnackBar.show(
+        _scaffoldKey, "Досягнуто максимальну кількість файлів - 4", Colors.red);
     return false;
   }
 
   Future<void> _setControllers() async {
     _files.clear();
     if (_payDesk != null) {
-      if(_payDesk.filesQuantity != null && _payDesk.filesQuantity>0){
-        List<PayDeskImage> _pdiList = await PayDeskImageDAO().getUnDeletedByMobID(_payDesk.mobID);
-        if(_pdiList.length<=0){
+      if (_payDesk.filesQuantity != null && _payDesk.filesQuantity > 0) {
+        List<PayDeskImage> _pdiList =
+            await PayDeskImageDAO().getUnDeletedByMobID(_payDesk.mobID);
+        if (_pdiList.length <= 0) {
           _loadImages();
         }
         _pdiList.forEach((element) {
-          if(!element.isDeleted){
+          if (!element.isDeleted) {
             _files.add(File(element.path));
           }
         });
@@ -1206,11 +1401,19 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
       _toPayOfficeController.text = _toPayOffice?.name ?? '';
       _amountController.text = _payDesk?.amount?.toStringAsFixed(2) ?? "";
       _paymentController.text = _payDesk?.payment ?? "";
-      _currentType = _payDesk?.payDeskType == null ? widget.type : PayDeskTypes.values[_payDesk.payDeskType];
+      _currentType = _payDesk?.payDeskType == null
+          ? widget.type
+          : PayDeskTypes.values[_payDesk.payDeskType];
 
       _documentDateController.text = formatDate(
         _payDesk?.documentDate ?? _now,
-        [dd, '.', mm, '.', yyyy,],
+        [
+          dd,
+          '.',
+          mm,
+          '.',
+          yyyy,
+        ],
       );
       _documentTimeController.text = formatDate(
         _payDesk?.documentDate ?? _now,
@@ -1219,14 +1422,17 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     }
   }
 
-  void _infoDialog(){
+  void _infoDialog() {
     showDialog(
       context: _scaffoldKey.currentContext,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20.0))),
         content: Container(
-          width: MediaQuery.of(context).orientation == Orientation.landscape ?  MediaQuery.of(context).size.width/2.5 : MediaQuery.of(context).size.width/1.5,
-          height: MediaQuery.of(context).size.height/4,
+          width: MediaQuery.of(context).orientation == Orientation.landscape
+              ? MediaQuery.of(context).size.width / 2.5
+              : MediaQuery.of(context).size.width / 1.5,
+          height: MediaQuery.of(context).size.height / 4,
           child: ListTile(
             title: Container(
               height: 45,
@@ -1257,10 +1463,19 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                   height: 5,
                 ),
                 Text(
-                  _payDesk.documentDate == null ? "Iнформацiя вiдсутня" : formatDate(_payDesk.documentDate, [
-                    dd, '.', mm, '.', yyyy,
-                    ' ', HH, ':', nn,
-                  ]),
+                  _payDesk.documentDate == null
+                      ? "Iнформацiя вiдсутня"
+                      : formatDate(_payDesk.documentDate, [
+                          dd,
+                          '.',
+                          mm,
+                          '.',
+                          yyyy,
+                          ' ',
+                          HH,
+                          ':',
+                          nn,
+                        ]),
                 ),
                 SizedBox(
                   height: 15,
@@ -1273,10 +1488,21 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
                   height: 5,
                 ),
                 Text(
-                  _payDesk.createdAt == null ? "Iнформацiя вiдсутня" : formatDate(_payDesk.createdAt, [
-                    dd, '.', mm, '.', yyyy,
-                    ' ', HH, ':', nn, ':', ss,
-                  ]),
+                  _payDesk.createdAt == null
+                      ? "Iнформацiя вiдсутня"
+                      : formatDate(_payDesk.createdAt, [
+                          dd,
+                          '.',
+                          mm,
+                          '.',
+                          yyyy,
+                          ' ',
+                          HH,
+                          ':',
+                          nn,
+                          ':',
+                          ss,
+                        ]),
                 ),
               ],
             ),
@@ -1340,8 +1566,8 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     _payDesk.userID = profile?.userID;
     _payDesk.amount = _amount;
     _payDesk.payment = _paymentController.text;
-    _payDesk.documentDate =
-        DateFormat("dd.MM.yyyy HH:mm").parse("${_documentDateController.text} ${_documentTimeController.text}");
+    _payDesk.documentDate = DateFormat("dd.MM.yyyy HH:mm").parse(
+        "${_documentDateController.text} ${_documentTimeController.text}");
 
     if (_existPayDesk == null) {
       _payDesk.mobID = await PayDeskDAO().insert(_payDesk, sync: false);
@@ -1358,27 +1584,30 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     } else {
       ShowSnackBar.show(_scaffoldKey, "Помилка збереження в базі", Colors.red);
     }
-    if(widget.callback!=null){
+    if (widget.callback != null) {
       widget.callback();
     }
     return _ok;
   }
 
   Future<void> _saveAttachments() async {
-
-    await EnterpriseApp.createApplicationFileDir(action: "pay_desk", scaffoldKey: _scaffoldKey);
+    await EnterpriseApp.createApplicationFileDir(
+        action: "pay_desk", scaffoldKey: _scaffoldKey);
 
     var status = await Permission.storage.status;
     if (!status.isGranted) {
       await Permission.storage.request();
     }
 
-    Directory _dir = Directory('$APPLICATION_FILE_PATH_PAY_DESK_IMAGE/${_payDesk.mobID}');
+    Directory _dir =
+        Directory('$APPLICATION_FILE_PATH_PAY_DESK_IMAGE/${_payDesk.mobID}');
     if (_dir.existsSync()) {
       List<FileSystemEntity> _listFileSystemEntity = _dir.listSync();
       for (FileSystemEntity _fileSystemEntry in _listFileSystemEntity) {
-        List<File> where = _files.where((element) => element.path==_fileSystemEntry.path).toList();
-        if(where.length==0){
+        List<File> where = _files
+            .where((element) => element.path == _fileSystemEntry.path)
+            .toList();
+        if (where.length == 0) {
           _fileSystemEntry.deleteSync(recursive: true);
           await PayDeskImageDAO().setDeleteByPath(_fileSystemEntry.path);
         }
@@ -1398,20 +1627,25 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
         final _fileBytes = _file.readAsBytesSync();
         String _fileHash = sha256.convert(_fileBytes).toString();
 
-        if (_files.where((value) => value.path.contains(_fileHash)).length > 0) {
-          ShowSnackBar.show(_scaffoldKey, "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+        if (_files.where((value) => value.path.contains(_fileHash)).length >
+            0) {
+          ShowSnackBar.show(_scaffoldKey,
+              "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
           continue;
         }
 
-        if (_newFiles.where((value) => value.path.contains(_fileHash)).length > 0) {
-          ShowSnackBar.show(_scaffoldKey, "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
+        if (_newFiles.where((value) => value.path.contains(_fileHash)).length >
+            0) {
+          ShowSnackBar.show(_scaffoldKey,
+              "Вже є такий файл ${basename(_file.path)}", Colors.redAccent);
           continue;
         }
 
         File _newFile = _file.copySync('${_dir.path}/$_fileHash$_extension');
         _newFiles.add(_newFile);
 
-        PayDeskImage pdi = PayDeskImage(mobID: _payDesk.mobID, path: _newFile.path);
+        PayDeskImage pdi =
+            PayDeskImage(mobID: _payDesk.mobID, path: _newFile.path);
         await PayDeskImageDAO().insert(pdi);
       }
     }
@@ -1419,11 +1653,9 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
     _payDesk.filesQuantity = _newFiles.length;
 
     PayDeskDAO().update(_payDesk, isModified: true, sync: true);
-
   }
 
   Future<void> initAsync() async {
-
     Currency _c;
     CostItem _ci;
     IncomeItem _ii;
@@ -1476,18 +1708,25 @@ class _PagePayDeskDetailState extends State<PagePayDeskDetail> with SingleTicker
   }
 
   Future<void> _loadImages() async {
-    ShowSnackBar.show(_scaffoldKey, "Розпочато завантаження файл${_files.length == 1 ? "у" : "iв"}", Colors.blue,);
+    ShowSnackBar.show(
+      _scaffoldKey,
+      "Розпочато завантаження файл${_files.length == 1 ? "у" : "iв"}",
+      Colors.blue,
+    );
     _isNotErrorLoad = await PayDesk.downloadImagesByPdi(_payDesk, _scaffoldKey);
-    if(_isNotErrorLoad){
-      _setControllers().whenComplete(() => setState(() { }));
+    if (_isNotErrorLoad) {
+      _setControllers().whenComplete(() => setState(() {}));
     } else {
-      ShowSnackBar.show(_scaffoldKey, "Не вдалося завантажити файли", Colors.red, duration: Duration(seconds: 1));
+      ShowSnackBar.show(
+          _scaffoldKey, "Не вдалося завантажити файли", Colors.red,
+          duration: Duration(seconds: 1));
       return;
     }
   }
 
   Future _getImageCamera() async {
-    var image = await ImagePicker().getImage(source: ImageSource.camera, imageQuality: 70);
+    var image = await ImagePicker()
+        .getImage(source: ImageSource.camera, imageQuality: 70);
     setState(() {
       if (_isNotLimitElement(_files.length + 1)) {
         if (image != null) _files.add(File(image.path));
@@ -1505,23 +1744,22 @@ enum payDeskVariablesTypes {
 }
 
 class CircularButton extends StatelessWidget {
-
   final double width;
   final double height;
   final Color color;
   final Icon icon;
   final Function onClick;
 
-  CircularButton({this.color, this.width, this.height, this.icon, this.onClick});
-
+  CircularButton(
+      {this.color, this.width, this.height, this.icon, this.onClick});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: color,shape: BoxShape.circle),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       width: width,
       height: height,
-      child: IconButton(icon: icon,enableFeedback: true, onPressed: onClick),
+      child: IconButton(icon: icon, enableFeedback: true, onPressed: onClick),
     );
   }
 }

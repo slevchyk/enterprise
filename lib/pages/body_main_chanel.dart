@@ -58,14 +58,14 @@ class BodyChannelState extends State<BodyChannel> {
     final stringToBase64 = utf8.fuse(base64);
     final encodedCredentials = stringToBase64.encode(credentials);
 
-    int countMessages = 0;
-    int countStatuses = 0;
+    // int countMessages = 0;
+    // int countStatuses = 0;
 
     Map<String, String> headers = {
       HttpHeaders.authorizationHeader: "Basic $encodedCredentials",
     };
 
-    try{
+    try {
       Response response = await get(url, headers: headers);
 
       if (response.statusCode != 200) {
@@ -94,13 +94,13 @@ class BodyChannelState extends State<BodyChannel> {
 
         await _channel.processDownloads();
 
-        if (_channel.type == CHANNEL_TYPE_MESSAGE) {
-          countMessages++;
-        } else {
-          countStatuses++;
-        }
+        // if (_channel.type == CHANNEL_TYPE_MESSAGE) {
+        //   countMessages++;
+        // } else {
+        //   countStatuses++;
+        // }
       }
-    } catch (e, s){
+    } catch (e, s) {
       FLog.error(
         exception: Exception(e.toString()),
         text: "response error",

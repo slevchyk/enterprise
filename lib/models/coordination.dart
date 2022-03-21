@@ -9,7 +9,7 @@ import 'package:http/http.dart';
 
 import '../main.dart';
 
-class Coordination{
+class Coordination {
   String id;
   String name;
   String url;
@@ -26,21 +26,21 @@ class Coordination{
   });
 
   factory Coordination.fromMap(Map<String, dynamic> json) => Coordination(
-    id: json["id"],
-    name: json["name"],
-    date: json["date"] != null ? DateTime.parse(json["date"]) : null,
-    status: json["status"] != null ? _setType(json["status"]) : null,
-  );
+        id: json["id"],
+        name: json["name"],
+        date: json["date"] != null ? DateTime.parse(json["date"]) : null,
+        status: json["status"] != null ? _setType(json["status"]) : null,
+      );
 
   Map<String, dynamic> toMap() => {
-    "id" : id,
-    "name" : name,
-    "date" : date != null ? date.toIso8601String() : null,
-    "status" : status,
-  };
+        "id": id,
+        "name": name,
+        "date": date != null ? date.toIso8601String() : null,
+        "status": status,
+      };
 
-  static CoordinationTypes _setType(String input){
-    switch (input){
+  static CoordinationTypes _setType(String input) {
+    switch (input) {
       case "none":
         return CoordinationTypes.none;
       case "approved":
@@ -52,64 +52,68 @@ class Coordination{
     }
   }
 
-
   static Future<String> get token async {
-    if(_token==null){
+    if (_token == null) {
       _token = await _getToken();
     }
     return _token;
   }
 
-  static Future<List<Coordination>> getCoordinationList(GlobalKey<ScaffoldState> scaffoldKey) async {
-    if(!await EnterpriseApp.checkInternet(showSnackBar: true, scaffoldKey: scaffoldKey)){
+  static Future<List<Coordination>> getCoordinationList(
+      GlobalKey<ScaffoldState> scaffoldKey) async {
+    if (!await EnterpriseApp.checkInternet(
+        showSnackBar: true, scaffoldKey: scaffoldKey)) {
       return null;
     }
     Coordination coordination;
 
     List<Coordination> toReturn = [];
 
-    final String _urlGetTask = "https://bot.barkom.ua/test/hs/mobileApi/getTask/";
+    final String _urlGetTask =
+        "https://bot.barkom.ua/test/hs/mobileApi/getTask/";
     final String _token = await token;
-    try{
+    try {
       Response response = await get(
-       _urlGetTask,
-       headers: {
-         "Content-Type" : "application/json; charset=utf-8",
-         "Accept-Charset" :  "utf-8",
-         "Token" : "$_token",
-       },
-     );
+        _urlGetTask,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Accept-Charset": "utf-8",
+          "Token": "$_token",
+        },
+      );
 
-     if (response.statusCode == 200) {
-       var jsonData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        var jsonData = json.decode(response.body);
 
-       if (jsonData == null) {
-         return null;
-       }
+        if (jsonData == null) {
+          return null;
+        }
 
-       for (var jsonCostItem in jsonData) {
-         coordination = Coordination.fromMap(jsonCostItem);
-         coordination.url = "https://bot.barkom.ua/test/hs/mobileApi/getDoc?docType=price&docID=${coordination.id}";
-         toReturn.add(coordination);
-       }
-       ShowSnackBar.show(scaffoldKey, "Данi оновлено", Colors.green);
-       return toReturn;
-     } else {
-       FLog.error(
-         exception: Exception(response.statusCode),
-         text: "status code error, with token $_token}",
-       );
-       ShowSnackBar.show(scaffoldKey, "Помилка оновлення даних", Colors.orange);
-       return null;
-     }
-   } catch (e, s) {
-     FLog.error(
-       exception: Exception(e.toString()),
-       text: "response error",
-       stacktrace: s,
-     );
-     ShowSnackBar.show(scaffoldKey, "Помилка оновлення даних", Colors.orange);
-     return null;
+        for (var jsonCostItem in jsonData) {
+          coordination = Coordination.fromMap(jsonCostItem);
+          coordination.url =
+              "https://bot.barkom.ua/test/hs/mobileApi/getDoc?docType=price&docID=${coordination.id}";
+          toReturn.add(coordination);
+        }
+        ShowSnackBar.show(scaffoldKey, "Данi оновлено", Colors.green);
+        return toReturn;
+      } else {
+        FLog.error(
+          exception: Exception(response.statusCode),
+          text: "status code error, with token $_token}",
+        );
+        ShowSnackBar.show(
+            scaffoldKey, "Помилка оновлення даних", Colors.orange);
+        return null;
+      }
+    } catch (e, s) {
+      FLog.error(
+        exception: Exception(e.toString()),
+        text: "response error",
+        stacktrace: s,
+      );
+      ShowSnackBar.show(scaffoldKey, "Помилка оновлення даних", Colors.orange);
+      return null;
     }
   }
 
@@ -123,11 +127,11 @@ class Coordination{
     };
 
     Map<String, String> body = {
-      "email" : _apiUser,
-      "password" : _apiPassword,
+      "email": _apiUser,
+      "password": _apiPassword,
     };
 
-    try{
+    try {
       Response response = await post(
         _url,
         headers: headers,
@@ -147,7 +151,7 @@ class Coordination{
         );
         return null;
       }
-    } catch (e, s){
+    } catch (e, s) {
       FLog.error(
         exception: Exception(e.toString()),
         text: "response error",

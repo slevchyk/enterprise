@@ -33,12 +33,10 @@ class _PageTurnstileState extends State<PageTurnstile> {
 
     SystemChrome.setEnabledSystemUIOverlays([]);
 
-    NfcManager.instance.isAvailable().then((value) =>
-    _nfcAvailability = value).whenComplete(() => setState(() {
-
-    }));
-
-
+    NfcManager.instance
+        .isAvailable()
+        .then((value) => _nfcAvailability = value)
+        .whenComplete(() => setState(() {}));
 
     // FlutterNfcReader.checkNFCAvailability().then((value) {
     //   setState(() {

@@ -109,7 +109,8 @@ class PageMainState extends State<PageMain> {
     );
   }
 
-  _onMessage(GlobalKey<ScaffoldState> _globalKey, Map<String, dynamic> message) async {
+  _onMessage(
+      GlobalKey<ScaffoldState> _globalKey, Map<String, dynamic> message) async {
     final prefs = await SharedPreferences.getInstance();
     final String userID = prefs.get(KEY_USER_ID);
 
@@ -142,7 +143,8 @@ class PageMainState extends State<PageMain> {
               child: Text('Переглянути'),
               onPressed: () {
                 Navigator.of(context).pop();
-                Navigator.of(context).pushNamed("/channel/detail", arguments: channel);
+                Navigator.of(context)
+                    .pushNamed("/channel/detail", arguments: channel);
               },
             ),
           ],
@@ -228,13 +230,15 @@ class _AppDrawerState extends State<AppDrawer> {
             UserAccountsDrawerHeader(
               accountName: widget.profile == null
                   ? Text('Ім\'я')
-                  : Text(widget.profile.firstName + ' ' + widget.profile.lastName),
-              accountEmail: widget.profile == null ? Text('email') : Text(widget.profile.email),
+                  : Text(
+                      widget.profile.firstName + ' ' + widget.profile.lastName),
+              accountEmail: widget.profile == null
+                  ? Text('email')
+                  : Text(widget.profile.email),
               currentAccountPicture: UserPhoto(
                 profile: widget.profile,
               ),
             ),
-
             for (var menuElement in menuList.keys)
               Column(
                 children: <Widget>[
@@ -245,24 +249,28 @@ class _AppDrawerState extends State<AppDrawer> {
                             : Icon(FontAwesomeIcons.signOutAlt)
                         : Icon(menuElement.icon),
                     title: Text(menuElement.path == "/exit"
-                        ? widget.profile?.userID == "" ? 'Увійти' : 'Вийти'
+                        ? widget.profile?.userID == ""
+                            ? 'Увійти'
+                            : 'Вийти'
                         : menuElement.name),
                     onTap: () {
                       if (menuElement.path == "/exit") {
                         singInOutDialog(context);
                       } else {
                         RouteArgs args = RouteArgs(profile: widget.profile);
-                        Navigator.of(context).pushNamed(
-                          '${menuElement.path}',
-                          arguments: args,
-                        ).whenComplete(() => menuElement.isClearCache ? _clearTemp() : null);
+                        Navigator.of(context)
+                            .pushNamed(
+                              '${menuElement.path}',
+                              arguments: args,
+                            )
+                            .whenComplete(() =>
+                                menuElement.isClearCache ? _clearTemp() : null);
                       }
                     },
                   ),
                   menuElement.isDivider ? Divider() : SizedBox(),
                 ],
               ),
-
           ],
         ),
       ),
